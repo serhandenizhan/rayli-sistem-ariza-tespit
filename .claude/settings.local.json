@@ -44,7 +44,12 @@
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\({k:v for k,v in d.items\\(\\) if k!='testler'}\\)\")",
       "Bash(./calistir.sh --egitmeden --hiz 20)",
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('sunucu tick:',d['tick'],'| arizali:',sum\\(1 for a in d['axles'] if a.get\\('yerlesik'\\) not in \\(None,'normal'\\)\\)\\)\")",
-      "Bash(git commit -q -m 'calistir.sh'\\\\''e test adımı, FastAPI lifespan geçişi ve yeniden üretilen veri *)"
+      "Bash(git commit -q -m 'calistir.sh'\\\\''e test adımı, FastAPI lifespan geçişi ve yeniden üretilen veri *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10\" ssh -T git@github.com)",
+      "Bash(security find-internet-password *)",
+      "Bash(git commit -q -m 'Yerel Claude Code ayarları güncellendi *)"
     ]
   }
 }
