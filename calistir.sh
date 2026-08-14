@@ -10,6 +10,7 @@
 #   ./calistir.sh --hiz 10        # simülasyon hız çarpanı (varsayılan 5x)
 #   ./calistir.sh --kor-mod       # cevap anahtarını arayüze hiç gönderme
 #   ./calistir.sh --testsiz       # birim testlerini atla
+#   API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # portlar meşgulse alternatif port
 #
 set -euo pipefail
 
@@ -32,6 +33,35 @@ while [[ $# -gt 0 ]]; do
 done
 
 baslik() { printf "\n\033[1;36m== %s\033[0m\n" "$1"; }
+hata()   { printf "\n\033[1;31mHATA: %s\033[0m\n" "$1" >&2; }
+
+# Port zaten dinleniyorsa anlaşılır bir hata ver ve çık.
+# Neden gerekli? Aksi hâlde uvicorn/next "address already in use" ile sessizce ölüyor; üstelik
+# sağlık kontrolü ESKİ sunucuya cevap verdiği için script "API hazır" deyip devam ediyor ve
+# kullanıcı yeni kodu çalıştırdığını sanarken bayat bir sunucuyla konuşuyor.
+port_dolu_mu() { lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1; }
+
+port_kontrol() {
+  local port="$1" ad="$2" degisken="$3"
+  if port_dolu_mu "$port"; then
+    hata "$port portu ($ad) zaten kullanımda — muhtemelen önceki bir çalıştırma sürüyor."
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN | awk 'NR>1 {print "   süreç: PID " $2 " (" $1 ")"}' >&2
+    {
+      echo "   Çözüm 1 — eski süreci kapat:"
+      echo "       kill \$(lsof -t -iTCP:$port -sTCP:LISTEN)"
+      echo "   Çözüm 2 — başka port kullan:"
+      echo "       $degisken=$((port + 1)) ./calistir.sh"
+      echo "   Çözüm 3 — bu projeye ait tüm süreçleri kapat:"
+      echo "       pkill -f rayli_canli_akis_sunucu; pkill -f 'next dev'"
+    } >&2
+    exit 1
+  fi
+}
+
+# Portlar en başta kontrol edilir: 40 saniyelik eğitimden sonra port hatasıyla karşılaşmak
+# yerine hemen bilgilendirilmek daha iyi.
+port_kontrol "$API_PORT" "canlı akış API'si" "API_PORT"
+port_kontrol "$WEB_PORT" "Next.js dashboard" "WEB_PORT"
 
 # ------------------------------------------------------------------ 1) ortam
 baslik "1/7  Python ortamı"
@@ -88,10 +118,20 @@ temizle() {
 }
 trap temizle EXIT INT TERM
 
-for i in $(seq 1 40); do
-  if curl -sf "http://127.0.0.1:$API_PORT/api/meta" >/dev/null; then echo "API hazır."; break; fi
+API_HAZIR=0
+for i in $(seq 1 60); do
+  # Başlattığımız süreç öldüyse porta bakmanın anlamı yok (başka bir sunucu cevap veriyor olabilir)
+  if ! kill -0 "$API_PID" 2>/dev/null; then
+    hata "Canlı akış API'si başlatılamadı (süreç sonlandı). Yukarıdaki çıktıya bakın."
+    exit 1
+  fi
+  if curl -sf "http://127.0.0.1:$API_PORT/api/meta" >/dev/null; then API_HAZIR=1; echo "API hazır."; break; fi
   sleep 0.5
 done
+if [[ $API_HAZIR -eq 0 ]]; then
+  hata "API $API_PORT portunda 30 saniyede yanıt vermedi."
+  exit 1
+fi
 
 # ------------------------------------------------------------- 6) web arayüzü
 baslik "7/7  Next.js dashboard (:$WEB_PORT)"
@@ -100,5 +140,15 @@ cd "$KOK/web"
 AKIS_API_URL="http://127.0.0.1:$API_PORT" npx next dev -p "$WEB_PORT" &
 WEB_PID=$!
 
+for i in $(seq 1 60); do
+  if ! kill -0 "$WEB_PID" 2>/dev/null; then
+    hata "Next.js dashboard başlatılamadı. Yukarıdaki çıktıya bakın."
+    exit 1
+  fi
+  curl -sf "http://127.0.0.1:$WEB_PORT" >/dev/null && break
+  sleep 0.5
+done
+
 echo -e "\n\033[1;32mDashboard: http://localhost:$WEB_PORT\033[0m   (durdurmak için Ctrl+C)"
+echo -e "API      : http://127.0.0.1:$API_PORT/api/meta"
 wait "$WEB_PID"

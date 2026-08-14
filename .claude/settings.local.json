@@ -62,7 +62,23 @@
       "Bash(git commit -q -m 'Tüm işletmedeki hatlar, interaktif harita ve sekmeli arayüz *)",
       "Bash(.venv/bin/python -c ' *)",
       "Bash(./calistir.sh --egitmeden --hiz 20 --testsiz)",
-      "Bash(git commit -q -m 'Marmaray ve M11 kapsam dışı, harita tek ekrana sığıyor, sınıf ağırlığı yumuşatıldı *)"
+      "Bash(git commit -q -m 'Marmaray ve M11 kapsam dışı, harita tek ekrana sığıyor, sınıf ağırlığı yumuşatıldı *)",
+      "Bash(./calistir.sh)",
+      "Bash(lsof -nP -iTCP:8000 -sTCP:LISTEN)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(timeout 100 ./calistir.sh --egitmeden --testsiz)",
+      "Bash(echo \"ÇIKIŞ=$?\")",
+      "Bash(bash -n calistir.sh)",
+      "Bash(./calistir.sh --egitmeden --testsiz)",
+      "Bash(echo \"port doluyken çıkış kodu: $?\")",
+      "Bash(API_PORT=8001 WEB_PORT=3001 ./calistir.sh --egitmeden --testsiz)",
+      "Bash(curl -s localhost:3001/api/meta)",
+      "Bash(python3 -c \"import json,sys;print\\('3001 arayüz + 8001 API çalışıyor, dingil:',len\\(json.load\\(sys.stdin\\)['axles']\\)\\)\")",
+      "Bash(pkill -f \"port 8001\")",
+      "Bash(pkill -f \"8001\")",
+      "Bash(pkill -f \"3001\")",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('arayüz+API çalışıyor · dingil:',len\\(d['axles']\\),'· hat:',len\\(set\\(d['axle_hat'].values\\(\\)\\)\\)\\)\")",
+      "Bash(git commit -q -m 'calistir.sh: port çakışmasında anlaşılır hata ve bayat sunucuya bağlanma kusuru giderildi *)"
     ]
   }
 }

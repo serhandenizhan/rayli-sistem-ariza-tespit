@@ -74,6 +74,7 @@ Bu komut sırasıyla: sanal ortamı kurar → sentetik veriyi hazırlar → **mo
 Seçenekler:
 
 ```bash
+API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # 8000/3000 meşgulse alternatif port
 ./calistir.sh --egitmeden     # mevcut checkpoint ile başlat (eğitimi atla)
 ./calistir.sh --hiz 10        # simülasyonu 10x hızlandır (1x = gerçek zamanlı, 2 sn/tick)
 ./calistir.sh --veri-uret     # sentetik veriyi de yeniden üret

@@ -14,6 +14,7 @@ Tek komutla çalışır: `./calistir.sh` (kurulum → eğitim → etiketsiz akı
 
 ```bash
 ./calistir.sh                   # UÇTAN UCA: kurulum + eğitim + canlı akış + dashboard
+API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # portlar meşgulse alternatif port
 ./calistir.sh --egitmeden       # eğitimi atla, mevcut checkpoint ile başlat
 ./calistir.sh --hiz 10          # simülasyon hız çarpanı (1x = gerçek zaman, 2 sn/tick)
 ./calistir.sh --kor-mod         # cevap anahtarını arayüze hiç gönderme
@@ -230,3 +231,8 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 - Kod içi yorumlar ve dokümantasyon Türkçedir; yeni kod eklerken bu tutarlılığı koru.
 - **Yeni özellik eklendiğinde bu dosya (CLAUDE.md) güncellenmelidir** — proje hafızası burasıdır.
 - Git: tamamlanan her özellikten sonra commit + push atılır (kullanıcının kalıcı tercihi).
+- `calistir.sh` başlamadan önce **8000/3000 portlarını kontrol eder** ve doluysa PID'i ve
+  çözüm komutlarını yazıp çıkar. Bu kontrol bilinçli olarak eğitimden ÖNCE yapılır. Ayrıca
+  sunucuların hazır olup olmadığı yalnızca porta `curl` atarak değil, **başlatılan sürecin
+  yaşadığı** (`kill -0 $PID`) da kontrol edilerek anlaşılır — aksi hâlde port doluyken uvicorn
+  ölse bile eski sunucu cevap verdiği için script "API hazır" deyip bayat sunucuya bağlanıyordu.
