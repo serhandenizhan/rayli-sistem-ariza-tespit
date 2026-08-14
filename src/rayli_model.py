@@ -2,9 +2,13 @@
 Model mimarisi ve paylaşılan sabitler.
 
 Bu modül hem eğitim (rayli_dl_egitim.py) hem de eğitilmiş modeli yeniden eğitmeden kullanan
-tahmin scripti (rayli_tahmin.py) tarafından import edilir. Mimari tanımı tek bir yerde
-tutularak eğitim ile tahmin arasında olası bir tutarsızlık (örn. iki yerde farklı katman
-boyutu) engellenmiş olur.
+tahmin scripti (rayli_tahmin.py) ve canlı akış sunucusu tarafından import edilir. Mimari tanımı
+tek bir yerde tutularak eğitim ile tahmin arasında olası bir tutarsızlık (örn. iki yerde farklı
+katman boyutu) engellenmiş olur.
+
+Model ÇOK GÖREVLİDİR (multi-task): tek bir gövde (CNN+LSTM) üzerinde iki çıkış başlığı vardır —
+(1) arıza tipi (6 sınıf), (2) arıza şiddeti (none/mild/moderate/severe). Şiddet, arıza tipiyle
+ilişkili ama ayrı bir bilgidir ve operasyonda "ne kadar acil?" sorusunu yanıtlar.
 """
 import numpy as np
 import torch
@@ -23,28 +27,35 @@ GROUP_COLS = ["train_id", "wagon_id", "axle_id"]
 WINDOW = 10     # 10 x 2 sn = 20 saniyelik geçmiş pencere
 STRIDE = 2
 
+# Şiddet sınıfları sıralıdır (ordinal); sabit sırayla tutulur ki eğitim/çıkarım aynı indeksleri
+# kullansın ve arayüzde doğal sırada gösterilebilsin.
+SEVERITY_CLASSES = ["none", "mild", "moderate", "severe"]
+
 
 class SeqDataset(Dataset):
-    def __init__(self, X, y):
+    """Sekans veri kümesi: (X, arıza tipi etiketi, şiddet etiketi)."""
+
+    def __init__(self, X, y_tip, y_sev):
         self.X = torch.from_numpy(X)
-        self.y = torch.from_numpy(y)
+        self.y_tip = torch.from_numpy(y_tip)
+        self.y_sev = torch.from_numpy(y_sev)
 
     def __len__(self):
-        return len(self.y)
+        return len(self.y_tip)
 
     def __getitem__(self, i):
-        return self.X[i], self.y[i]
+        return self.X[i], self.y_tip[i], self.y_sev[i]
 
 
 class CNNLSTM(nn.Module):
     """1D-CNN (kısa vadeli/yerel titreşim paternlerini çıkarır) + LSTM (zamansal trendi
-    öğrenir) sekans sınıflandırıcısı.
+    öğrenir) sekans sınıflandırıcısı — çok görevli (arıza tipi + şiddet).
 
     Girdi şekli : (batch, WINDOW, len(FEATURE_COLS))
-    Çıktı şekli : (batch, n_classes)  -- ham logit'ler (softmax uygulanmamış)
+    Çıktı       : (tip_logits, siddet_logits) -- ham logit'ler (softmax uygulanmamış)
     """
 
-    def __init__(self, n_features, n_classes, hidden=64):
+    def __init__(self, n_features, n_classes, n_severity=len(SEVERITY_CLASSES), hidden=64):
         super().__init__()
         self.conv1 = nn.Conv1d(n_features, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv1d(32, 64, kernel_size=3, padding=1)
@@ -52,7 +63,8 @@ class CNNLSTM(nn.Module):
         self.lstm = nn.LSTM(64, hidden, batch_first=True)
         self.fc1 = nn.Linear(hidden, 32)
         self.drop = nn.Dropout(0.3)
-        self.fc2 = nn.Linear(32, n_classes)
+        self.fc_tip = nn.Linear(32, n_classes)          # arıza tipi başlığı
+        self.fc_sev = nn.Linear(32, n_severity)         # arıza şiddeti başlığı
 
     def forward(self, x):
         x = x.permute(0, 2, 1)                 # (batch, features, seq) -> Conv1d için
@@ -62,7 +74,7 @@ class CNNLSTM(nn.Module):
         _, (h, _) = self.lstm(x)
         z = self.relu(self.fc1(h[-1]))
         z = self.drop(z)
-        return self.fc2(z)
+        return self.fc_tip(z), self.fc_sev(z)
 
 
 def load_model_checkpoint(path, map_location="cpu"):
@@ -70,7 +82,11 @@ def load_model_checkpoint(path, map_location="cpu"):
     (model, checkpoint_dict) döndürür. checkpoint_dict içinde sınıf isimleri, özellik
     kolonları ve ölçekleyici (scaler) parametreleri de bulunur."""
     checkpoint = torch.load(path, map_location=map_location, weights_only=False)
-    model = CNNLSTM(n_features=len(checkpoint["feature_cols"]), n_classes=len(checkpoint["classes"]))
+    model = CNNLSTM(
+        n_features=len(checkpoint["feature_cols"]),
+        n_classes=len(checkpoint["classes"]),
+        n_severity=len(checkpoint.get("severity_classes", SEVERITY_CLASSES)),
+    )
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
     return model, checkpoint

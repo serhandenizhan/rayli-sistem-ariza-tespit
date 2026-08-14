@@ -49,7 +49,9 @@ def main():
     df.insert(0, "sample_id", range(len(df)))
 
     stream_df = df.drop(columns=LABEL_COLS)
-    key_df = df[["sample_id", "timestamp", "train_id", "wagon_id", "axle_id"] + LABEL_COLS]
+    kimlik = [c for c in ["sample_id", "timestamp", "line_id", "train_id", "wagon_id", "axle_id"]
+              if c in df.columns]
+    key_df = df[kimlik + LABEL_COLS]
 
     stream_df.to_csv(STREAM_CSV, index=False)
     key_df.to_csv(KEY_CSV, index=False)

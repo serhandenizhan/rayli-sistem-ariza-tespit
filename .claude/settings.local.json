@@ -18,7 +18,11 @@
       "Bash(mkdir -p data/harici)",
       "Bash(cp /private/tmp/claude-501/-Users-serhan-Downloads-rayli-ariza-tespiti/5dd4d373-6e30-4a1c-af66-036f8314a04d/scratchpad/istasyonlar.geojson data/harici/ibb_rayli_istasyon.geojson)",
       "Bash(cp /private/tmp/claude-501/-Users-serhan-Downloads-rayli-ariza-tespiti/5dd4d373-6e30-4a1c-af66-036f8314a04d/scratchpad/hatlar.geojson data/harici/ibb_rayli_hat.geojson)",
-      "Bash(python3 istanbul_metro_agi.py)"
+      "Bash(python3 istanbul_metro_agi.py)",
+      "Bash(../.venv/bin/python rayli_veri_uret.py)",
+      "Bash(../.venv/bin/python rayli_dl_egitim.py)",
+      "Bash(../.venv/bin/python rayli_etiketsiz_uret.py)",
+      "Bash(../.venv/bin/python rayli_tahmin.py)"
     ]
   }
 }
