@@ -20,6 +20,7 @@
   --deniz: #071627;
   --kara: #1c2938;
   --kara-sinir: #2c3d55;
+  --ilce-yazi: #6b7f9c;
 
   --radius: 10px;
 }
@@ -46,13 +47,15 @@ body {
 .sayfa { max-width: 1720px; margin: 0 auto; padding: 16px 20px 48px; }
 
 .ust-bar {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  display: flex; flex-direction: column; gap: 12px;
   padding: 14px 18px; margin-bottom: 16px;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid var(--line); border-radius: var(--radius);
   position: sticky; top: 0; z-index: 20;
   backdrop-filter: blur(6px);
 }
+.ust-satir { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ust-satir.alt-satir { border-top: 1px solid var(--line); padding-top: 11px; gap: 12px; }
 .ust-bar h1 { font-size: 16px; margin: 0; letter-spacing: .2px; }
 .ust-bar .alt { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .bosluk { flex: 1; }
@@ -232,3 +235,28 @@ tbody tr:last-child td { border-bottom: none; }
   border: 1px solid var(--bad); border-radius: 6px; padding: 6px 8px; margin: 6px 0 0;
   white-space: pre-wrap; overflow-x: auto; max-height: 180px;
 }
+
+/* ------------------------------------------------------------------ sekmeler */
+.sekmeler { display: flex; gap: 4px; flex-wrap: wrap; }
+.sekme {
+  position: relative; display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; font-size: 12.5px; border-radius: 8px;
+  background: transparent; border: 1px solid transparent; color: var(--muted);
+}
+.sekme:hover { background: var(--panel-2); border-color: var(--line); color: var(--text); }
+.sekme.aktif {
+  background: var(--panel-2); border-color: var(--accent);
+  color: var(--text); font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.sekme-ikon { font-size: 13px; }
+.sekme-rozet {
+  min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px;
+  background: var(--bad); color: #fff; font-size: 10px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sekme-icerik { display: flex; flex-direction: column; gap: 16px; }
+
+/* -------------------------------------------------------------- harita araçları */
+.harita-arac { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.harita-arac button { font-size: 11px; padding: 5px 9px; }

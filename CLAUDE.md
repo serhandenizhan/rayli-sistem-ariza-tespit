@@ -47,7 +47,13 @@ yapılabilir.
   20 işletmedeki hat, 265 gerçek istasyon, gerçek koordinatlar, harita için sadeleştirilmiş
   güzergâh geometrisi. İstasyon SIRASI kaynak veride yok — 2-opt ile iyileştirilmiş açık TSP
   yolu olarak türetiliyor (M4/M2/T1'de gerçek sırayla birebir örtüştüğü testlerle doğrulandı).
-  `SIMULASYON_HATLARI` sabiti, tren işletilen hatları belirler.
+  `SIMULASYON_HATLARI` sabiti, tren işletilen hatları belirler — **işletmedeki tüm yolcu
+  hatları** dahildir (19 hat: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, T1, T3, T4, T5,
+  F1, F2, F4, MARMARAY). Teleferikler (TF1, TF2) hariçtir: kabinli sistemlerde dingil/boji
+  yoktur, projenin sensör modeli onlara uymaz. `ISLETMEDEKI_INSAAT_HATLARI` ise kaynak veride
+  "İnşaat Aşamasında" görünmesine rağmen fiilen işletmede olan hatları dahil eder — şu an
+  yalnızca **F4** (Rumelihisarüstü–Aşiyan, 2022'de açıldı; İBB anlık görüntüsü kendi içinde
+  tutarsız: hat geometrisi "Mevcut", istasyonları "İnşaat").
   Ayrıca `cografya_kur()` ile **harita zemini** (`data/istanbul_cografya.json`) üretilir:
   geoBoundaries ADM2 ilçe sınırlarından (ODbL 1.0) ağın çevresine düşen 43 ilçe alınıp
   sadeleştirilir (76 KB). Haritada bu poligonlar dolu çizilir; **deniz ayrı bir veri değildir**,
@@ -74,7 +80,7 @@ yapılabilir.
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
-  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 32 dingili tek batch'te
+  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 76 dingili tek batch'te
   modele sokar; **tahminden sonra** cevap anahtarıyla eşleştirip çevrimiçi metrik hesaplar.
   Ölçekleme/model yükleme mantığı `rayli_model.py`'den gelir — tahmin scriptiyle birebir aynıdır.
   **Histerezis**: bir sınıf N ardışık tick tahmin edilmeden "yerleşik" olmaz (`yerlesik` alanı);
@@ -107,8 +113,9 @@ görünüyordu.
 
 ## Veri hakkında kritik noktalar
 
-- `data/rayli_sistem_{tum_veri,train,test}.csv` — kolon şeması `docs/rayli_sistem_veri_semasi.md`
-  içinde tam olarak açıklanmıştır.
+- `data/rayli_sistem_{train,test}.csv` — kolon şeması `docs/rayli_sistem_veri_semasi.md`
+  içinde tam olarak açıklanmıştır. `rayli_sistem_tum_veri.csv` (train+test birleşimi) hiçbir
+  modül tarafından okunmaz ve depo boyutu için **git'e girmez**; veri üretilince oluşur.
 - `data/istanbul_metro_agi.json` (depoda tutulur) ağ modelidir; `data/harici/` altındaki ham İBB
   GeoJSON'ları önbellektir ve **git'e girmez** (gerektiğinde `--indir` ile yeniden çekilir).
 - `data/ray_kusur_noktalari.json` — gerçek hat üzerindeki sabit ray kusuru konumları (hangi
@@ -173,7 +180,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **58 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **61 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -182,7 +189,8 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
   dosyasında etiket olmaması), fiziksel akıl kontrolleri (trenler duraklarda duruyor mu vb.)
 - `test_metro_agi.py` — ağ modeli: koordinatlar İstanbul içinde mi, km sırası artıyor mu,
   bilinen hat terminalleri (M4/T1/M2) doğru mu, M4'ün ilk 5 istasyonu gerçek sırayla mı;
-  coğrafya katmanı: ilçelerin varlığı, poligon geçerliliği, lisans bilgisinin korunması
+  coğrafya katmanı: ilçelerin varlığı, poligon geçerliliği, lisans bilgisinin korunması;
+  kapsam: işletmedeki her hatta tren olması, füniküllerin dahil, teleferiklerin hariç olması
 - `test_model.py` — iki başlıklı çıktı, checkpoint alanları, scaler yeniden kurulumu, sekans
   hizası, **doğruluk regresyon eşiği**
 - `test_canli_akis.py` — pencere dolmadan tahmin yok, histerezis davranışı, kör modda sızıntı
@@ -191,8 +199,10 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 ## Sıradaki olası görevler
 
 - Kalıcılık: tahminleri/alarmları SQLite'a yazıp geçmişe dönük sorgulama.
-- Aynı hatta birden fazla tren (şu an hat başına 1 tren, 8 hat = 32 dingil).
-- Marmaray/M11 gibi diğer hatlara da tren koymak (`SIMULASYON_HATLARI`).
+- Aynı hatta birden fazla tren (şu an hat başına 1 tren, 19 hat = 76 dingil).
+- Kaynak veri tazeliği: İBB anlık görüntüsü bazı hatlarda eski etapları gösteriyor
+  (M9 yalnızca 4 istasyon, M3 Bakırköy uzatması yok, M11 Halkalı etabı "inşaat").
+  Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir.
 - Gerçek (sentetik olmayan) veriye uyarlama; bkz. "Bilinen basitleştirmeler".
 
 ## Diğer notlar

@@ -58,7 +58,8 @@
       "Bash(../.venv/bin/python istanbul_metro_agi.py)",
       "Bash(npx tsc *)",
       "Bash(.venv/bin/python -)",
-      "Bash(git commit -q -m 'Haritaya gerçek İstanbul coğrafyası \\(kara/deniz\\) eklendi *)"
+      "Bash(git commit -q -m 'Haritaya gerçek İstanbul coğrafyası \\(kara/deniz\\) eklendi *)",
+      "Bash(git commit -q -m 'Tüm işletmedeki hatlar, interaktif harita ve sekmeli arayüz *)"
     ]
   }
 }

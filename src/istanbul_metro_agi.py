@@ -67,9 +67,22 @@ HAT_RENK = {
     "TF1": "#9a9a9a", "TF2": "#9a9a9a", "MARMARAY": "#0b6ab0",
 }
 
+# İBB anlık görüntüsünde istasyonları "İnşaat Aşamasında" işaretli olmasına rağmen FİİLEN
+# İŞLETMEDE olan hatlar. F4 (Rumelihisarüstü – Aşiyan füniküleri) 2022'de açıldı; kaynak veri
+# bu güncellemeyi henüz yansıtmıyor (hat geometrisi "Mevcut", istasyonları "İnşaat" — kaynak
+# kendi içinde tutarsız). Bu listedeki hatların istasyonları da ağa dahil edilir.
+ISLETMEDEKI_INSAAT_HATLARI = {"F4"}
+
 # Simülasyonda tren işletilen hatlar (her biri için ayrı tren seti kurulur).
-# Avrupa + Anadolu yakası, metro + tramvay karışımı olacak şekilde seçildi.
-SIMULASYON_HATLARI = ["M2", "M4", "M1A", "M5", "M7", "M3", "M8", "T1"]
+# İşletmedeki TÜM yolcu raylı sistem hatları: metro + tramvay + füniküler + banliyö.
+# Teleferikler (TF1, TF2) hariçtir — kabinli sistemlerde dingil/boji yoktur, bu projenin
+# sensör modeli (titreşim/rulman/fren/motor) onlara uymaz.
+SIMULASYON_HATLARI = [
+    "M1A", "M1B", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M11",
+    "T1", "T3", "T4", "T5",
+    "F1", "F2", "F4",
+    "MARMARAY",
+]
 
 DUNYA_YARICAP_KM = 6371.0088
 
@@ -200,10 +213,12 @@ def ag_kur():
     kod_meta = {}
     for f in istasyon_gj["features"]:
         p = f["properties"]
-        if "Mevcut" not in str(p.get("PROJE_ASAMA", "")):
-            continue
         kod = hat_kodu(p.get("PROJE_ADI"))
         if kod is None:
+            continue
+        isletmede = ("Mevcut" in str(p.get("PROJE_ASAMA", ""))
+                     or kod in ISLETMEDEKI_INSAAT_HATLARI)
+        if not isletmede:
             continue
         lon, lat = f["geometry"]["coordinates"][:2]
         kod_istasyon.setdefault(kod, []).append({

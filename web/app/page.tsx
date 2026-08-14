@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Kontroller from "@/components/Kontroller";
+import Kontroller, { type Sekme } from "@/components/Kontroller";
 import KpiKartlari from "@/components/KpiKartlari";
 import MetroHarita from "@/components/MetroHarita";
 import DingilIzgara from "@/components/DingilIzgara";
@@ -18,6 +18,7 @@ export default function Sayfa() {
   const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
           oynatiliyor, korMod, histerezis, testleriYenile } = useAkis();
   const [secili, setSecili] = useState<string | null>(null);
+  const [sekme, setSekme] = useState<Sekme>("izleme");
 
   // İlk pakette bir dingil seçili gelsin (varsa arızalı olan, yoksa ilki)
   useEffect(() => {
@@ -31,45 +32,88 @@ export default function Sayfa() {
     [tick, secili]
   );
 
+  // Haritadan/ızgaradan dingil seçilince ilgili sekmeye geç (bağlam kaybolmasın)
+  const dingilSec = (axle: string) => {
+    setSecili(axle);
+    if (sekme === "izleme") setSekme("dingiller");
+  };
+
+  const aktifAlarm = (tick?.axles ?? []).filter((a) => a.yerlesik && a.yerlesik !== "normal").length;
+
   return (
     <main className="sayfa">
       <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol}
-                  oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis} />
+                  oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis}
+                  sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm} />
 
       {hata && <div className="uyari">{hata}</div>}
 
+      {/* KPI şeridi her sekmede görünür — özet bilgi her zaman elde olsun */}
       <KpiKartlari tick={tick} meta={meta} />
 
-      <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={setSecili} />
-
-      <div className="izgara" style={{ marginTop: 16 }}>
-        <div className="sutun">
-          <DingilIzgara axles={tick?.axles ?? []} secili={secili} onSec={setSecili} korMod={korMod} />
-          <SensorGrafik axle={secili} gecmis={secili ? gecmisAl(secili) : []} />
-          <OlasilikCubuk axle={seciliAxle} meta={meta} />
-
-          <div className="panel">
-            <header><h2>Sınıf Renk Anahtarı</h2></header>
-            <div className="efsane">
-              {(meta?.classes ?? []).map((c) => (
-                <span key={c}>
-                  <i style={{ background: SINIF_RENK[c] }} /> {SINIF_ETIKET[c]}
-                  <span className="mono" style={{ color: "var(--muted)" }}>
-                    {" "}({tick?.sayaclar?.[c] ?? 0} dingil)
-                  </span>
-                </span>
-              ))}
+      {sekme === "izleme" && (
+        <div className="sekme-icerik">
+          <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
+          <div className="izgara">
+            <div className="sutun">
+              <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
+            </div>
+            <div className="sutun">
+              <div className="panel">
+                <header><h2>Sınıf Renk Anahtarı</h2></header>
+                <div className="efsane">
+                  {(meta?.classes ?? []).map((c) => (
+                    <span key={c}>
+                      <i style={{ background: SINIF_RENK[c] }} /> {SINIF_ETIKET[c]}
+                      <span className="mono" style={{ color: "var(--muted)" }}>
+                        {" "}({tick?.sayaclar?.[c] ?? 0} dingil)
+                      </span>
+                    </span>
+                  ))}
+                </div>
+                <div className="aciklama-kutu" style={{ marginTop: 10 }}>
+                  Renkler haritadaki tren ikonlarında ve dingil kartlarında aynıdır. Sayılar,
+                  modelin o anki <b>ham</b> tahminine göredir; haritadaki ikon rengi ise
+                  histerezis sonrası <b>yerleşik</b> durumu gösterir.
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        <div className="sutun">
-          <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
-          <DogrulamaPaneli metrikler={tick?.metrikler} meta={meta} />
-          <TestPaneli testler={testler} yenile={testleriYenile} />
-          <EgitimPaneli egitim={meta?.egitim ?? null} />
+      {sekme === "dingiller" && (
+        <div className="sekme-icerik">
+          <DingilIzgara axles={tick?.axles ?? []} secili={secili} onSec={setSecili} korMod={korMod} />
+          <div className="izgara">
+            <div className="sutun">
+              <SensorGrafik axle={secili} gecmis={secili ? gecmisAl(secili) : []} />
+            </div>
+            <div className="sutun">
+              <OlasilikCubuk axle={seciliAxle} meta={meta} />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {sekme === "dogrulama" && (
+        <div className="sekme-icerik">
+          <div className="izgara">
+            <div className="sutun">
+              <DogrulamaPaneli metrikler={tick?.metrikler} meta={meta} />
+            </div>
+            <div className="sutun">
+              <EgitimPaneli egitim={meta?.egitim ?? null} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {sekme === "testler" && (
+        <div className="sekme-icerik">
+          <TestPaneli testler={testler} yenile={testleriYenile} />
+        </div>
+      )}
     </main>
   );
 }

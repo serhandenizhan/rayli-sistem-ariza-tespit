@@ -14,3 +14,7 @@ web/next-env.d.ts
 
 # İBB ham GeoJSON önbelleği (türetilmiş data/istanbul_metro_agi.json depoda tutulur)
 data/harici/
+
+# Türetilmiş birleşik veri (train + test'in birleşimi; hiçbir modül okumuyor,
+# 'python src/rayli_veri_uret.py' ile yeniden üretilir) — depo boyutu için hariç
+data/rayli_sistem_tum_veri.csv

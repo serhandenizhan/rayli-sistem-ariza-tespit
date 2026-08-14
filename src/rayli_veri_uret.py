@@ -274,19 +274,26 @@ def build_series_list(hatlar):
 
 def make_dedicated_episodes(series_list):
     """Her arıza tipi için hem train hem test zaman diliminde garanti örnek üretecek
-    şekilde (start, len, type) bölümleri atar."""
+    şekilde (start, len, type) bölümleri atar.
+
+    Bölüm sayısı seri (dingil) sayısıyla ORANTILIDIR — yeni hat/tren eklendiğinde arıza
+    yoğunluğu sabit kalsın, sınıf dengesi bozulmasın diye.
+    """
     dedicated = {s: [] for s in series_list}
     idx_pool = list(range(len(series_list)))
     rng.shuffle(idx_pool)
     ptr = 0
+    n_seri = len(series_list)
+    train_bolum = max(2, round(n_seri * 0.125))   # 32 dingilde 4 idi -> aynı yoğunluk
+    test_bolum = max(2, round(n_seri * 0.094))    # 32 dingilde 3 idi
     for f_type in FAULT_TYPES:
-        for _ in range(4):      # train zaman diliminde
+        for _ in range(train_bolum):      # train zaman diliminde
             s = series_list[idx_pool[ptr % len(idx_pool)]]
             ptr += 1
             f_len = int(N_STEPS * rng.uniform(0.10, 0.18))
             f_start = int(rng.integers(0, int(N_STEPS * 0.5) - f_len))
             dedicated[s].append((f_start, f_len, f_type))
-        for _ in range(3):      # test zaman diliminde (split noktasından sonra)
+        for _ in range(test_bolum):      # test zaman diliminde (split noktasından sonra)
             s = series_list[idx_pool[ptr % len(idx_pool)]]
             ptr += 1
             f_len = int(N_STEPS * rng.uniform(0.05, 0.10))

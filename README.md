@@ -7,22 +7,24 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
 
 Öne çıkanlar:
 
-- **Gerçek ağ**: 20 işletmedeki hat, 265 gerçek istasyon, gerçek koordinatlar; trenler M2, M4,
-  M1A, M5, M7, M3, M8, T1 hatlarında gerçek istasyon dizisinde işliyor
+- **Gerçek ağ**: 21 hat, 267 gerçek istasyon, gerçek koordinatlar; **işletmedeki 19 yolcu
+  hattının tamamında** tren işliyor (M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, T1, T3,
+  T4, T5, F1, F2, F4, Marmaray) — 19 tren, 76 dingil
 - **Gerçekçi sefer**: istasyonlar arası hızlanma/frenleme, istasyonda bekleme, terminalde dönüş
 - **Çok görevli model**: arıza tipi (6 sınıf) + arıza şiddeti (4 seviye) tek gövdeden
 - **Sızıntısız doğrulama**: akan veride etiket yok; skorlama ayrı cevap anahtarıyla, tahminden sonra
 - **Histerezis**: tek tick'lik sınıf sıçramaları alarm üretmez
 - **Canlı harita**: gerçek İstanbul coğrafyası (kıyı çizgisi, Boğaz, Haliç, Adalar) üzerinde
   trenler gerçek hatlarda, tahmin rengiyle hareket eder
-- **55 birim testi**: arayüzde okunabilir sonuç paneliyle
+- **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / testler
+- **İnteraktif harita**: fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma, ilçe adları
+- **61 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
 
 ```
 rayli_ariza_tespiti/
 ├── data/                       # üretilen veri setleri
-│   ├── rayli_sistem_tum_veri.csv
 │   ├── rayli_sistem_train.csv
 │   ├── rayli_sistem_test.csv
 │   ├── rayli_sistem_test_akis.csv            # ETİKETSİZ test verisi (canlı akışa verilen)
@@ -224,9 +226,10 @@ Panolar:
 
 - **Kontrol barı**: duraklat/devam/baştan, hız (1x–50x), **histerezis** (1–8 tick) ve
   **kör mod** — hepsi çalışma anında değiştirilebilir
-- **Canlı ağ haritası**: gerçek İstanbul coğrafyası (ilçe sınırları, kıyı çizgisi, Boğaz)
-  üzerine çizilen raylı sistem ağı; trenler gerçek hatlar üzerinde hareket eder, ikon rengi
-  modelin tahminidir, ray kusurları üçgenle işaretlidir
+- **Canlı ağ haritası**: gerçek İstanbul coğrafyası (ilçe sınırları ve adları, kıyı çizgisi,
+  Boğaz) üzerine çizilen raylı sistem ağı; trenler gerçek hatlar üzerinde hareket eder, ikon
+  rengi modelin tahminidir, ray kusurları üçgenle işaretlidir.
+  **Fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma**; 4x üzerinde istasyon adları
 - **KPI'lar**: aktif alarm, baskın arıza tipi, canlı tip doğruluğu, canlı şiddet doğruluğu
 - **Dingil kartları**: hat bazında gruplanmış, şiddet rozetli, histerezis bekleme göstergeli
 - **Sensör akışı**: seçili dingil için çoklu sensör grafiği + model tahmin şeridi
@@ -242,7 +245,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 58 test
+./testleri_calistir.sh              # 61 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 
