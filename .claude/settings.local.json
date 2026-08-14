@@ -22,7 +22,12 @@
       "Bash(../.venv/bin/python rayli_veri_uret.py)",
       "Bash(../.venv/bin/python rayli_dl_egitim.py)",
       "Bash(../.venv/bin/python rayli_etiketsiz_uret.py)",
-      "Bash(../.venv/bin/python rayli_tahmin.py)"
+      "Bash(../.venv/bin/python rayli_tahmin.py)",
+      "Bash(../.venv/bin/python rayli_canli_akis_sunucu.py --konsol --hiz 500)",
+      "Bash(.venv/bin/pip install *)",
+      "Bash(chmod +x testleri_calistir.sh)",
+      "Bash(./testleri_calistir.sh)",
+      "Bash(git commit -q -m 'Histerezis, şiddet tahmini, Kafka adaptörü ve pytest altyapısı *)"
     ]
   }
 }
