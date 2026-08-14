@@ -41,12 +41,19 @@ yapılabilir.
 
 ## Kod organizasyonu (src/)
 
-- `istanbul_metro_agi.py` — **gerçek metro ağı modeli**. İBB Açık Veri Portalı'ndaki resmi
-  GeoJSON'lardan (istasyon noktaları + hat vektörleri) `data/istanbul_metro_agi.json` üretir:
+- `istanbul_metro_agi.py` — **gerçek metro ağı modeli + harita zemini**. İBB Açık Veri
+  Portalı'ndaki resmi GeoJSON'lardan (istasyon noktaları + hat vektörleri)
+  `data/istanbul_metro_agi.json` üretir:
   20 işletmedeki hat, 265 gerçek istasyon, gerçek koordinatlar, harita için sadeleştirilmiş
   güzergâh geometrisi. İstasyon SIRASI kaynak veride yok — 2-opt ile iyileştirilmiş açık TSP
   yolu olarak türetiliyor (M4/M2/T1'de gerçek sırayla birebir örtüştüğü testlerle doğrulandı).
   `SIMULASYON_HATLARI` sabiti, tren işletilen hatları belirler.
+  Ayrıca `cografya_kur()` ile **harita zemini** (`data/istanbul_cografya.json`) üretilir:
+  geoBoundaries ADM2 ilçe sınırlarından (ODbL 1.0) ağın çevresine düşen 43 ilçe alınıp
+  sadeleştirilir (76 KB). Haritada bu poligonlar dolu çizilir; **deniz ayrı bir veri değildir**,
+  karanın çizilmediği yerdir — Boğaz, Haliç, Marmara ve Karadeniz böyle ortaya çıkar.
+  Not: kaynak veride Adalar ilçesi "Prince Islands" adıyla geçtiği için `AD_DUZELTME` ile
+  Türkçeleştirilir.
 - `rayli_veri_uret.py` — sentetik veri üretim scripti, `data/` klasörünü doldurur. Ağ modelini
   (`istanbul_metro_agi`) kullanır: trenler gerçek hatlarda, gerçek istasyon dizisinde,
   gerçekçi sefer profiliyle (hızlanma/frenleme/istasyonda bekleme/terminalde dönüş) hareket eder.
@@ -87,8 +94,9 @@ kontrol çağrılarını yönetir; `lib/tipler.ts` sunucu paketlerinin tip tanı
 payload alanlarını değiştirirsen burayı da güncelle). Arayüz metinleri Türkçedir.
 
 Paneller: üst kontrol barı (play/duraklat/baştan, hız, **histerezis**, **kör mod** — hepsi
-çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; trenler
-tahmin rengiyle hareket eder, ray kusurları üçgenle işaretlidir), hat bazında gruplanmış dingil
+çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; kara/deniz
+zemini ilçe poligonlarından çizilir, trenler tahmin rengiyle hareket eder, ray kusurları üçgenle
+işaretlidir; `--deniz`/`--kara`/`--kara-sinir` CSS değişkenleriyle renklendirilir), hat bazında gruplanmış dingil
 kartları (şiddet rozeti + histerezis bekleme göstergesi), sensör akış grafiği, iki başlıklı model
 çıktısı (tip + şiddet), alarm günlüğü, canlı doğrulama, **TestPaneli** (pytest sonuçları),
 eğitim özeti.
@@ -105,6 +113,9 @@ görünüyordu.
   GeoJSON'ları önbellektir ve **git'e girmez** (gerektiğinde `--indir` ile yeniden çekilir).
 - `data/ray_kusur_noktalari.json` — gerçek hat üzerindeki sabit ray kusuru konumları (hangi
   istasyonlar arasında olduğu dahil); haritada üçgenle gösterilir.
+- `data/istanbul_cografya.json` — harita zemini (ilçe poligonları, geoBoundaries/ODbL 1.0).
+  Yeniden dağıtılan açık veri olduğu için kaynak/lisans bilgisi dosyanın içinde tutulur ve
+  bu bir testle korunur.
 - Konum kolonları (`lat`, `lon`, `next_station`, `line_id`) harita/bağlam içindir; **özellik
   (feature) DEĞİLDİR** — `FEATURE_COLS` listesine eklenmemelidir.
 - Train/test bölmesi **kronolojiktir, rastgele DEĞİLDİR** (ilk %80 zaman dilimi train, son %20
@@ -162,7 +173,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **55 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **58 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -170,7 +181,8 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 - `test_veri_semasi.py` — şema, eksik değer, kronolojik bölme, **sızıntı korumaları** (akış
   dosyasında etiket olmaması), fiziksel akıl kontrolleri (trenler duraklarda duruyor mu vb.)
 - `test_metro_agi.py` — ağ modeli: koordinatlar İstanbul içinde mi, km sırası artıyor mu,
-  bilinen hat terminalleri (M4/T1/M2) doğru mu, M4'ün ilk 5 istasyonu gerçek sırayla mı
+  bilinen hat terminalleri (M4/T1/M2) doğru mu, M4'ün ilk 5 istasyonu gerçek sırayla mı;
+  coğrafya katmanı: ilçelerin varlığı, poligon geçerliliği, lisans bilgisinin korunması
 - `test_model.py` — iki başlıklı çıktı, checkpoint alanları, scaler yeniden kurulumu, sekans
   hizası, **doğruluk regresyon eşiği**
 - `test_canli_akis.py` — pencere dolmadan tahmin yok, histerezis davranışı, kör modda sızıntı

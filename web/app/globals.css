@@ -16,6 +16,11 @@
   --c-motor: #ff4d97;
   --c-rail: #ff4d5e;
 
+  /* Harita zemini: deniz (boş alan) ve kara (ilçe poligonları) */
+  --deniz: #071627;
+  --kara: #1c2938;
+  --kara-sinir: #2c3d55;
+
   --radius: 10px;
 }
 

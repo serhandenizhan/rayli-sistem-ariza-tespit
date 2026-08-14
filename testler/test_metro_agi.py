@@ -95,6 +95,42 @@ def test_ray_kusurlari_gercek_istasyon_araliginda(veri_dizini, metro_agi):
             assert ad in adlar, f"bilinmeyen istasyon: {ad}"
 
 
+def _cografya(veri_dizini):
+    yol = os.path.join(veri_dizini, "istanbul_cografya.json")
+    if not os.path.exists(yol):
+        pytest.skip("Coğrafya katmanı yok — 'python src/istanbul_metro_agi.py' çalıştırın")
+    with open(yol, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def test_cografya_katmani_ilceleri_iceriyor(veri_dizini):
+    """Harita zemini (kara parçası) katmanı, ağı çevreleyen ilçeleri içermeli."""
+    c = _cografya(veri_dizini)
+    assert c["ilce_sayisi"] >= 30
+    adlar = {i["ad"] for i in c["ilceler"]}
+    for beklenen in ["Kadıköy", "Beşiktaş", "Üsküdar", "Bakırköy", "Adalar"]:
+        assert beklenen in adlar, f"ilçe eksik: {beklenen}"
+
+
+def test_cografya_poligonlari_kapali_ve_istanbulda(veri_dizini):
+    """Poligon halkaları en az 4 noktadan oluşmalı ve koordinatlar İstanbul çevresinde olmalı."""
+    c = _cografya(veri_dizini)
+    for ilce in c["ilceler"]:
+        for parca in ilce["poligonlar"]:
+            for halka in parca:
+                assert len(halka) >= 4, f"{ilce['ad']}: geçersiz halka"
+                for lon, lat in halka:
+                    assert 27.5 <= lon <= 30.5, f"{ilce['ad']}: boylam dışarıda ({lon})"
+                    assert 40.3 <= lat <= 41.8, f"{ilce['ad']}: enlem dışarıda ({lat})"
+
+
+def test_cografya_lisans_bilgisi_var(veri_dizini):
+    """Yeniden dağıtılan açık veri için kaynak/lisans bilgisi katmanda saklanmalı."""
+    c = _cografya(veri_dizini)
+    assert "geoBoundaries" in c["kaynak"]
+    assert "ODbL" in c["kaynak"] or "Open Database License" in c["kaynak"]
+
+
 def test_haversine_bilinen_mesafe():
     """Haversine hesabı doğru olmalı: Kadıköy-Üsküdar arası ~3 km."""
     d = ag.haversine_km(29.0257, 40.9903, 29.0154, 41.0255)

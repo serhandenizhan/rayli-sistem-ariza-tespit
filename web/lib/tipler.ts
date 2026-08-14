@@ -145,10 +145,24 @@ export interface RayKusuru {
   lon: number;
 }
 
+/** Harita zemini: ilçe poligonları. poligonlar[parça][halka][nokta] = [lon, lat];
+ *  her parçanın ilk halkası dış sınır, sonrakiler deliktir. */
+export interface Ilce {
+  ad: string;
+  poligonlar: number[][][][];
+}
+
+export interface Cografya {
+  kaynak: string;
+  ilce_sayisi: number;
+  ilceler: Ilce[];
+}
+
 export interface MetroAgi {
   hatlar: Record<string, Hat>;
   simulasyon_hatlari: string[];
   ray_kusurlari: RayKusuru[];
+  cografya: Cografya | null;
   kaynak: string | null;
 }
 

@@ -13,7 +13,8 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
 - **Çok görevli model**: arıza tipi (6 sınıf) + arıza şiddeti (4 seviye) tek gövdeden
 - **Sızıntısız doğrulama**: akan veride etiket yok; skorlama ayrı cevap anahtarıyla, tahminden sonra
 - **Histerezis**: tek tick'lik sınıf sıçramaları alarm üretmez
-- **Canlı harita**: trenler gerçek hatlar üzerinde, tahmin rengiyle hareket eder
+- **Canlı harita**: gerçek İstanbul coğrafyası (kıyı çizgisi, Boğaz, Haliç, Adalar) üzerinde
+  trenler gerçek hatlarda, tahmin rengiyle hareket eder
 - **55 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
@@ -27,6 +28,7 @@ rayli_ariza_tespiti/
 │   ├── rayli_sistem_test_akis.csv            # ETİKETSİZ test verisi (canlı akışa verilen)
 │   ├── rayli_sistem_test_cevap_anahtari.csv  # cevap anahtarı (yalnızca doğrulama için)
 │   ├── istanbul_metro_agi.json               # gerçek hat/istasyon ağ modeli (İBB verisi)
+│   ├── istanbul_cografya.json                # harita zemini: ilçe sınırları (geoBoundaries)
 │   └── ray_kusur_noktalari.json              # hat üzerindeki sabit ray kusuru konumları
 ├── docs/
 │   └── rayli_sistem_veri_semasi.md   # veri şeması: kolon açıklamaları, sınıf mantığı
@@ -163,7 +165,12 @@ Metro İstanbul veri setlerinden gelir:
 - *Raylı Sistem İstasyon Noktaları Verisi* (GeoJSON) — 343 istasyon noktası
 - *Raylı Sistem Hatları Vektör Verisi* (GeoJSON) — hat güzergâh geometrisi
 
-`src/istanbul_metro_agi.py` bunlardan `data/istanbul_metro_agi.json` üretir. Kaynak veride
+Harita zemini (kara parçası ve kıyı çizgisi) ise **geoBoundaries** ADM2 ilçe sınırlarından
+gelir (Open Data Commons ODbL 1.0). Denizler ayrı bir veri değildir — karanın çizilmediği yerdir;
+Boğaz, Haliç, Marmara ve Karadeniz bu şekilde ortaya çıkar.
+
+`src/istanbul_metro_agi.py` bunlardan `data/istanbul_metro_agi.json` ve
+`data/istanbul_cografya.json` üretir. Kaynak veride
 istasyonların hat üzerindeki **sırası bulunmadığı** için sıra, "toplam uzunluğu en kısa açık yol"
 problemi olarak çözülür (açgözlü başlangıç + 2-opt iyileştirme). Sonuç gerçek sırayla örtüşür —
 örneğin M4: Kadıköy → Ayrılık Çeşmesi → Acıbadem → Ünalan → Göztepe → … → Sabiha Gökçen
@@ -217,8 +224,9 @@ Panolar:
 
 - **Kontrol barı**: duraklat/devam/baştan, hız (1x–50x), **histerezis** (1–8 tick) ve
   **kör mod** — hepsi çalışma anında değiştirilebilir
-- **Canlı ağ haritası**: gerçek koordinatlarla İstanbul raylı sistem ağı; trenler gerçek hatlar
-  üzerinde hareket eder, ikon rengi modelin tahminidir, ray kusurları üçgenle işaretlidir
+- **Canlı ağ haritası**: gerçek İstanbul coğrafyası (ilçe sınırları, kıyı çizgisi, Boğaz)
+  üzerine çizilen raylı sistem ağı; trenler gerçek hatlar üzerinde hareket eder, ikon rengi
+  modelin tahminidir, ray kusurları üçgenle işaretlidir
 - **KPI'lar**: aktif alarm, baskın arıza tipi, canlı tip doğruluğu, canlı şiddet doğruluğu
 - **Dingil kartları**: hat bazında gruplanmış, şiddet rozetli, histerezis bekleme göstergeli
 - **Sensör akışı**: seçili dingil için çoklu sensör grafiği + model tahmin şeridi
@@ -234,7 +242,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 55 test
+./testleri_calistir.sh              # 58 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 

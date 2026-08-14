@@ -43,6 +43,21 @@ HAT_URL = ("https://data.ibb.gov.tr/dataset/8b8603dd-2642-4789-a891-4bb7cb2c94e8
 ISTASYON_HAM = os.path.join(HAM_DIR, "ibb_rayli_istasyon.geojson")
 HAT_HAM = os.path.join(HAM_DIR, "ibb_rayli_hat.geojson")
 
+# --- Harita zemini (kara parçası / kıyı çizgisi) ---
+# geoBoundaries ADM2 (ilçe) sınırları — ODbL 1.0 lisanslı, yeniden dağıtılabilir açık veri.
+# Bu katman haritada karayı çizmek içindir: ilçe poligonları birlikte çizilince Boğaz, Haliç,
+# Marmara ve Karadeniz kıyıları ile Adalar doğal olarak ortaya çıkar.
+COGRAFYA_URL = ("https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/"
+                "TUR/ADM2/geoBoundaries-TUR-ADM2.geojson")
+COGRAFYA_HAM = os.path.join(HAM_DIR, "geoboundaries_tur_adm2.geojson")
+COGRAFYA_JSON = os.path.join(DATA_DIR, "istanbul_cografya.json")
+COGRAFYA_KAYNAK = ("geoBoundaries (geoboundaries.org) TUR ADM2 — Open Data Commons Open "
+                   "Database License (ODbL) 1.0")
+# Ağ sınırlarının çevresine bırakılan pay (derece) — harita kenarlarında kara görünsün diye
+COGRAFYA_PAY = 0.09
+# Kaynak veride birkaç ilçe adı İngilizce geçiyor; harita ipuçlarında Türkçe görünsün diye
+AD_DUZELTME = {"Prince Islands": "Adalar"}
+
 # Metro İstanbul hat renkleri (resmi hat renklerine yakın; harita okunabilirliği için seçildi)
 HAT_RENK = {
     "M1A": "#e30613", "M1B": "#a11f6b", "M2": "#00a55b", "M3": "#00b0e6", "M4": "#e5007d",
@@ -161,7 +176,8 @@ def istasyonlari_sirala(istasyonlar):
 # ------------------------------------------------------------------------- indirme
 def indir(zorla=False):
     os.makedirs(HAM_DIR, exist_ok=True)
-    for url, hedef in ((ISTASYON_URL, ISTASYON_HAM), (HAT_URL, HAT_HAM)):
+    for url, hedef in ((ISTASYON_URL, ISTASYON_HAM), (HAT_URL, HAT_HAM),
+                       (COGRAFYA_URL, COGRAFYA_HAM)):
         if os.path.exists(hedef) and not zorla:
             print(f"Önbellekte var, atlanıyor: {os.path.basename(hedef)}")
             continue
@@ -269,6 +285,82 @@ def ag_kur():
     return cikti
 
 
+def _halka_bbox(koordinatlar):
+    """İç içe koordinat listesinden (Polygon/MultiPolygon) bbox çıkarır."""
+    xs, ys = [], []
+
+    def yur(c):
+        if c and isinstance(c[0], (int, float)):
+            xs.append(c[0]); ys.append(c[1])
+        else:
+            for alt in c:
+                yur(alt)
+
+    yur(koordinatlar)
+    if not xs:
+        return None
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def cografya_kur(hatlar):
+    """İlçe sınırlarından harita zemini (kara parçası) katmanını üretir.
+
+    Ağın kapladığı alanın biraz dışına taşan tüm ilçeler alınır, poligonlar sadeleştirilir ve
+    `data/istanbul_cografya.json` dosyasına yazılır. Haritada bu poligonlar dolu çizilir; deniz
+    ayrı bir veri değildir — karanın çizilmediği yer denizdir (Boğaz, Haliç, Marmara).
+    """
+    if not os.path.exists(COGRAFYA_HAM):
+        print("Coğrafya ham verisi yok, atlanıyor (indirmek için: --indir)")
+        return None
+
+    # Ağın sınırları -> ilgi alanı
+    lon_min, lat_min = 180.0, 90.0
+    lon_max, lat_max = -180.0, -90.0
+    for hat in hatlar.values():
+        for ist in hat["istasyonlar"]:
+            lon_min = min(lon_min, ist["lon"]); lon_max = max(lon_max, ist["lon"])
+            lat_min = min(lat_min, ist["lat"]); lat_max = max(lat_max, ist["lat"])
+    alan = (lon_min - COGRAFYA_PAY, lat_min - COGRAFYA_PAY,
+            lon_max + COGRAFYA_PAY, lat_max + COGRAFYA_PAY)
+
+    with open(COGRAFYA_HAM, encoding="utf-8") as f:
+        gj = json.load(f)
+
+    ilceler = []
+    for feature in gj["features"]:
+        geom = feature["geometry"]
+        kutu = _halka_bbox(geom["coordinates"])
+        if not kutu:
+            continue
+        # ilgi alanıyla kesişmiyorsa atla
+        if kutu[2] < alan[0] or kutu[0] > alan[2] or kutu[3] < alan[1] or kutu[1] > alan[3]:
+            continue
+
+        parcalar = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+        poligonlar = []
+        for poligon in parcalar:
+            halkalar = []
+            for halka in poligon:      # ilk halka dış sınır, sonrakiler delik
+                nokta = [[round(float(c[0]), 5), round(float(c[1]), 5)] for c in halka]
+                sade = sadelestir(nokta, tolerans=0.0009)
+                if len(sade) >= 4:     # çok küçük adacıkları ele
+                    halkalar.append(sade)
+            if halkalar:
+                poligonlar.append(halkalar)
+        if poligonlar:
+            ad = feature["properties"].get("shapeName", "")
+            ilceler.append({"ad": AD_DUZELTME.get(ad, ad), "poligonlar": poligonlar})
+
+    cikti = {"kaynak": COGRAFYA_KAYNAK, "ilce_sayisi": len(ilceler), "ilceler": ilceler}
+    with open(COGRAFYA_JSON, "w", encoding="utf-8") as f:
+        json.dump(cikti, f, ensure_ascii=False, separators=(",", ":"))
+
+    nokta_sayisi = sum(len(h) for i in ilceler for p in i["poligonlar"] for h in p)
+    print(f"Coğrafya katmanı: {COGRAFYA_JSON}  ({os.path.getsize(COGRAFYA_JSON) // 1024} KB)")
+    print(f"  {len(ilceler)} ilçe, {nokta_sayisi} nokta (sadeleştirilmiş)")
+    return cikti
+
+
 def yukle():
     """Kurulmuş ağ modelini okur (diğer modüller bunu kullanır)."""
     if not os.path.exists(AG_JSON):
@@ -286,7 +378,8 @@ def main():
     args = ap.parse_args()
 
     indir(zorla=args.indir)
-    ag_kur()
+    ag = ag_kur()
+    cografya_kur(ag["hatlar"])
 
 
 if __name__ == "__main__":

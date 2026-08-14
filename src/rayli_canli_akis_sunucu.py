@@ -54,6 +54,7 @@ KEY_CSV = os.path.join(DATA_DIR, "rayli_sistem_test_cevap_anahtari.csv")
 MODEL_PATH = os.path.join(MODEL_DIR, "rayli_cnn_lstm_model.pt")
 AG_JSON = os.path.join(DATA_DIR, "istanbul_metro_agi.json")
 KUSUR_JSON = os.path.join(DATA_DIR, "ray_kusur_noktalari.json")
+COGRAFYA_JSON = os.path.join(DATA_DIR, "istanbul_cografya.json")
 
 TICK_SECONDS = 2.0          # veri örnekleme aralığı: 2 saniye (1x hızda gerçek zamanlı)
 MAX_EVENTS = 200            # bellekte tutulan son alarm/olay sayısı
@@ -307,7 +308,7 @@ class AkisSimulatoru:
 
     # ------------------------------------------------------------------- meta
     def ag_verisi(self):
-        """Harita için metro ağı + ray kusuru noktaları."""
+        """Harita için metro ağı + ray kusuru noktaları + coğrafya (kara parçası) katmanı."""
         ag = {}
         if os.path.exists(AG_JSON):
             with open(AG_JSON, encoding="utf-8") as f:
@@ -316,11 +317,16 @@ class AkisSimulatoru:
         if os.path.exists(KUSUR_JSON):
             with open(KUSUR_JSON, encoding="utf-8") as f:
                 kusurlar = json.load(f)
+        cografya = None
+        if os.path.exists(COGRAFYA_JSON):
+            with open(COGRAFYA_JSON, encoding="utf-8") as f:
+                cografya = json.load(f)
         # Yalnızca tren işletilen hatları gönder (harita bunları vurgular), diğerleri arka plan
         return {
             "hatlar": ag.get("hatlar", {}),
             "simulasyon_hatlari": sorted({h for h in self.axle_hat.values() if h}),
             "ray_kusurlari": kusurlar,
+            "cografya": cografya,
             "kaynak": ag.get("kaynak"),
         }
 

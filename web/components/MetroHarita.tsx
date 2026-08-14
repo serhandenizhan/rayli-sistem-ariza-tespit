@@ -91,7 +91,34 @@ export default function MetroHarita({
       </header>
 
       <div style={{ overflowX: "auto" }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", minWidth: 520 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%"
+             style={{ display: "block", minWidth: 520, background: "var(--deniz)", borderRadius: 8 }}>
+          {/* --- zemin: kara parçası (ilçe poligonları). Çizilmeyen yer denizdir:
+                  Boğaz, Haliç, Marmara ve Karadeniz kıyıları böyle ortaya çıkar. --- */}
+          <g>
+            {ag.cografya?.ilceler.map((ilce, i) => (
+              <path
+                key={`${ilce.ad}-${i}`}
+                d={ilce.poligonlar
+                  .map((parca) =>
+                    parca
+                      .map((halka) =>
+                        halka
+                          .map(([lon, lat], j) =>
+                            `${j === 0 ? "M" : "L"}${X(lon).toFixed(1)},${Y(lat).toFixed(1)}`)
+                          .join(" ") + " Z")
+                      .join(" "))
+                  .join(" ")}
+                fillRule="evenodd"
+                fill="var(--kara)"
+                stroke="var(--kara-sinir)"
+                strokeWidth={0.6}
+              >
+                <title>{ilce.ad}</title>
+              </path>
+            ))}
+          </g>
+
           {/* --- hat güzergâhları (gerçek geometri) --- */}
           {gosterilecek.map((h) => {
             const sim = simHatlari.has(h.kod);
@@ -190,15 +217,18 @@ export default function MetroHarita({
           </span>
         ))}
         <span style={{ marginLeft: "auto" }}>
-          ▲ ray kusuru · ▮ tren (renk = arıza durumu) · ince çizgi = tren işletilmeyen hat
+          ▲ ray kusuru · ▮ tren (renk = arıza durumu) · ince çizgi = tren işletilmeyen hat ·
+          koyu alan = deniz
         </span>
       </div>
 
       <div className="aciklama-kutu" style={{ marginTop: 8 }}>
         Hat güzergâhları, istasyon konumları ve adları <b>İBB Açık Veri Portalı</b>'ndaki gerçek
-        veriden gelir. Trenler bu gerçek hatlar üzerinde, gerçek istasyon dizisinde hareket eder;
-        ikon rengi modelin o trendeki dingiller için verdiği <b>yerleşik</b> (histerezis sonrası)
-        tahmindir.
+        veriden gelir. Harita zemini (kara parçası ve kıyı çizgisi) <b>geoBoundaries</b> ilçe
+        sınırlarından çizilir (ODbL 1.0); denizler ayrı bir veri değildir — karanın olmadığı
+        yerdir, Boğaz ve Haliç böyle görünür. Trenler bu gerçek hatlar üzerinde, gerçek istasyon
+        dizisinde hareket eder; ikon rengi modelin o trendeki dingiller için verdiği
+        <b>yerleşik</b> (histerezis sonrası) tahmindir.
       </div>
     </div>
   );
