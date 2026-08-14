@@ -9,6 +9,7 @@
 #   ./calistir.sh --veri-uret     # sentetik veriyi de yeniden üret
 #   ./calistir.sh --hiz 10        # simülasyon hız çarpanı (varsayılan 5x)
 #   ./calistir.sh --kor-mod       # cevap anahtarını arayüze hiç gönderme
+#   ./calistir.sh --testsiz       # birim testlerini atla
 #
 set -euo pipefail
 
@@ -18,11 +19,12 @@ PY="$VENV/bin/python"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
 
-EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""
+EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""; TEST=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --egitmeden) EGIT=0; shift ;;
     --veri-uret) VERI_URET=1; shift ;;
+    --testsiz) TEST=0; shift ;;
     --hiz) HIZ="$2"; shift 2 ;;
     --kor-mod) KOR_MOD="--kor-mod"; shift ;;
     *) echo "Bilinmeyen seçenek: $1"; exit 1 ;;
@@ -32,7 +34,7 @@ done
 baslik() { printf "\n\033[1;36m== %s\033[0m\n" "$1"; }
 
 # ------------------------------------------------------------------ 1) ortam
-baslik "1/6  Python ortamı"
+baslik "1/7  Python ortamı"
 if [[ ! -x "$PY" ]]; then
   echo "Sanal ortam kuruluyor (.venv)…"
   python3 -m venv "$VENV"
@@ -42,8 +44,10 @@ fi
 echo "Hazır: $($PY -c 'import torch; print("torch", torch.__version__)')"
 
 # -------------------------------------------------------------------- 2) veri
-baslik "2/6  Veri seti"
+baslik "2/7  Metro ağı + veri seti"
 cd "$KOK/src"
+# Gerçek İstanbul metro ağı modeli (İBB açık verisi) — yoksa önbellekten kurulur
+[[ -f "$KOK/data/istanbul_metro_agi.json" ]] || "$PY" istanbul_metro_agi.py
 if [[ $VERI_URET -eq 1 || ! -f "$KOK/data/rayli_sistem_test.csv" ]]; then
   "$PY" rayli_veri_uret.py
 else
@@ -51,7 +55,7 @@ else
 fi
 
 # ------------------------------------------------------------------ 3) eğitim
-baslik "3/6  Model eğitimi"
+baslik "3/7  Model eğitimi"
 if [[ $EGIT -eq 1 ]]; then
   "$PY" rayli_dl_egitim.py
 else
@@ -60,11 +64,21 @@ else
 fi
 
 # ------------------------------------------- 4) etiketsiz akış seti + doğrulama
-baslik "4/6  Etiketsiz akış seti + cevap anahtarı"
+baslik "4/7  Etiketsiz akış seti + cevap anahtarı"
 "$PY" rayli_etiketsiz_uret.py
 
-# -------------------------------------------------------------- 5) akış API'si
-baslik "5/6  Canlı akış API'si (:$API_PORT)"
+# ------------------------------------------------------------------ 5) testler
+baslik "5/7  Birim testleri"
+if [[ $TEST -eq 1 ]]; then
+  # Sonuçlar results/test_ozeti.json'a yazılır ve dashboard'daki test panelinde görünür.
+  # Test başarısız olsa bile demo ayağa kalksın diye çıkış kodu yutuluyor (panelde kırmızı görünür).
+  (cd "$KOK" && "$PY" -m pytest -q) || echo "UYARI: bazı testler başarısız — ayrıntı dashboard'daki Testler panelinde"
+else
+  echo "Testler atlandı (--testsiz)"
+fi
+
+# -------------------------------------------------------------- 6) akış API'si
+baslik "6/7  Canlı akış API'si (:$API_PORT)"
 "$PY" rayli_canli_akis_sunucu.py --port "$API_PORT" --hiz "$HIZ" $KOR_MOD &
 API_PID=$!
 temizle() {
@@ -80,7 +94,7 @@ for i in $(seq 1 40); do
 done
 
 # ------------------------------------------------------------- 6) web arayüzü
-baslik "6/6  Next.js dashboard (:$WEB_PORT)"
+baslik "7/7  Next.js dashboard (:$WEB_PORT)"
 cd "$KOK/web"
 [[ -d node_modules ]] || npm install
 AKIS_API_URL="http://127.0.0.1:$API_PORT" npx next dev -p "$WEB_PORT" &

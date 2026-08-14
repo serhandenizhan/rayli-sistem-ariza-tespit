@@ -351,12 +351,11 @@ class AkisSimulatoru:
 
 # ====================================================================== FastAPI
 def create_app(sim: AkisSimulatoru):
+    from contextlib import asynccontextmanager
+
     from fastapi import FastAPI, Request
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import StreamingResponse
-
-    app = FastAPI(title="Raylı Sistem Canlı Akış API")
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
     aboneler: "set[asyncio.Queue]" = set()
 
@@ -375,9 +374,15 @@ def create_app(sim: AkisSimulatoru):
                 q.put_nowait(payload)
             await asyncio.sleep(TICK_SECONDS / max(sim.hiz, 0.1))
 
-    @app.on_event("startup")
-    async def _basla():
-        app.state.task = asyncio.create_task(dongu())
+    @asynccontextmanager
+    async def lifespan(_app):
+        """Uygulama yaşam döngüsü: açılışta tick üreticisini başlat, kapanışta durdur."""
+        gorev = asyncio.create_task(dongu())
+        yield
+        gorev.cancel()
+
+    app = FastAPI(title="Raylı Sistem Canlı Akış API", lifespan=lifespan)
+    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
     @app.get("/api/meta")
     async def meta():

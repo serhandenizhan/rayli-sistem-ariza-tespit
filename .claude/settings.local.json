@@ -35,7 +35,16 @@
       "Bash(curl -s localhost:3000/api/meta)",
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('meta kor_mod:',d['kor_mod'],'histerezis:',d['histerezis']\\)\")",
       "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"kor_mod\",\"value\":false}')",
-      "Bash(git commit -q -m 'Dashboard: canlı metro haritası, test paneli ve çalışma anı kontrolleri *)"
+      "Bash(git commit -q -m 'Dashboard: canlı metro haritası, test paneli ve çalışma anı kontrolleri *)",
+      "Bash(pkill -f \"rayli_canli_akis\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"calistir.sh\")",
+      "Bash(./calistir.sh --veri-uret --hiz 20)",
+      "Bash(curl -s localhost:3000/api/testler)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\({k:v for k,v in d.items\\(\\) if k!='testler'}\\)\")",
+      "Bash(./calistir.sh --egitmeden --hiz 20)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('sunucu tick:',d['tick'],'| arizali:',sum\\(1 for a in d['axles'] if a.get\\('yerlesik'\\) not in \\(None,'normal'\\)\\)\\)\")",
+      "Bash(git commit -q -m 'calistir.sh'\\\\''e test adımı, FastAPI lifespan geçişi ve yeniden üretilen veri *)"
     ]
   }
 }
