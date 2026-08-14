@@ -11,3 +11,6 @@ web/next-env.d.ts
 
 # İşletim sistemi
 .DS_Store
+
+# İBB ham GeoJSON önbelleği (türetilmiş data/istanbul_metro_agi.json depoda tutulur)
+data/harici/

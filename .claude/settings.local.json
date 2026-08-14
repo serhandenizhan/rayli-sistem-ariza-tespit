@@ -7,7 +7,18 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit -q -m 'İlk sürüm: sentetik veri, CNN+LSTM modeli, canlı akış API'\\\\''si ve Next.js dashboard *)",
-      "Bash(git count-objects *)"
+      "Bash(git count-objects *)",
+      "Bash(cat)",
+      "Bash(curl -sS --max-time 150 -X POST -d @q1.overpass https://overpass-api.de/api/interpreter -o routes.json -w \"http=%{http_code} size=%{size_download}\\\\n\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sS --max-time 40 \"https://data.ibb.gov.tr/api/3/action/package_search?q=rayl%C4%B1%20sistem&rows=40\" -o ibb1.json)",
+      "Bash(curl -sSL --max-time 120 \"https://data.ibb.gov.tr/dataset/04ec9805-2483-46c7-914f-30c50857a846/resource/3dc8203f-3613-48a8-85e9-24fffb7821ad/download/rayli_sistem_istasyon_poi_verisi.geojson\" -o istasyonlar.geojson -w \"istasyon http=%{http_code} size=%{size_download}\\\\n\")",
+      "Bash(curl -sSL --max-time 120 \"https://data.ibb.gov.tr/dataset/8b8603dd-2642-4789-a891-4bb7cb2c94e8/resource/fe4ec165-9d11-4b83-b031-caea3cfaae55/download/rayli_sistem_hat_verisi.geojson\" -o hatlar.geojson -w \"hat http=%{http_code} size=%{size_download}\\\\n\")",
+      "Bash(python3 -)",
+      "Bash(mkdir -p data/harici)",
+      "Bash(cp /private/tmp/claude-501/-Users-serhan-Downloads-rayli-ariza-tespiti/5dd4d373-6e30-4a1c-af66-036f8314a04d/scratchpad/istasyonlar.geojson data/harici/ibb_rayli_istasyon.geojson)",
+      "Bash(cp /private/tmp/claude-501/-Users-serhan-Downloads-rayli-ariza-tespiti/5dd4d373-6e30-4a1c-af66-036f8314a04d/scratchpad/hatlar.geojson data/harici/ibb_rayli_hat.geojson)",
+      "Bash(python3 istanbul_metro_agi.py)"
     ]
   }
 }
