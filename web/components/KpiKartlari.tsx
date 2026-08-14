@@ -15,9 +15,8 @@ function Kpi({ baslik, deger, alt, renk }: { baslik: string; deger: string; alt?
 export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; meta: Meta | null }) {
   const m = tick?.metrikler;
   const sayaclar = tick?.sayaclar ?? {};
-  const arizali = Object.entries(sayaclar)
-    .filter(([k]) => k !== "normal")
-    .reduce((a, [, v]) => a + v, 0);
+  // Alarm sayısı histerezis sonrası YERLEŞİK duruma göre — anlık sıçramalar sayılmaz
+  const arizali = (tick?.axles ?? []).filter((a) => a.yerlesik && a.yerlesik !== "normal").length;
   const toplamDingil = meta?.axles.length ?? 0;
 
   const enSik = Object.entries(sayaclar)
@@ -47,9 +46,10 @@ export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; m
         renk={accRenk}
       />
       <Kpi
-        baslik="Canlı Macro F1"
-        deger={m?.macro_f1 != null ? m.macro_f1.toFixed(3) : "—"}
-        alt={`offline test referansı: ${meta?.egitim ? meta.egitim.macro_f1.toFixed(3) : "—"}`}
+        baslik="Canlı Şiddet Doğruluğu"
+        deger={m?.severity_accuracy != null ? `%${(m.severity_accuracy * 100).toFixed(1)}` : "—"}
+        alt={`macro F1 (tip): ${m?.macro_f1 != null ? m.macro_f1.toFixed(3) : "—"} · offline: ${
+          meta?.egitim ? meta.egitim.macro_f1.toFixed(3) : "—"}`}
       />
       <Kpi
         baslik="İşlenen Sekans"

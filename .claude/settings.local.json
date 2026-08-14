@@ -27,7 +27,15 @@
       "Bash(.venv/bin/pip install *)",
       "Bash(chmod +x testleri_calistir.sh)",
       "Bash(./testleri_calistir.sh)",
-      "Bash(git commit -q -m 'Histerezis, şiddet tahmini, Kafka adaptörü ve pytest altyapısı *)"
+      "Bash(git commit -q -m 'Histerezis, şiddet tahmini, Kafka adaptörü ve pytest altyapısı *)",
+      "Bash(curl -sf localhost:3000/api/meta -o /dev/null)",
+      "Bash(curl -s localhost:3000/api/ag)",
+      "Bash(curl -s localhost:3000/api/durum)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('tick',d.get\\('tick'\\),'hiz',d.get\\('hiz'\\),'oynatiliyor',d.get\\('oynatiliyor'\\)\\)\")",
+      "Bash(curl -s localhost:3000/api/meta)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('meta kor_mod:',d['kor_mod'],'histerezis:',d['histerezis']\\)\")",
+      "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"kor_mod\",\"value\":false}')",
+      "Bash(git commit -q -m 'Dashboard: canlı metro haritası, test paneli ve çalışma anı kontrolleri *)"
     ]
   }
 }

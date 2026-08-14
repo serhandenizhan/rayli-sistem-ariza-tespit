@@ -3,17 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import Kontroller from "@/components/Kontroller";
 import KpiKartlari from "@/components/KpiKartlari";
+import MetroHarita from "@/components/MetroHarita";
 import DingilIzgara from "@/components/DingilIzgara";
 import SensorGrafik from "@/components/SensorGrafik";
 import OlasilikCubuk from "@/components/OlasilikCubuk";
 import OlayGunlugu from "@/components/OlayGunlugu";
 import DogrulamaPaneli from "@/components/DogrulamaPaneli";
 import EgitimPaneli from "@/components/EgitimPaneli";
+import TestPaneli from "@/components/TestPaneli";
 import { SINIF_ETIKET, SINIF_RENK } from "@/lib/tipler";
 import { useAkis } from "@/lib/useAkis";
 
 export default function Sayfa() {
-  const { meta, tick, olaylar, bagli, hata, kontrol, gecmisAl, oynatiliyor } = useAkis();
+  const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
+          oynatiliyor, korMod, histerezis, testleriYenile } = useAkis();
   const [secili, setSecili] = useState<string | null>(null);
 
   // İlk pakette bir dingil seçili gelsin (varsa arızalı olan, yoksa ilki)
@@ -27,24 +30,21 @@ export default function Sayfa() {
     () => tick?.axles.find((a) => a.axle === secili) ?? null,
     [tick, secili]
   );
-  const korMod = meta?.kor_mod ?? false;
 
   return (
     <main className="sayfa">
-      <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol} oynatiliyor={oynatiliyor} />
+      <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol}
+                  oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis} />
 
       {hata && <div className="uyari">{hata}</div>}
 
       <KpiKartlari tick={tick} meta={meta} />
 
-      <div className="izgara">
+      <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={setSecili} />
+
+      <div className="izgara" style={{ marginTop: 16 }}>
         <div className="sutun">
-          <DingilIzgara
-            axles={tick?.axles ?? []}
-            secili={secili}
-            onSec={setSecili}
-            korMod={korMod}
-          />
+          <DingilIzgara axles={tick?.axles ?? []} secili={secili} onSec={setSecili} korMod={korMod} />
           <SensorGrafik axle={secili} gecmis={secili ? gecmisAl(secili) : []} />
           <OlasilikCubuk axle={seciliAxle} meta={meta} />
 
@@ -64,8 +64,9 @@ export default function Sayfa() {
         </div>
 
         <div className="sutun">
-          <OlayGunlugu olaylar={olaylar} />
+          <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
           <DogrulamaPaneli metrikler={tick?.metrikler} meta={meta} />
+          <TestPaneli testler={testler} yenile={testleriYenile} />
           <EgitimPaneli egitim={meta?.egitim ?? null} />
         </div>
       </div>

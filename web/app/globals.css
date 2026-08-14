@@ -166,3 +166,64 @@ tbody tr:last-child td { border-bottom: none; }
 
 .sekme-grup { display: flex; gap: 4px; }
 .sekme-grup button { font-size: 11px; padding: 5px 9px; }
+
+/* ------------------------------------------------- kontrol grupları (üst bar) */
+.baslik-blok { min-width: 260px; }
+.kontrol-grup { display: flex; flex-direction: column; gap: 3px; }
+.kontrol-grup > label {
+  font-size: 9.5px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .06em; cursor: help;
+}
+
+/* --------------------------------------------------------- hat blokları */
+.hat-blok { margin-bottom: 14px; }
+.hat-blok:last-child { margin-bottom: 0; }
+.hat-baslik {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  font-size: 11px; color: var(--muted);
+}
+.hat-kod {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px;
+  padding: 1px 7px; font-weight: 700; font-size: 11px; color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.siddet-rozet {
+  position: absolute; top: 7px; right: 7px; font-size: 9px;
+  border: 1px solid; border-radius: 4px; padding: 0 4px; background: var(--panel);
+}
+.bekliyor { font-size: 9px; margin-left: 4px; opacity: .75; }
+.alt-baslik {
+  font-size: 11px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 8px;
+}
+
+/* ------------------------------------------------------------ test paneli */
+.test-ozet {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  border: 1px solid var(--line); border-left-width: 3px; border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 12px; background: var(--panel-2);
+}
+.test-ozet .deger { font-size: 16px; font-weight: 650; }
+.test-ozet .alt { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.test-grup { border-bottom: 1px solid var(--line); }
+.test-grup:last-of-type { border-bottom: none; }
+.test-grup-baslik {
+  width: 100%; display: grid; grid-template-columns: 16px 1fr auto 16px;
+  gap: 8px; align-items: center; text-align: left;
+  background: transparent; border: none; border-radius: 0; padding: 9px 2px; font-size: 12px;
+}
+.test-grup-baslik:hover { background: var(--panel-2); border-color: transparent; }
+.test-grup-baslik .sag { font-size: 11px; color: var(--muted); }
+.test-grup-baslik .ok { color: var(--muted); font-size: 10px; }
+
+.test-liste { padding: 2px 0 10px 24px; display: flex; flex-direction: column; gap: 7px; }
+.test-satir { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: start; }
+.test-aciklama { font-size: 11px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.test-satir .sure { font-size: 10px; color: var(--muted); }
+.test-hata {
+  font-size: 10px; color: #ffd9dd; background: rgba(255,77,94,.08);
+  border: 1px solid var(--bad); border-radius: 6px; padding: 6px 8px; margin: 6px 0 0;
+  white-space: pre-wrap; overflow-x: auto; max-height: 180px;
+}
