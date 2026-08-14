@@ -56,9 +56,24 @@ export default function MetroHarita({
   const [vurgu, setVurgu] = useState<string | null>(null);
   const [don, setDon] = useState<Donusum>({ k: 1, x: 0, y: 0 });
 
+  const [bilgiAcik, setBilgiAcik] = useState(false);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const surukleRef = useRef<{ aktif: boolean; x: number; y: number; kaydi: boolean }>(
     { aktif: false, x: 0, y: 0, kaydi: false });
+
+  /** Ekran (client) koordinatını viewBox koordinatına çevirir.
+   *  SVG'ye `max-height` verildiği için içerik `preserveAspectRatio` ile ORTALANIR ve kenarlarda
+   *  boşluk (letterbox) kalır; bu yüzden basit oranlama yetmez, ölçek ve kaydırma payı
+   *  hesaba katılmalıdır — aksi hâlde fare tekerleği yanlış noktaya yakınlaşır. */
+  const ekranToViewBox = useCallback((cx: number, cy: number, kutu: DOMRect, W: number, H: number) => {
+    const olcek = Math.min(kutu.width / W, kutu.height / H);
+    return {
+      x: (cx - kutu.left - (kutu.width - W * olcek) / 2) / olcek,
+      y: (cy - kutu.top - (kutu.height - H * olcek) / 2) / olcek,
+      olcek,
+    };
+  }, []);
 
   // ---------------------------------------------------------------- izdüşüm
   const gorunum = useMemo(() => {
@@ -120,9 +135,7 @@ export default function MetroHarita({
 
     const tekerlek = (e: WheelEvent) => {
       e.preventDefault();                       // sayfa kaymasın, harita yakınlaşsın
-      const kutu = el.getBoundingClientRect();
-      const sx = ((e.clientX - kutu.left) / kutu.width) * W;
-      const sy = ((e.clientY - kutu.top) / kutu.height) * H;
+      const { x: sx, y: sy } = ekranToViewBox(e.clientX, e.clientY, el.getBoundingClientRect(), W, H);
       setDon((t) => {
         const yeniK = sinirla(t.k * (e.deltaY < 0 ? 1.18 : 1 / 1.18), MIN_OLCEK, MAKS_OLCEK);
         if (yeniK === t.k) return t;
@@ -132,7 +145,7 @@ export default function MetroHarita({
     };
     el.addEventListener("wheel", tekerlek, { passive: false });
     return () => el.removeEventListener("wheel", tekerlek);
-  }, [gorunum]);
+  }, [gorunum, ekranToViewBox]);
 
   // ------------------------------------------------------------- sürükleme (pan)
   const bas = useCallback((e: React.PointerEvent) => {
@@ -144,12 +157,13 @@ export default function MetroHarita({
     const s = surukleRef.current;
     if (!s.aktif || !gorunum) return;
     const kutu = (e.currentTarget as Element).getBoundingClientRect();
-    const dx = ((e.clientX - s.x) / kutu.width) * gorunum.W;
-    const dy = ((e.clientY - s.y) / kutu.height) * gorunum.H;
+    const { olcek } = ekranToViewBox(e.clientX, e.clientY, kutu, gorunum.W, gorunum.H);
+    const dx = (e.clientX - s.x) / olcek;
+    const dy = (e.clientY - s.y) / olcek;
     if (Math.abs(e.clientX - s.x) + Math.abs(e.clientY - s.y) > 3) s.kaydi = true;
     s.x = e.clientX; s.y = e.clientY;
     setDon((t) => ({ ...t, x: t.x + dx, y: t.y + dy }));
-  }, [gorunum]);
+  }, [gorunum, ekranToViewBox]);
 
   const birak = useCallback((e: React.PointerEvent) => {
     surukleRef.current.aktif = false;
@@ -206,6 +220,8 @@ export default function MetroHarita({
             <button onClick={() => setDon({ k: 1, x: 0, y: 0 })} title="Görünümü sıfırla">⟲</button>
           </div>
           <span className="ipucu mono">{k.toFixed(1)}x</span>
+          <button className={bilgiAcik ? "aktif" : ""} onClick={() => setBilgiAcik(!bilgiAcik)}
+                  title="Kaynak ve kullanım bilgisi">ⓘ</button>
         </div>
       </header>
 
@@ -218,10 +234,9 @@ export default function MetroHarita({
           onPointerMove={hareket}
           onPointerUp={birak}
           onPointerLeave={birak}
-          style={{
-            display: "block", minWidth: 520, background: "var(--deniz)",
-            cursor: surukleRef.current.aktif ? "grabbing" : "grab", touchAction: "none",
-          }}
+          preserveAspectRatio="xMidYMid meet"
+          className="harita-svg"
+          style={{ cursor: surukleRef.current.aktif ? "grabbing" : "grab" }}
         >
           <g transform={`translate(${don.x},${don.y}) scale(${k})`}>
             {/* --- zemin: kara parçası (ilçe poligonları). Çizilmeyen yer denizdir:
@@ -331,23 +346,30 @@ export default function MetroHarita({
         </svg>
       </div>
 
-      <div className="efsane" style={{ marginTop: 10 }}>
+      <div className="hat-rozetleri">
         {gosterilecek.filter((h) => simHatlari.has(h.kod)).map((h) => (
-          <span key={h.kod}
+          <span key={h.kod} className="hat-rozet" title={`${h.kod} · ${h.kisa_ad}`}
                 onMouseEnter={() => setVurgu(h.kod)} onMouseLeave={() => setVurgu(null)}
-                style={{ cursor: "default" }}>
-            <i style={{ background: h.renk }} /> <b style={{ color: "var(--text)" }}>{h.kod}</b> {h.kisa_ad}
+                style={{ borderColor: h.renk }}>
+            <i style={{ background: h.renk }} />{h.kod}
           </span>
         ))}
+        <span className="ipucu" style={{ marginLeft: "auto" }}>
+          ▲ ray kusuru · ▮ tren · tekerlek: zoom, sürükle: kaydır
+        </span>
       </div>
 
-      <div className="aciklama-kutu" style={{ marginTop: 8 }}>
-        <b>Kullanım:</b> fare tekerleğiyle yakınlaş/uzaklaş, basılı tutup sürükleyerek kaydır,
-        trene tıklayarak o dingili seç. 4x üzerinde istasyon adları görünür.
-        {" "}Hat güzergâhları, istasyon konumları ve adları <b>İBB Açık Veri Portalı</b>'ndaki
-        gerçek veriden gelir; harita zemini <b>geoBoundaries</b> ilçe sınırlarıdır (ODbL 1.0).
-        Denizler ayrı bir veri değildir — karanın olmadığı yerdir, Boğaz ve Haliç böyle görünür.
-      </div>
+      {bilgiAcik && (
+        <div className="aciklama-kutu" style={{ marginTop: 8 }}>
+          <b>Kullanım:</b> fare tekerleğiyle yakınlaş/uzaklaş, basılı tutup sürükleyerek kaydır,
+          trene tıklayarak o dingili seç. 4x üzerinde istasyon adları görünür.
+          {" "}<b>Kaynak:</b> hat güzergâhları, istasyon konumları ve adları <b>İBB Açık Veri
+          Portalı</b>'ndaki gerçek veridir; harita zemini <b>geoBoundaries</b> ilçe sınırlarıdır
+          (ODbL 1.0). Denizler ayrı bir veri değildir — karanın olmadığı yerdir, Boğaz ve Haliç
+          böyle görünür. Ağda yalnızca <b>Metro İstanbul işletmesindeki</b> hatlar vardır;
+          Marmaray ve M11 (Ulaştırma Bakanlığı) kapsam dışıdır.
+        </div>
+      )}
     </div>
   );
 }

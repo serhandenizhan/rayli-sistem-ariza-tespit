@@ -73,15 +73,21 @@ HAT_RENK = {
 # kendi içinde tutarsız). Bu listedeki hatların istasyonları da ağa dahil edilir.
 ISLETMEDEKI_INSAAT_HATLARI = {"F4"}
 
+# Metro İstanbul (İBB) işletmesinde OLMAYAN hatlar ağ modeline hiç alınmaz.
+# Ayrım isimle değil, kaynak verinin kendi `MUDURLUK` alanıyla yapılır: bir hattın
+# istasyonlarının baskın müdürlüğü bu kümedeyse hat dışarıda bırakılır.
+# Şu an bu kural Marmaray'ı (Halkalı–Gebze, TCDD/Ulaştırma Bakanlığı) ve M11'i
+# (Gayrettepe–İstanbul Havalimanı, AYGM/Ulaştırma Bakanlığı) kapsar.
+HARIC_MUDURLUKLER = {"Ulaştırma Bakanlığı"}
+
 # Simülasyonda tren işletilen hatlar (her biri için ayrı tren seti kurulur).
-# İşletmedeki TÜM yolcu raylı sistem hatları: metro + tramvay + füniküler + banliyö.
+# Metro İstanbul işletmesindeki TÜM yolcu hatları: metro + tramvay + füniküler.
 # Teleferikler (TF1, TF2) hariçtir — kabinli sistemlerde dingil/boji yoktur, bu projenin
 # sensör modeli (titreşim/rulman/fren/motor) onlara uymaz.
 SIMULASYON_HATLARI = [
-    "M1A", "M1B", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M11",
+    "M1A", "M1B", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9",
     "T1", "T3", "T4", "T5",
     "F1", "F2", "F4",
-    "MARMARAY",
 ]
 
 DUNYA_YARICAP_KM = 6371.0088
@@ -211,6 +217,7 @@ def ag_kur():
     # --- İstasyonlar: yalnızca işletmedeki (mevcut) hatlar, hat koduna göre grupla ---
     kod_istasyon = {}
     kod_meta = {}
+    kod_mudurluk = {}
     for f in istasyon_gj["features"]:
         p = f["properties"]
         kod = hat_kodu(p.get("PROJE_ADI"))
@@ -227,6 +234,17 @@ def ag_kur():
             "lat": round(float(lat), 6),
         })
         kod_meta.setdefault(kod, {"ad": p.get("PROJE_ADI"), "tur": p.get("HAT_TURU")})
+        kod_mudurluk.setdefault(kod, []).append(p.get("MUDURLUK"))
+
+    # Metro İstanbul dışındaki işletmecilere ait hatları (Marmaray, M11) ele.
+    # Baskın müdürlüğe bakılır; tek tek istasyonlara değil — örneğin M4'ün Sabiha Gökçen
+    # uzantısındaki birkaç istasyon "AYGM" görünür ama hattın işletmecisi Metro İstanbul'dur.
+    for kod, mudurlukler in list(kod_mudurluk.items()):
+        baskin = max(set(mudurlukler), key=mudurlukler.count)
+        if baskin in HARIC_MUDURLUKLER:
+            print(f"  (hariç) {kod}: işletmeci '{baskin}' — Metro İstanbul dışı, ağa alınmadı")
+            kod_istasyon.pop(kod, None)
+            kod_meta.pop(kod, None)
 
     # --- Hat geometrileri (harita çizimi için), aynı koda ait parçalar birleştirilir ---
     kod_cizim = {}

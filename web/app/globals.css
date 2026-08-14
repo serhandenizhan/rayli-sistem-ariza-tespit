@@ -260,3 +260,26 @@ tbody tr:last-child td { border-bottom: none; }
 /* -------------------------------------------------------------- harita araçları */
 .harita-arac { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .harita-arac button { font-size: 11px; padding: 5px 9px; }
+
+/* Harita: tek ekrana sığsın diye yükseklik sınırlı; içerik ortalanır (letterbox) */
+.harita-svg {
+  display: block; width: 100%;
+  max-height: min(46vh, 460px);
+  background: var(--deniz);
+  touch-action: none;
+}
+
+/* Kompakt hat rozetleri — uzun hat adları yerine kod, tam ad tooltip'te */
+.hat-rozetleri { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-top: 9px; }
+.hat-rozet {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  cursor: default;
+}
+.hat-rozet i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+/* İzleme sekmesi: harita solda, alarm/efsane sağda — yatay alanı değerlendirir */
+.izgara-harita { display: grid; grid-template-columns: 1.75fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .izgara-harita { grid-template-columns: 1fr; } }

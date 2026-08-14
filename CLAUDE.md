@@ -47,10 +47,15 @@ yapılabilir.
   20 işletmedeki hat, 265 gerçek istasyon, gerçek koordinatlar, harita için sadeleştirilmiş
   güzergâh geometrisi. İstasyon SIRASI kaynak veride yok — 2-opt ile iyileştirilmiş açık TSP
   yolu olarak türetiliyor (M4/M2/T1'de gerçek sırayla birebir örtüştüğü testlerle doğrulandı).
-  `SIMULASYON_HATLARI` sabiti, tren işletilen hatları belirler — **işletmedeki tüm yolcu
-  hatları** dahildir (19 hat: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, T1, T3, T4, T5,
-  F1, F2, F4, MARMARAY). Teleferikler (TF1, TF2) hariçtir: kabinli sistemlerde dingil/boji
-  yoktur, projenin sensör modeli onlara uymaz. `ISLETMEDEKI_INSAAT_HATLARI` ise kaynak veride
+  `SIMULASYON_HATLARI` sabiti, tren işletilen hatları belirler — **Metro İstanbul
+  işletmesindeki tüm yolcu hatları** dahildir (17 hat: M1A, M1B, M2, M3, M4, M5, M6, M7, M8,
+  M9, T1, T3, T4, T5, F1, F2, F4). Teleferikler (TF1, TF2) hariçtir: kabinli sistemlerde
+  dingil/boji yoktur, projenin sensör modeli onlara uymaz.
+  `HARIC_MUDURLUKLER` ise **Metro İstanbul dışındaki işletmecilerin** hatlarını ağa hiç almaz;
+  ayrım isimle değil kaynak verinin `MUDURLUK` alanıyla, hattın **baskın** müdürlüğüne bakılarak
+  yapılır (M4'ün Sabiha Gökçen uzantısındaki birkaç istasyon "AYGM" görünür ama hattın
+  işletmecisi Metro İstanbul'dur — bu yüzden tek tek istasyona bakılmaz). Şu an bu kural
+  **Marmaray** ve **M11**'i (ikisi de "Ulaştırma Bakanlığı") kapsam dışı bırakır. `ISLETMEDEKI_INSAAT_HATLARI` ise kaynak veride
   "İnşaat Aşamasında" görünmesine rağmen fiilen işletmede olan hatları dahil eder — şu an
   yalnızca **F4** (Rumelihisarüstü–Aşiyan, 2022'de açıldı; İBB anlık görüntüsü kendi içinde
   tutarsız: hat geometrisi "Mevcut", istasyonları "İnşaat").
@@ -80,7 +85,7 @@ yapılabilir.
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
-  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 76 dingili tek batch'te
+  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 68 dingili tek batch'te
   modele sokar; **tahminden sonra** cevap anahtarıyla eşleştirip çevrimiçi metrik hesaplar.
   Ölçekleme/model yükleme mantığı `rayli_model.py`'den gelir — tahmin scriptiyle birebir aynıdır.
   **Histerezis**: bir sınıf N ardışık tick tahmin edilmeden "yerleşik" olmaz (`yerlesik` alanı);
@@ -163,9 +168,15 @@ Model **çok görevlidir**: tek gövde (CNN+LSTM), iki başlık — arıza tipi 
 şiddeti (none/mild/moderate/severe). Toplam kayıp = tip + `SEVERITY_AGIRLIK`(0.4) × şiddet.
 
 Gerçek metro ağı verisiyle eğitilen mevcut model, test setinde:
-- **Arıza tipi: accuracy %98.7, macro F1 0.9679** (`rail_crack` 0.974, `normal` 0.993,
-  en zayıf `motor_fault` F1 0.926)
-- **Arıza şiddeti: accuracy %95.5, macro F1 0.8247** (mild/moderate sınırları doğası gereği bulanık)
+- **Arıza tipi: accuracy %99.2, macro F1 0.9764** (`bearing_fault` 0.997, `rail_crack` 0.990,
+  `normal` 0.995; en zayıf `motor_fault` F1 0.924)
+- **Arıza şiddeti: accuracy %96.6, macro F1 0.8447** (mild/moderate sınırları doğası gereği bulanık)
+
+**Sınıf ağırlığı yumuşatma (`AGIRLIK_YUMUSATMA = 0.5`)**: veri %85 `normal` olduğu için tam
+"balanced" ters frekans ağırlığı nadir sınıflara ~35 kat ağırlık verip modeli "arıza de" yönünde
+aşırı zorluyordu — recall yükseliyor ama precision çöküyordu (`motor_fault` precision 0.61,
+macro F1 0.937). Ağırlıkların karekökü alınıp ortalaması 1'e ölçeklenince precision 0.94'e,
+macro F1 0.9764'e çıktı. Bu değeri değiştirirsen precision/recall dengesinin nasıl kaydığına bak.
 
 Canlı akış simülasyonu aynı checkpoint'le uçtan uca ~%98.7 tip / ~%95.5 şiddet doğruluğu üretir;
 bu örtüşme canlı hattın (pencereleme + ölçekleme) doğru kurulduğunun kanıtıdır — akışta ciddi bir
@@ -180,7 +191,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **61 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **62 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -190,7 +201,8 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 - `test_metro_agi.py` — ağ modeli: koordinatlar İstanbul içinde mi, km sırası artıyor mu,
   bilinen hat terminalleri (M4/T1/M2) doğru mu, M4'ün ilk 5 istasyonu gerçek sırayla mı;
   coğrafya katmanı: ilçelerin varlığı, poligon geçerliliği, lisans bilgisinin korunması;
-  kapsam: işletmedeki her hatta tren olması, füniküllerin dahil, teleferiklerin hariç olması
+  kapsam: işletmedeki her hatta tren olması, füniküllerin dahil, teleferiklerin ve Metro
+  İstanbul dışı hatların (Marmaray, M11) hariç olması
 - `test_model.py` — iki başlıklı çıktı, checkpoint alanları, scaler yeniden kurulumu, sekans
   hizası, **doğruluk regresyon eşiği**
 - `test_canli_akis.py` — pencere dolmadan tahmin yok, histerezis davranışı, kör modda sızıntı
@@ -199,7 +211,7 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 ## Sıradaki olası görevler
 
 - Kalıcılık: tahminleri/alarmları SQLite'a yazıp geçmişe dönük sorgulama.
-- Aynı hatta birden fazla tren (şu an hat başına 1 tren, 19 hat = 76 dingil).
+- Aynı hatta birden fazla tren (şu an hat başına 1 tren, 17 hat = 68 dingil).
 - Kaynak veri tazeliği: İBB anlık görüntüsü bazı hatlarda eski etapları gösteriyor
   (M9 yalnızca 4 istasyon, M3 Bakırköy uzatması yok, M11 Halkalı etabı "inşaat").
   Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir.

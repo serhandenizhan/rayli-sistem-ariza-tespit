@@ -1,29 +1,29 @@
 === ARIZA TİPİ ===
                precision    recall  f1-score   support
 
-bearing_fault      0.991     0.998     0.994       438
-  brake_fault      0.899     0.966     0.931       581
-  motor_fault      0.910     0.943     0.926       333
-       normal      0.995     0.989     0.992      9019
-   rail_crack      1.000     0.970     0.985       198
-   wheel_flat      0.990     0.985     0.988       527
+bearing_fault      0.997     0.997     0.997       307
+  brake_fault      0.982     0.945     0.963       345
+  motor_fault      0.936     0.912     0.924       274
+       normal      0.994     0.996     0.995      8450
+   rail_crack      1.000     0.980     0.990       150
+   wheel_flat      0.983     0.995     0.989       402
 
-     accuracy                          0.986     11096
-    macro avg      0.964     0.975     0.969     11096
- weighted avg      0.987     0.986     0.987     11096
+     accuracy                          0.992      9928
+    macro avg      0.982     0.971     0.976      9928
+ weighted avg      0.992     0.992     0.992      9928
 
-Macro F1: 0.9693
+Macro F1: 0.9764
 
 === ARIZA ŞİDDETİ ===
               precision    recall  f1-score   support
 
-        none      0.997     0.986     0.992      9143
-        mild      0.712     0.898     0.794       683
-    moderate      0.833     0.713     0.769       834
-      severe      0.759     0.837     0.796       436
+        none      0.997     0.993     0.995      8528
+        mild      0.721     0.903     0.802       452
+    moderate      0.817     0.742     0.778       585
+      severe      0.841     0.771     0.805       363
 
-    accuracy                          0.954     11096
-   macro avg      0.825     0.859     0.838     11096
-weighted avg      0.958     0.954     0.955     11096
+    accuracy                          0.966      9928
+   macro avg      0.844     0.852     0.845      9928
+weighted avg      0.968     0.966     0.966      9928
 
-Şiddet accuracy: 0.9544 | Macro F1: 0.8377
+Şiddet accuracy: 0.9661 | Macro F1: 0.8447

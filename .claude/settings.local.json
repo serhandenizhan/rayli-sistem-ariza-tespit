@@ -59,7 +59,10 @@
       "Bash(npx tsc *)",
       "Bash(.venv/bin/python -)",
       "Bash(git commit -q -m 'Haritaya gerçek İstanbul coğrafyası \\(kara/deniz\\) eklendi *)",
-      "Bash(git commit -q -m 'Tüm işletmedeki hatlar, interaktif harita ve sekmeli arayüz *)"
+      "Bash(git commit -q -m 'Tüm işletmedeki hatlar, interaktif harita ve sekmeli arayüz *)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(./calistir.sh --egitmeden --hiz 20 --testsiz)",
+      "Bash(git commit -q -m 'Marmaray ve M11 kapsam dışı, harita tek ekrana sığıyor, sınıf ağırlığı yumuşatıldı *)"
     ]
   }
 }

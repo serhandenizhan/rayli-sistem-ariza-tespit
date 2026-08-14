@@ -7,9 +7,10 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
 
 Öne çıkanlar:
 
-- **Gerçek ağ**: 21 hat, 267 gerçek istasyon, gerçek koordinatlar; **işletmedeki 19 yolcu
-  hattının tamamında** tren işliyor (M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, T1, T3,
-  T4, T5, F1, F2, F4, Marmaray) — 19 tren, 76 dingil
+- **Gerçek ağ**: 19 hat, 216 gerçek istasyon, gerçek koordinatlar; **Metro İstanbul
+  işletmesindeki 17 yolcu hattının tamamında** tren işliyor (M1A, M1B, M2, M3, M4, M5, M6, M7,
+  M8, M9, T1, T3, T4, T5, F1, F2, F4) — 17 tren, 68 dingil.
+  Marmaray ve M11 kapsam dışıdır (işletmecisi Ulaştırma Bakanlığı, Metro İstanbul değil)
 - **Gerçekçi sefer**: istasyonlar arası hızlanma/frenleme, istasyonda bekleme, terminalde dönüş
 - **Çok görevli model**: arıza tipi (6 sınıf) + arıza şiddeti (4 seviye) tek gövdeden
 - **Sızıntısız doğrulama**: akan veride etiket yok; skorlama ayrı cevap anahtarıyla, tahminden sonra
@@ -18,7 +19,7 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
   trenler gerçek hatlarda, tahmin rengiyle hareket eder
 - **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / testler
 - **İnteraktif harita**: fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma, ilçe adları
-- **61 birim testi**: arayüzde okunabilir sonuç paneliyle
+- **62 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
 
@@ -152,11 +153,12 @@ kayba 0.4 ağırlıkla katılır (asıl görev tip sınıflandırmasıdır).
 
 | Görev | Accuracy | Macro F1 |
 |---|---|---|
-| Arıza tipi | %98.7 | 0.9679 |
-| Arıza şiddeti | %95.5 | 0.8247 |
+| Arıza tipi | %99.2 | 0.9764 |
+| Arıza şiddeti | %96.6 | 0.8447 |
 
-`rail_crack` 0.974, `normal` 0.993, `bearing_fault` 0.986 F1; en zayıf sınıf `motor_fault`
-(0.926). Ayrıntılar `results/test_classification_report.txt` ve `results/confusion_matrix.csv`
+`bearing_fault` 0.997, `rail_crack` 0.990, `normal` 0.995 F1; en zayıf sınıf `motor_fault`
+(0.924). Sınıf dengesizliği, karekök yumuşatmalı ters frekans ağırlığıyla ele alınır — tam
+"balanced" ağırlık precision'ı ciddi biçimde düşürüyordu. Ayrıntılar `results/test_classification_report.txt` ve `results/confusion_matrix.csv`
 içinde.
 
 ## Gerçek İstanbul metro ağı
@@ -245,7 +247,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 61 test
+./testleri_calistir.sh              # 62 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 

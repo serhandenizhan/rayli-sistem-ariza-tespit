@@ -56,6 +56,22 @@ EPOCHS = 15
 BATCH_SIZE = 128
 SEVERITY_AGIRLIK = 0.4      # ikincil görevin toplam kayıptaki ağırlığı
 
+# Sınıf ağırlığı yumuşatma üssü. 1.0 = tam "balanced" (ters frekans), 0.0 = ağırlıksız.
+# Tam dengeli ağırlık, %85 normal olan bu veride nadir sınıflara ~35 kat ağırlık verip modeli
+# "arıza de" yönünde aşırı zorluyor: recall yükseliyor ama precision çöküyor (motor_fault
+# precision'ı 0.61'e kadar düştü). Karekök yumuşatma dengesizliği yine düzeltir ama bu aşırı
+# eğilimi kırar.
+AGIRLIK_YUMUSATMA = 0.5
+
+
+def yumusatilmis_agirlik(y, n_sinif):
+    """Ters frekans ağırlıklarını yumuşatıp ortalaması 1 olacak şekilde ölçekler."""
+    mevcut = np.unique(y)
+    agirlik = np.ones(n_sinif)
+    agirlik[mevcut] = compute_class_weight("balanced", classes=mevcut, y=y)
+    agirlik = agirlik ** AGIRLIK_YUMUSATMA
+    return agirlik / agirlik.mean()
+
 
 def run_epoch(model, loader, kriter_tip, kriter_sev, optimizer=None):
     """Bir epoch çalıştırır. optimizer verilirse eğitim, verilmezse değerlendirme modudur."""
@@ -97,11 +113,10 @@ def main():
     val_loader = DataLoader(SeqDataset(Xv, yv, sv), batch_size=256, shuffle=False)
     test_loader = DataLoader(SeqDataset(Xt, yt, st), batch_size=256, shuffle=False)
 
-    # Sınıf dengesizliği: her iki başlık için de ters frekans ağırlıklandırması
-    tip_agirlik = compute_class_weight("balanced", classes=np.arange(len(classes)), y=yf)
-    sev_mevcut = np.unique(sf)
-    sev_agirlik = np.ones(len(SEVERITY_CLASSES))
-    sev_agirlik[sev_mevcut] = compute_class_weight("balanced", classes=sev_mevcut, y=sf)
+    # Sınıf dengesizliği: her iki başlık için de yumuşatılmış ters frekans ağırlıklandırması
+    tip_agirlik = yumusatilmis_agirlik(yf, len(classes))
+    sev_agirlik = yumusatilmis_agirlik(sf, len(SEVERITY_CLASSES))
+    print(f"Ağırlık yumuşatma üssü: {AGIRLIK_YUMUSATMA}")
     print("Sınıf ağırlıkları (tip):", dict(zip(classes, np.round(tip_agirlik, 2))))
     print("Sınıf ağırlıkları (şiddet):", dict(zip(SEVERITY_CLASSES, np.round(sev_agirlik, 2))))
 

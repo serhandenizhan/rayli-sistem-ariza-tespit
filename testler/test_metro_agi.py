@@ -41,6 +41,14 @@ def test_funikuler_hatlari_dahil(metro_agi):
     assert {i["ad"] for i in f4["istasyonlar"]} == {"Rumeli Hisarüstü", "Aşiyan"}
 
 
+def test_metro_istanbul_disi_hatlar_agda_yok(metro_agi):
+    """Metro İstanbul işletmesinde olmayan hatlar (Marmaray, M11 — Ulaştırma Bakanlığı)
+    ağ modeline hiç alınmamalı. Ayrım isimle değil, kaynak verinin MUDURLUK alanıyla yapılır."""
+    assert "MARMARAY" not in metro_agi["hatlar"]
+    assert "M11" not in metro_agi["hatlar"]
+    assert "Ulaştırma Bakanlığı" in ag.HARIC_MUDURLUKLER
+
+
 def test_teleferikler_simulasyon_disinda():
     """Teleferiklerde dingil/boji yoktur — bu projenin sensör modeli onlara uymaz,
     simülasyona dahil edilmemeliler."""

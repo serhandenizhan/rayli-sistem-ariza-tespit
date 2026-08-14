@@ -53,12 +53,12 @@ export default function Sayfa() {
 
       {sekme === "izleme" && (
         <div className="sekme-icerik">
-          <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
-          <div className="izgara">
+          {/* Harita solda, alarm günlüğü sağda — böylece yatay alan değerlendirilir ve
+              izleme ekranı tek ekran boyuna sığar. */}
+          <div className="izgara-harita">
+            <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
             <div className="sutun">
               <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
-            </div>
-            <div className="sutun">
               <div className="panel">
                 <header><h2>Sınıf Renk Anahtarı</h2></header>
                 <div className="efsane">
@@ -72,8 +72,7 @@ export default function Sayfa() {
                   ))}
                 </div>
                 <div className="aciklama-kutu" style={{ marginTop: 10 }}>
-                  Renkler haritadaki tren ikonlarında ve dingil kartlarında aynıdır. Sayılar,
-                  modelin o anki <b>ham</b> tahminine göredir; haritadaki ikon rengi ise
+                  Sayılar modelin o anki <b>ham</b> tahminine göredir; haritadaki ikon rengi
                   histerezis sonrası <b>yerleşik</b> durumu gösterir.
                 </div>
               </div>

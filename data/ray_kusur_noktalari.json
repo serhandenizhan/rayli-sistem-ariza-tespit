@@ -153,24 +153,6 @@
     "lon": 28.78284
   },
   {
-    "hat": "M11",
-    "km": 9.414,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "İhsaniye – Göktürk",
-    "lat": 41.235717,
-    "lon": 28.81713
-  },
-  {
-    "hat": "M11",
-    "km": 21.338,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Kemerburgaz – Hasdal",
-    "lat": 41.156499,
-    "lon": 28.912773
-  },
-  {
     "hat": "T1",
     "km": 5.097,
     "genislik_km": 0.12,
@@ -223,23 +205,5 @@
     "arasi": "Silahtarağa Mahallesi – Eyüpsultan Devlet Hastanesi",
     "lat": 41.057892,
     "lon": 28.941375
-  },
-  {
-    "hat": "MARMARAY",
-    "km": 21.357,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Yenikapı – Sirkeci",
-    "lat": 41.006734,
-    "lon": 28.956089
-  },
-  {
-    "hat": "MARMARAY",
-    "km": 48.409,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Başak – Kartal",
-    "lat": 40.889514,
-    "lon": 29.18478
   }
 ]
