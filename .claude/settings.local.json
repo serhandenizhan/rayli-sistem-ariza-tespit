@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'İlk sürüm: sentetik veri, CNN+LSTM modeli, canlı akış API'\\\\''si ve Next.js dashboard *)",
+      "Bash(git count-objects *)"
+    ]
+  }
+}

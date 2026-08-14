@@ -1,0 +1,61 @@
+"use client";
+
+import { SINIF_ETIKET, type Meta, type TickPaketi } from "@/lib/tipler";
+
+function Kpi({ baslik, deger, alt, renk }: { baslik: string; deger: string; alt?: string; renk?: string }) {
+  return (
+    <div className="kpi">
+      <div className="baslik">{baslik}</div>
+      <div className="deger" style={renk ? { color: renk } : undefined}>{deger}</div>
+      {alt && <div className="alt">{alt}</div>}
+    </div>
+  );
+}
+
+export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; meta: Meta | null }) {
+  const m = tick?.metrikler;
+  const sayaclar = tick?.sayaclar ?? {};
+  const arizali = Object.entries(sayaclar)
+    .filter(([k]) => k !== "normal")
+    .reduce((a, [, v]) => a + v, 0);
+  const toplamDingil = meta?.axles.length ?? 0;
+
+  const enSik = Object.entries(sayaclar)
+    .filter(([k, v]) => k !== "normal" && v > 0)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  const acc = m?.accuracy;
+  const accRenk = acc == null ? undefined : acc >= 0.95 ? "var(--ok)" : acc >= 0.85 ? "var(--warn)" : "var(--bad)";
+
+  return (
+    <div className="kpi-satir">
+      <Kpi
+        baslik="Aktif Arıza Alarmı"
+        deger={`${arizali}`}
+        alt={`${toplamDingil} dingilin ${arizali} tanesi arızalı sınıflandı`}
+        renk={arizali > 0 ? "var(--bad)" : "var(--ok)"}
+      />
+      <Kpi
+        baslik="Baskın Arıza Tipi"
+        deger={enSik ? SINIF_ETIKET[enSik[0]] : "—"}
+        alt={enSik ? `${enSik[1]} dingilde` : "tüm dingiller normal"}
+      />
+      <Kpi
+        baslik="Canlı Doğruluk"
+        deger={acc != null ? `%${(acc * 100).toFixed(1)}` : "—"}
+        alt={m?.kor_mod ? "kör mod: cevap anahtarı kapalı" : `${m?.dogru ?? 0}/${m?.degerlendirilen ?? 0} tahmin doğru`}
+        renk={accRenk}
+      />
+      <Kpi
+        baslik="Canlı Macro F1"
+        deger={m?.macro_f1 != null ? m.macro_f1.toFixed(3) : "—"}
+        alt={`offline test referansı: ${meta?.egitim ? meta.egitim.macro_f1.toFixed(3) : "—"}`}
+      />
+      <Kpi
+        baslik="İşlenen Sekans"
+        deger={`${m?.degerlendirilen?.toLocaleString("tr-TR") ?? 0}`}
+        alt={`akış: ${meta?.baslangic?.slice(11, 16) ?? "--"} → ${meta?.bitis?.slice(11, 16) ?? "--"}`}
+      />
+    </div>
+  );
+}
