@@ -300,8 +300,8 @@ Kafka'ya geçmek istenirse `src/rayli_kafka.py` zaten opsiyonel bir adaptör ola
 HIZ=10 KOR_MOD=1 docker compose up --build   # hız/kör mod ortam değişkeniyle ayarlanabilir
 ```
 
-> **Not**: bu depo Docker kurulu olmayan bir ortamda hazırlandı; dosyalar dikkatle yazıldı
-> ama gerçek bir `docker compose build` ile doğrulanamadı.
+> **Doğrulandı**: `docker compose up --build` gerçekten çalıştırılıp test edildi (build, healthcheck,
+> proxy, SQLite kalıcılığı — konteyner yeniden başlatıldığında alarm geçmişi korunuyor).
 
 ## Kafka ile besleme (opsiyonel)
 

@@ -5,6 +5,12 @@ WORKDIR /app
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 COPY web/ .
+# ÖNEMLİ: Next.js `rewrites()` sonucunu BUILD ANINDA hesaplayıp .next/routes-manifest.json'a
+# gömer — `next start` bunu runtime'da yeniden ÇAĞIRMAZ. Yani docker-compose.yml'deki
+# `environment: AKIS_API_URL` konteynerde doğru görünse bile hiçbir etkisi olmaz; proxy hedefi
+# burada, derleme sırasında sabitlenmelidir. Servis adı (api) docker-compose.yml tarafından
+# zaten sabit olduğu için bunu build-time'da gömmek bir geçici çözüm değil, doğru yaklaşımdır.
+ENV AKIS_API_URL=http://api:8000
 RUN npm run build
 
 FROM node:20-slim

@@ -101,7 +101,20 @@
       "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"play\"}')",
       "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"pause\"}')",
       "Bash(timeout 3 curl -sN localhost:3000/api/akis)",
-      "Bash(curl -sN --max-time 3 localhost:3000/api/akis)"
+      "Bash(curl -sN --max-time 3 localhost:3000/api/akis)",
+      "Bash(git rm *)",
+      "Bash(chmod +x docker/entrypoint-api.sh)",
+      "Bash(git commit -q -m 'Denetimsiz anomali tespiti \\(autoencoder\\) ve hafif Docker Compose eklendi *)",
+      "Bash(docker info *)",
+      "Bash(tee /private/tmp/claude-501/-Users-serhan-Downloads-rayli-ariza-tespiti/5dd4d373-6e30-4a1c-af66-036f8314a04d/scratchpad/docker_build.log)",
+      "Bash(curl -sf localhost:8000/api/meta)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('dingil:',len\\(d['axles']\\),'| anomali:',d['anomali_modeli_var'],'| oynatiliyor:',d['oynatiliyor']\\)\")",
+      "Bash(curl -sf localhost:3000/api/meta)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('proxy çalışıyor, dingil:',len\\(d['axles']\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"http=%{http_code}\\\\n\" localhost:3000)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\(json.dumps\\(d.get\\('rewrites'\\),indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('proxy ÇALIŞIYOR, dingil:',len\\(d['axles']\\),'| anomali:',d['anomali_modeli_var']\\)\")",
+      "Bash(curl -sf localhost:8000/api/meta -o /dev/null)"
     ]
   }
 }

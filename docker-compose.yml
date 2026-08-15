@@ -40,10 +40,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.web
+      # AKIS_API_URL burada DEĞİL, Dockerfile.web içinde build-time ENV olarak verilir —
+      # Next.js rewrites() sonucunu derleme anında routes-manifest.json'a gömer, runtime
+      # ortam değişkeninin bu noktadan sonra hiçbir etkisi olmaz.
     ports:
       - "3000:3000"
-    environment:
-      AKIS_API_URL: "http://api:8000"
     depends_on:
       api:
         condition: service_healthy
