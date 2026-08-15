@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MetroAgi, Meta, Olay, TestOzeti, TickPaketi } from "./tipler";
+import type { GecmisOzet, MetroAgi, Meta, Olay, TestOzeti, TickPaketi } from "./tipler";
 
 const OLAY_LIMIT = 120;
 const GECMIS_LIMIT = 90;   // sensör grafiği için tutulan tick sayısı
@@ -24,6 +24,8 @@ export function useAkis() {
   const [oynatiliyor, setOynatiliyor] = useState(true);
   const [korMod, setKorMod] = useState(false);
   const [histerezis, setHisterezis] = useState(3);
+  const [belirsizlikEsigi, setBelirsizlikEsigi] = useState(0.35);
+  const [gecmis, setGecmis] = useState<GecmisOzet | null>(null);
 
   const gecmisRef = useRef<Map<string, { t: number; s: Record<string, number>; pred?: string }[]>>(new Map());
   const [, setGecmisVersiyon] = useState(0);
@@ -38,6 +40,7 @@ export function useAkis() {
         setMeta(m);
         setKorMod(m.kor_mod);
         setHisterezis(m.histerezis);
+        setBelirsizlikEsigi(m.belirsizlik_esigi);
       })
       .catch(() => setHata("API'ye ulaşılamadı — canlı akış sunucusu çalışıyor mu? (python rayli_canli_akis_sunucu.py)"));
 
@@ -54,6 +57,7 @@ export function useAkis() {
       setOynatiliyor(p.oynatiliyor);
       setKorMod(p.kor_mod);
       setHisterezis(p.histerezis);
+      setBelirsizlikEsigi(p.belirsizlik_esigi);
       if (p.yeni_olaylar?.length) {
         setOlaylar((prev) => [...p.yeni_olaylar].reverse().concat(prev).slice(0, OLAY_LIMIT));
       }
@@ -80,6 +84,7 @@ export function useAkis() {
       if (typeof data.oynatiliyor === "boolean") setOynatiliyor(data.oynatiliyor);
       if (typeof data.kor_mod === "boolean") setKorMod(data.kor_mod);
       if (typeof data.histerezis === "number") setHisterezis(data.histerezis);
+      if (typeof data.belirsizlik_esigi === "number") setBelirsizlikEsigi(data.belirsizlik_esigi);
       if (action === "reset") { gecmisRef.current.clear(); setOlaylar([]); }
     } catch { /* sunucu kapalıysa sessiz geç */ }
   }, []);
@@ -105,8 +110,14 @@ export function useAkis() {
     } catch { /* sunucu kapalıysa sessiz geç */ }
   }, [testleriYenile]);
 
+  /** SQLite'a yazılmış geçmiş alarm özetini çeker (Geçmiş sekmesi). */
+  const gecmisiYenile = useCallback(async () => {
+    try { setGecmis(await (await fetch("/api/gecmis")).json()); } catch { /* yok say */ }
+  }, []);
+
   const gecmisAl = useCallback((axle: string) => gecmisRef.current.get(axle) ?? [], []);
 
   return { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
-           oynatiliyor, korMod, histerezis, testleriYenile, testleriCalistir };
+           oynatiliyor, korMod, histerezis, belirsizlikEsigi,
+           testleriYenile, testleriCalistir, gecmis, gecmisiYenile };
 }

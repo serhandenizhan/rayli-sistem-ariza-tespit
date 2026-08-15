@@ -53,6 +53,10 @@ export default function DingilIzgara({
                   <div className="sinif" style={{ color: renk }}>
                     {a.hazir ? SINIF_ETIKET[gosterilen!] : "pencere doluyor…"}
                     {!a.kararli && a.hazir && <span className="bekliyor" title="histerezis bekleniyor">⏳</span>}
+                    {a.belirsiz && (
+                      <span className="bekliyor"
+                            title={`Model kararsız (entropi ${a.entropi?.toFixed(2)}) — bu tahmin alarm üretmez`}>❔</span>
+                    )}
                   </div>
                   {a.hazir && a.severity && a.severity !== "none" && (
                     <span className="siddet-rozet" style={{ color: SIDDET_RENK[a.severity],

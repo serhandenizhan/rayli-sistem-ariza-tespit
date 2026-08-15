@@ -9,17 +9,21 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
 
 - **Gerçek ağ**: 19 hat, 216 gerçek istasyon, gerçek koordinatlar; **Metro İstanbul
   işletmesindeki 17 yolcu hattının tamamında** tren işliyor (M1A, M1B, M2, M3, M4, M5, M6, M7,
-  M8, M9, T1, T3, T4, T5, F1, F2, F4) — 17 tren, 68 dingil.
+  M8, M9, T1, T3, T4, T5, F1, F2, F4) — 24 tren, 96 dingil (uzun hatlarda 2 tren).
   Marmaray ve M11 kapsam dışıdır (işletmecisi Ulaştırma Bakanlığı, Metro İstanbul değil)
 - **Gerçekçi sefer**: istasyonlar arası hızlanma/frenleme, istasyonda bekleme, terminalde dönüş
 - **Çok görevli model**: arıza tipi (6 sınıf) + arıza şiddeti (4 seviye) tek gövdeden
 - **Sızıntısız doğrulama**: akan veride etiket yok; skorlama ayrı cevap anahtarıyla, tahminden sonra
 - **Histerezis**: tek tick'lik sınıf sıçramaları alarm üretmez
+- **Belirsizlik farkındalığı**: softmax entropisi eşiği aşarsa tahmin "belirsiz" sayılır ve
+  alarm üretmez — modelin kararsız kaldığı anlar operatöre yansımaz
+- **Alarm önceliklendirme**: şiddet + süre + güven birleşiminden 0-1 öncelik skoru
+- **Kalıcılık**: alarmlar ve metrikler SQLite'a yazılır, geçmişe dönük sorgulanabilir
 - **Canlı harita**: gerçek İstanbul coğrafyası (kıyı çizgisi, Boğaz, Haliç, Adalar) üzerinde
   trenler gerçek hatlarda, tahmin rengiyle hareket eder
 - **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / testler
 - **İnteraktif harita**: fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma, ilçe adları
-- **62 birim testi**: arayüzde okunabilir sonuç paneliyle
+- **74 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
 
@@ -248,7 +252,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 62 test
+./testleri_calistir.sh              # 74 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 

@@ -11,12 +11,15 @@ import OlayGunlugu from "@/components/OlayGunlugu";
 import DogrulamaPaneli from "@/components/DogrulamaPaneli";
 import EgitimPaneli from "@/components/EgitimPaneli";
 import TestPaneli from "@/components/TestPaneli";
+import AktifAlarmlar from "@/components/AktifAlarmlar";
+import GecmisPaneli from "@/components/GecmisPaneli";
 import { SINIF_ETIKET, SINIF_RENK } from "@/lib/tipler";
 import { useAkis } from "@/lib/useAkis";
 
 export default function Sayfa() {
   const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
-          oynatiliyor, korMod, histerezis, testleriCalistir } = useAkis();
+          oynatiliyor, korMod, histerezis, belirsizlikEsigi,
+          testleriCalistir, gecmis, gecmisiYenile } = useAkis();
   const [secili, setSecili] = useState<string | null>(null);
   const [sekme, setSekme] = useState<Sekme>("izleme");
 
@@ -44,7 +47,8 @@ export default function Sayfa() {
     <main className="sayfa">
       <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol}
                   oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis}
-                  sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm} />
+                  sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm}
+                  belirsizlikEsigi={belirsizlikEsigi} />
 
       {hata && <div className="uyari">{hata}</div>}
 
@@ -58,6 +62,7 @@ export default function Sayfa() {
           <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
           <div className="izgara">
             <div className="sutun">
+              <AktifAlarmlar alarmlar={tick?.aktif_alarmlar ?? []} onSec={dingilSec} />
               <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
             </div>
             <div className="sutun">
@@ -107,6 +112,12 @@ export default function Sayfa() {
               <EgitimPaneli egitim={meta?.egitim ?? null} />
             </div>
           </div>
+        </div>
+      )}
+
+      {sekme === "gecmis" && (
+        <div className="sekme-icerik">
+          <GecmisPaneli gecmis={gecmis} yenile={gecmisiYenile} />
         </div>
       )}
 

@@ -80,7 +80,11 @@
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('arayüz+API çalışıyor · dingil:',len\\(d['axles']\\),'· hat:',len\\(set\\(d['axle_hat'].values\\(\\)\\)\\)\\)\")",
       "Bash(git commit -q -m 'calistir.sh: port çakışmasında anlaşılır hata ve bayat sunucuya bağlanma kusuru giderildi *)",
       "Bash(pkill -f calistir.sh)",
-      "Bash(git commit -q -m 'Arayüz iyileştirmeleri: okunur harita etiketleri, buton düzeni, imleç ipucu, test çalıştırma *)"
+      "Bash(git commit -q -m 'Arayüz iyileştirmeleri: okunur harita etiketleri, buton düzeni, imleç ipucu, test çalıştırma *)",
+      "Bash(.venv/bin/python -c \"import ast,sys; ast.parse\\(open\\('src/rayli_canli_akis_sunucu.py'\\).read\\(\\)\\); print\\('sözdizimi OK'\\)\")",
+      "Bash(../.venv/bin/python rayli_canli_akis_sunucu.py --konsol --hiz 900)",
+      "Bash(.venv/bin/python src/rayli_kayit.py --ozet)",
+      "Bash(git commit -q -m 'Alarm önceliklendirme, belirsizlik farkındalığı, SQLite kalıcılık ve çoklu tren *)"
     ]
   }
 }

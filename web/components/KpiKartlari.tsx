@@ -52,6 +52,12 @@ export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; m
           meta?.egitim ? meta.egitim.macro_f1.toFixed(3) : "—"}`}
       />
       <Kpi
+        baslik="Belirsiz Tahmin"
+        deger={`${tick?.belirsiz_sayisi ?? 0}`}
+        alt={`entropi > ${tick?.belirsizlik_esigi?.toFixed(2) ?? "—"} · alarm üretmez`}
+        renk={(tick?.belirsiz_sayisi ?? 0) > 0 ? "var(--warn)" : undefined}
+      />
+      <Kpi
         baslik="İşlenen Sekans"
         deger={`${m?.degerlendirilen?.toLocaleString("tr-TR") ?? 0}`}
         alt={`akış: ${meta?.baslangic?.slice(11, 16) ?? "--"} → ${meta?.bitis?.slice(11, 16) ?? "--"}`}

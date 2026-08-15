@@ -33,7 +33,8 @@ python istanbul_metro_agi.py    # İBB açık verisinden metro ağı modelini ku
 python istanbul_metro_agi.py --indir   # ham GeoJSON'ları İBB'den yeniden indir
 python rayli_kafka.py --uret    # etiketsiz akışı Kafka topic'ine yayınla (broker gerekir)
 
-./testleri_calistir.sh          # pytest (55 test) + results/test_ozeti.json üretir
+./testleri_calistir.sh          # pytest (74 test) + results/test_ozeti.json üretir
+python rayli_kayit.py --ozet    # SQLite'daki alarm geçmişini terminalden sorgula
 ```
 
 Model zaten eğitilmiş haliyle repoda mevcuttur (`model/rayli_cnn_lstm_model.pt`) — geliştirme
@@ -86,15 +87,31 @@ yapılabilir.
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
-  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 68 dingili tek batch'te
+  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 96 dingili tek batch'te
   modele sokar; **tahminden sonra** cevap anahtarıyla eşleştirip çevrimiçi metrik hesaplar.
   Ölçekleme/model yükleme mantığı `rayli_model.py`'den gelir — tahmin scriptiyle birebir aynıdır.
   **Histerezis**: bir sınıf N ardışık tick tahmin edilmeden "yerleşik" olmaz (`yerlesik` alanı);
-  alarm günlüğü yalnızca yerleşik değişimlerde kayıt atar. Kör mod ve histerezis çalışma anında
+  alarm günlüğü yalnızca yerleşik değişimlerde kayıt atar.
+  **Belirsizlik**: her tahmin için softmax dağılımının normalize entropisi hesaplanır
+  (`normalize_entropi`, 0 = tam güven, 1 = tam kararsız). Eşiğin (varsayılan 0.35) üstündeki
+  tahminler `belirsiz` işaretlenir ve **histerezis sayacını ilerletmez** — yani modelin kararsız
+  kaldığı anlar alarm üretemez. Eşik `/api/kontrol` ile çalışma anında değiştirilebilir
+  (1.0 = kapalı).
+  **Alarm süresi ve önceliği**: her dingilin yerleşik durumunun ne zaman başladığı tutulur;
+  `oncelik_hesapla()` şiddet (%50) + süre (%30, 2 dakikada doygunlaşır) + güven (%20)
+  birleşimiyle 0-1 arası skor üretir, `oncelik_seviyesi()` bunu kritik/yüksek/orta/düşük'e
+  çevirir. Payload'daki `aktif_alarmlar` listesi önceliğe göre sıralıdır. Kör mod ve histerezis çalışma anında
   `/api/kontrol` ile değiştirilebilir. Uç noktalar: `/api/meta`, `/api/ag` (harita için ağ +
-  ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler` (+ `POST /api/testler/calistir`), `/api/akis` (SSE), `/api/kontrol`.
+  ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler` (+ `POST /api/testler/calistir`), `/api/gecmis` (SQLite özeti),
+  `/api/akis` (SSE), `/api/kontrol`.
   Testler ayrı bir iş parçacığında çalıştırılır (~12 sn); senkron çalıştırmak SSE akışını
   bloke ederdi. Arayüz `calisiyor`/`gecen_sn` alanlarını yoklayıp ilerlemeyi canlı gösterir.
+- `rayli_kayit.py` — **kalıcılık (SQLite)**. `data/rayli_kayit.db` içinde üç tablo:
+  `calistirmalar` (her reset yeni oturum açar), `alarmlar` (yerleşik sınıf değişimleri, süre ve
+  öncelikle birlikte), `metrikler` (25 tick'te bir doğruluk anlık görüntüsü). Sorgular:
+  dingil/hat/sınıf bazında alarm özeti. Yazma `bir_tick_isle` içinde senkron yapılır — o zaten
+  `asyncio.to_thread` ile ayrı bir iş parçacığında çalıştığı için olay döngüsü bloke olmaz.
+  Veritabanı git'e girmez (`.gitignore`), CLI ile de sorgulanabilir.
 - `rayli_kafka.py` — Kafka adaptörü. Üretici etiketsiz akışı topic'e yayınlar, tüketici topic'i
   DataFrame'e çevirir; sunucu `--kaynak kafka` ile aynı boru hattını mesaj kuyruğundan besler.
   `kafka-python` kurulu değilse anlaşılır bir hata verir (varsayılan akış CSV'dir).
@@ -171,9 +188,9 @@ Model **çok görevlidir**: tek gövde (CNN+LSTM), iki başlık — arıza tipi 
 şiddeti (none/mild/moderate/severe). Toplam kayıp = tip + `SEVERITY_AGIRLIK`(0.4) × şiddet.
 
 Gerçek metro ağı verisiyle eğitilen mevcut model, test setinde:
-- **Arıza tipi: accuracy %99.2, macro F1 0.9764** (`bearing_fault` 0.997, `rail_crack` 0.990,
-  `normal` 0.995; en zayıf `motor_fault` F1 0.924)
-- **Arıza şiddeti: accuracy %96.6, macro F1 0.8447** (mild/moderate sınırları doğası gereği bulanık)
+- **Arıza tipi: accuracy %99.2, macro F1 0.9764** (`bearing_fault` 0.997, `normal` 0.996,
+  `wheel_flat` 0.990; en zayıf `motor_fault` F1 0.944)
+- **Arıza şiddeti: accuracy %96.8, macro F1 0.85** (mild/moderate sınırları doğası gereği bulanık)
 
 **Sınıf ağırlığı yumuşatma (`AGIRLIK_YUMUSATMA = 0.5`)**: veri %85 `normal` olduğu için tam
 "balanced" ters frekans ağırlığı nadir sınıflara ~35 kat ağırlık verip modeli "arıza de" yönünde
@@ -194,7 +211,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **62 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **74 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -209,12 +226,13 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 - `test_model.py` — iki başlıklı çıktı, checkpoint alanları, scaler yeniden kurulumu, sekans
   hizası, **doğruluk regresyon eşiği**
 - `test_canli_akis.py` — pencere dolmadan tahmin yok, histerezis davranışı, kör modda sızıntı
-  olmaması, reset, canlı doğruluk eşiği, akışın 300/300 tamamlanması
+  olmaması, reset, canlı doğruluk eşiği, akışın 300/300 tamamlanması, **belirsizlik**
+  (entropi hesabı, belirsiz tahminlerin alarm üretmemesi), **alarm süresi/önceliği**
+- `test_kayit.py` — SQLite şeması, alarm/metrik yazma, dingil/hat/sınıf özet sorguları
 
 ## Sıradaki olası görevler
 
-- Kalıcılık: tahminleri/alarmları SQLite'a yazıp geçmişe dönük sorgulama.
-- Aynı hatta birden fazla tren (şu an hat başına 1 tren, 17 hat = 68 dingil).
+- Sıcaklık sensörlerine otokorelasyon (şu an bağımsız gürültü; gerçekte yumuşak trend gösterir).
 - Kaynak veri tazeliği: İBB anlık görüntüsü bazı hatlarda eski etapları gösteriyor
   (M9 yalnızca 4 istasyon, M3 Bakırköy uzatması yok, M11 Halkalı etabı "inşaat").
   Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir.

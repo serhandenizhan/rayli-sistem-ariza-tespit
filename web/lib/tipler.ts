@@ -31,6 +31,11 @@ export interface AxleDurum {
   sev_probs?: number[];
   yerlesik?: SinifAdi | null;   // histerezis sonrası kararlı sınıf
   kararli?: boolean;
+  entropi?: number;             // 0-1 normalize softmax entropisi (belirsizlik ölçüsü)
+  belirsiz?: boolean;           // eşiğin üstünde mi — alarm üretemez
+  yerlesik_sure_sn?: number;    // mevcut yerleşik durum ne kadardır sürüyor
+  oncelik?: number;             // 0-1 alarm öncelik skoru (şiddet + süre + güven)
+  oncelik_seviye?: "kritik" | "yuksek" | "orta" | "dusuk";
   // Aşağıdakiler yalnızca kör mod KAPALI iken gelir (cevap anahtarı = doğrulama katmanı)
   gercek?: SinifAdi;
   gercek_severity?: SiddetAdi;
@@ -39,7 +44,10 @@ export interface AxleDurum {
 
 export interface Olay {
   ts: string;
+  tick?: number;
   axle: string;
+  sure_sn?: number;       // önceki durum ne kadar sürdü
+  oncelik?: number | null;
   line_id?: string | null;
   onceki: string | null;
   yeni: SinifAdi;
@@ -62,6 +70,18 @@ export interface Metrikler {
   trend?: { tick: number; acc: number | null }[];
 }
 
+export interface AktifAlarm {
+  axle: string;
+  line_id?: string | null;
+  yerlesik: SinifAdi;
+  severity?: SiddetAdi;
+  conf?: number;
+  oncelik: number;
+  oncelik_seviye: "kritik" | "yuksek" | "orta" | "dusuk";
+  yerlesik_sure_sn: number;
+  istasyon?: string | null;
+}
+
 export interface TickPaketi {
   tick: number;
   toplam_tick: number;
@@ -71,6 +91,9 @@ export interface TickPaketi {
   kor_mod: boolean;
   histerezis: number;
   bitti: boolean;
+  belirsizlik_esigi: number;
+  aktif_alarmlar: AktifAlarm[];
+  belirsiz_sayisi: number;
   axles: AxleDurum[];
   yeni_olaylar: Olay[];
   sayaclar: Record<string, number>;
@@ -109,6 +132,7 @@ export interface Meta {
   toplam_tick: number;
   kor_mod: boolean;
   histerezis: number;
+  belirsizlik_esigi: number;
   kaynak: string;
   baslangic: string;
   bitis: string;
@@ -223,4 +247,34 @@ export const SIDDET_RENK: Record<string, string> = {
   mild: "var(--warn)",
   moderate: "var(--c-bearing)",
   severe: "var(--bad)",
+};
+
+// ------------------------------------------------------------- geçmiş (SQLite)
+export interface GecmisDingil {
+  axle: string; line_id: string | null; alarm_sayisi: number;
+  agir_sayisi: number; ort_sure_sn: number | null; son_alarm: string;
+}
+export interface GecmisAlarm {
+  kayit_zamani: string; sim_zamani: string | null; axle: string; line_id: string | null;
+  onceki: string | null; yeni: string; severity: string | null; conf: number | null;
+  istasyon: string | null; sure_sn: number | null; oncelik: number | null; gercek: string | null;
+}
+export interface GecmisOzet {
+  var: boolean;
+  mesaj?: string;
+  toplam_alarm?: number;
+  calistirma_sayisi?: number;
+  dingiller?: GecmisDingil[];
+  hatlar?: { line_id: string; alarm_sayisi: number; dingil_sayisi: number }[];
+  siniflar?: { sinif: string; adet: number; ort_sure_sn: number | null }[];
+  calistirmalar?: { id: number; baslangic: string; histerezis: number; dingil_sayisi: number;
+                    hat_sayisi: number; alarm_sayisi: number }[];
+  son_alarmlar?: GecmisAlarm[];
+}
+
+export const ONCELIK_ETIKET: Record<string, string> = {
+  kritik: "Kritik", yuksek: "Yüksek", orta: "Orta", dusuk: "Düşük",
+};
+export const ONCELIK_RENK: Record<string, string> = {
+  kritik: "var(--bad)", yuksek: "var(--c-bearing)", orta: "var(--warn)", dusuk: "var(--muted)",
 };

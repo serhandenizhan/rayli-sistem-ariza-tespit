@@ -44,6 +44,7 @@ import torch
 
 from rayli_model import (FEATURE_COLS, GROUP_COLS, SEVERITY_CLASSES,
                          load_model_checkpoint, rebuild_scaler_and_encoder)
+from rayli_kayit import Kayitci
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "..", "data")
@@ -61,9 +62,51 @@ TICK_SECONDS = 2.0          # veri örnekleme aralığı: 2 saniye (1x hızda ge
 MAX_EVENTS = 200            # bellekte tutulan son alarm/olay sayısı
 VARSAYILAN_HISTEREZIS = 3   # bir sınıfın "yerleşik" sayılması için gereken ardışık tick
 
+# --- Belirsizlik (uncertainty) ---
+# Model her zaman bir sınıf söyler; "emin değilim" diyemez. Softmax dağılımının normalize
+# entropisi (0 = tek sınıfa tam güven, 1 = tamamen kararsız) bu boşluğu doldurur. Eşiğin
+# üstündeki tahminler BELİRSİZ sayılır ve histerezis sayacını ilerletmez — yani kararsız
+# tahminler alarm üretemez. Bu, gerçek arıza yönetim sistemlerinde yanlış alarmı azaltan
+# standart bir yaklaşımdır.
+VARSAYILAN_BELIRSIZLIK_ESIGI = 0.35
+
+# --- Alarm önceliği ---
+# Operasyonda "3 dakikadır ağır rulman arızası" ile "10 saniyedir hafif" aynı aciliyette
+# değildir. Öncelik skoru şiddet + süre + güveni birleştirir (0-1 arası).
+SIDDET_AGIRLIK = {"none": 0.0, "mild": 1.0, "moderate": 2.0, "severe": 3.0}
+SURE_DOYUM_SN = 120.0       # bu süreden sonra süre katkısı doygunlaşır
+METRIK_KAYIT_ARALIGI = 25   # her N tick'te bir veritabanına metrik anlık görüntüsü
+
 
 def _axle_key(row):
     return f"{row['train_id']}/{row['wagon_id']}-{row['axle_id']}"
+
+
+def normalize_entropi(olasiliklar):
+    """Softmax dağılımının 0-1 aralığına normalize edilmiş Shannon entropisi.
+    0 = model tek bir sınıfa tam güveniyor, 1 = tüm sınıflar eşit olası (tam kararsız)."""
+    p = np.clip(olasiliklar, 1e-12, 1.0)
+    return float(-(p * np.log(p)).sum() / np.log(len(p)))
+
+
+def oncelik_hesapla(severity, sure_sn, conf):
+    """Alarm önceliği (0-1): şiddet %50, süre %30, model güveni %20.
+
+    Süre katkısı SURE_DOYUM_SN'de doygunlaşır — 2 dakikadır süren bir arıza ile 10 dakikadır
+    süren arasındaki fark, 10 saniye ile 2 dakika arasındaki kadar kritik değildir."""
+    sev = SIDDET_AGIRLIK.get(severity, 0.0) / 3.0
+    sure = min(sure_sn / SURE_DOYUM_SN, 1.0)
+    return round(0.5 * sev + 0.3 * sure + 0.2 * float(conf), 4)
+
+
+def oncelik_seviyesi(skor):
+    if skor >= 0.70:
+        return "kritik"
+    if skor >= 0.50:
+        return "yuksek"
+    if skor >= 0.30:
+        return "orta"
+    return "dusuk"
 
 
 class AkisSimulatoru:
@@ -74,7 +117,8 @@ class AkisSimulatoru:
     """
 
     def __init__(self, kor_mod=False, baslangic_hizi=5.0, histerezis=VARSAYILAN_HISTEREZIS,
-                 kaynak="csv", kafka_sunucu=None, kafka_topic=None):
+                 kaynak="csv", kafka_sunucu=None, kafka_topic=None,
+                 belirsizlik_esigi=VARSAYILAN_BELIRSIZLIK_ESIGI, kayit=True):
         if not os.path.exists(MODEL_PATH):
             raise SystemExit(f"Model bulunamadı: {MODEL_PATH}\nÖnce 'python rayli_dl_egitim.py' çalıştırın.")
 
@@ -85,6 +129,7 @@ class AkisSimulatoru:
         self.window = int(self.checkpoint["window"])
         self.kor_mod = kor_mod
         self.histerezis = max(1, int(histerezis))
+        self.belirsizlik_esigi = float(belirsizlik_esigi)
         self.kaynak = kaynak
 
         df = self._akis_verisi_oku(kaynak, kafka_sunucu, kafka_topic)
@@ -101,6 +146,9 @@ class AkisSimulatoru:
         key_df = pd.read_csv(KEY_CSV)
         self.answer_key = dict(zip(key_df["sample_id"], key_df["fault_type"]))
         self.severity_key = dict(zip(key_df["sample_id"], key_df["fault_severity"]))
+
+        # Kalıcılık: alarmlar ve metrikler SQLite'a yazılır (bkz. rayli_kayit.py)
+        self.kayitci = Kayitci() if kayit else None
 
         self.hiz = baslangic_hizi
         self.oynatiliyor = True
@@ -132,6 +180,16 @@ class AkisSimulatoru:
         self.olaylar = deque(maxlen=MAX_EVENTS)
         self.gecmis = deque(maxlen=120)                   # doğruluk trendi için
         self.son_payload = None
+        # Yerleşik durumun hangi tick'te başladığı — alarm süresi ve önceliği için
+        self.yerlesik_baslangic = {a: 0 for a in self.axles}
+        self.belirsiz_sayaci = 0
+
+        if getattr(self, "kayitci", None):
+            self.kayitci.calistirma_basla(
+                kaynak=self.kaynak, kor_mod=self.kor_mod, histerezis=self.histerezis,
+                dingil_sayisi=len(self.axles),
+                hat_sayisi=len({h for h in self.axle_hat.values() if h}),
+            )
 
     # -------------------------------------------------------------- tick işle
     def bir_tick_isle(self):
@@ -167,11 +225,14 @@ class AkisSimulatoru:
             for i, key in enumerate(hazir_axles):
                 p, sp = probs[i], sev_probs[i]
                 idx, sidx = int(p.argmax()), int(sp.argmax())
+                entropi = normalize_entropi(p)
                 tahminler[key] = {
                     "pred": self.classes[idx], "conf": float(p[idx]),
                     "probs": [round(float(v), 4) for v in p],
                     "severity": self.sev_classes[sidx], "sev_conf": float(sp[sidx]),
                     "sev_probs": [round(float(v), 4) for v in sp],
+                    "entropi": round(entropi, 4),
+                    "belirsiz": entropi > self.belirsizlik_esigi,
                 }
 
         yeni_olaylar = []
@@ -201,22 +262,40 @@ class AkisSimulatoru:
             if t is not None:
                 item.update(pred=t["pred"], conf=round(t["conf"], 4), probs=t["probs"],
                             severity=t["severity"], sev_conf=round(t["sev_conf"], 4),
-                            sev_probs=t["sev_probs"])
+                            sev_probs=t["sev_probs"], entropi=t["entropi"],
+                            belirsiz=t["belirsiz"])
+                if t["belirsiz"]:
+                    self.belirsiz_sayaci += 1
 
-                # --- HİSTEREZİS: aynı sınıf N ardışık tick gelmeden yerleşik durum değişmez ---
-                if t["pred"] == self.aday_sinif[key]:
+                # --- HİSTEREZİS: aynı sınıf N ardışık tick gelmeden yerleşik durum değişmez.
+                # BELİRSİZ tahminler sayacı ilerletmez ("görüş bildirmedi" sayılır) — böylece
+                # modelin kararsız kaldığı anlar alarm üretemez.
+                if t["belirsiz"]:
+                    pass
+                elif t["pred"] == self.aday_sinif[key]:
                     self.aday_sayac[key] += 1
                 else:
                     self.aday_sinif[key] = t["pred"]
                     self.aday_sayac[key] = 1
 
                 onceki_yerlesik = self.yerlesik_sinif[key]
+                onceki_sure_sn = (self.tick_index - self.yerlesik_baslangic[key]) * TICK_SECONDS
                 degisti = False
-                if (self.aday_sayac[key] >= self.histerezis and t["pred"] != onceki_yerlesik):
-                    self.yerlesik_sinif[key] = t["pred"]
+                if (self.aday_sayac[key] >= self.histerezis
+                        and self.aday_sinif[key] != onceki_yerlesik):
+                    self.yerlesik_sinif[key] = self.aday_sinif[key]
+                    self.yerlesik_baslangic[key] = self.tick_index
                     degisti = True
                 item["yerlesik"] = self.yerlesik_sinif[key]
                 item["kararli"] = self.aday_sayac[key] >= self.histerezis
+
+                # --- ALARM SÜRESİ ve ÖNCELİĞİ ---
+                sure_sn = (self.tick_index - self.yerlesik_baslangic[key]) * TICK_SECONDS
+                item["yerlesik_sure_sn"] = round(sure_sn, 1)
+                if self.yerlesik_sinif[key] and self.yerlesik_sinif[key] != "normal":
+                    skor = oncelik_hesapla(t["severity"], sure_sn, t["conf"])
+                    item["oncelik"] = skor
+                    item["oncelik_seviye"] = oncelik_seviyesi(skor)
 
                 # --- DOĞRULAMA: tahmin üretildikten SONRA cevap anahtarıyla eşleştirme ---
                 gercek = self.answer_key.get(sample_id)
@@ -236,22 +315,36 @@ class AkisSimulatoru:
                 # (akış başındaki "ilk kez normale yerleşti" durumu olay sayılmaz)
                 ilk_yerlesme_normal = onceki_yerlesik is None and t["pred"] == "normal"
                 if degisti and not ilk_yerlesme_normal:
+                    yeni_sinif = self.yerlesik_sinif[key]
                     olay = {
-                        "ts": ts, "axle": key, "line_id": row.get("line_id"),
-                        "onceki": onceki_yerlesik, "yeni": t["pred"],
+                        "ts": ts, "tick": self.tick_index,
+                        "axle": key, "line_id": row.get("line_id"),
+                        "onceki": onceki_yerlesik, "yeni": yeni_sinif,
                         "conf": round(t["conf"], 3), "severity": t["severity"],
                         "istasyon": row.get("next_station"),
-                        "tip": "alarm" if t["pred"] != "normal" else "temizlendi",
+                        "tip": "alarm" if yeni_sinif != "normal" else "temizlendi",
+                        # önceki durum ne kadar sürdü (alarm süresi analizi için)
+                        "sure_sn": round(onceki_sure_sn, 1),
+                        "oncelik": (oncelik_hesapla(t["severity"], 0.0, t["conf"])
+                                    if yeni_sinif != "normal" else None),
                     }
                     if not self.kor_mod and gercek is not None:
                         olay["gercek"] = gercek
                     yeni_olaylar.append(olay)
                     self.olaylar.appendleft(olay)
+                    if self.kayitci:
+                        self.kayitci.alarm_yaz(olay)
 
             axle_payload.append(item)
 
         acc = (self.dogru / self.degerlendirilen) if self.degerlendirilen else None
         self.gecmis.append({"tick": self.tick_index, "acc": acc})
+
+        # Aktif alarmlar: yerleşik durumu normal olmayan dingiller, önceliğe göre sıralı
+        aktif_alarmlar = sorted(
+            [a for a in axle_payload if a.get("oncelik") is not None],
+            key=lambda a: -a["oncelik"])
+        belirsiz_simdi = sum(1 for a in axle_payload if a.get("belirsiz"))
 
         payload = {
             "tick": self.tick_index,
@@ -262,11 +355,24 @@ class AkisSimulatoru:
             "kor_mod": self.kor_mod,
             "histerezis": self.histerezis,
             "bitti": self.tick_index + 1 >= len(self.ticks),
+            "belirsizlik_esigi": self.belirsizlik_esigi,
             "axles": axle_payload,
             "yeni_olaylar": yeni_olaylar,
             "sayaclar": self._sinif_sayaclari(axle_payload),
+            "aktif_alarmlar": [
+                {k: a[k] for k in ("axle", "line_id", "yerlesik", "severity", "conf",
+                                   "oncelik", "oncelik_seviye", "yerlesik_sure_sn")
+                 if k in a} | {"istasyon": a["konum"].get("istasyon")}
+                for a in aktif_alarmlar[:12]
+            ],
+            "belirsiz_sayisi": belirsiz_simdi,
             "metrikler": self._metrikler(),
         }
+
+        # Periyodik metrik anlık görüntüsü (geçmişe dönük trend analizi için)
+        if self.kayitci and self.tick_index % METRIK_KAYIT_ARALIGI == 0:
+            self.kayitci.metrik_yaz(self.tick_index, payload["metrikler"], len(aktif_alarmlar))
+
         self.tick_index += 1
         self.son_payload = payload
         return payload
@@ -349,6 +455,7 @@ class AkisSimulatoru:
             "toplam_tick": len(self.ticks),
             "kor_mod": self.kor_mod,
             "histerezis": self.histerezis,
+            "belirsizlik_esigi": self.belirsizlik_esigi,
             "kaynak": self.kaynak,
             "baslangic": self.timestamps[0],
             "bitis": self.timestamps[-1],
@@ -456,6 +563,13 @@ def create_app(sim: AkisSimulatoru):
         threading.Thread(target=_pytest_calistir, daemon=True).start()
         return {"calisiyor": True, "mesaj": "Testler başlatıldı"}
 
+    @app.get("/api/gecmis")
+    async def gecmis():
+        """SQLite'a yazılmış geçmiş alarmların özeti (dingil/hat/sınıf bazında)."""
+        if not sim.kayitci:
+            return {"var": False, "mesaj": "Kayıt kapalı (--kayitsiz)."}
+        return {"var": True, **sim.kayitci.genel_ozet()}
+
     @app.post("/api/kontrol")
     async def kontrol(request: Request):
         body = await request.json()
@@ -473,8 +587,11 @@ def create_app(sim: AkisSimulatoru):
             sim.kor_mod = bool(body.get("value", False))
         elif action == "histerezis":
             sim.histerezis = max(1, int(body.get("value", VARSAYILAN_HISTEREZIS)))
+        elif action == "belirsizlik":
+            sim.belirsizlik_esigi = float(body.get("value", VARSAYILAN_BELIRSIZLIK_ESIGI))
         return {"oynatiliyor": sim.oynatiliyor, "hiz": sim.hiz, "tick": sim.tick_index,
-                "kor_mod": sim.kor_mod, "histerezis": sim.histerezis}
+                "kor_mod": sim.kor_mod, "histerezis": sim.histerezis,
+                "belirsizlik_esigi": sim.belirsizlik_esigi}
 
     @app.get("/api/akis")
     async def akis(request: Request):
@@ -535,6 +652,9 @@ def main():
                     help="Cevap anahtarını arayüze hiç gönderme (tam kör demo)")
     ap.add_argument("--histerezis", type=int, default=VARSAYILAN_HISTEREZIS,
                     help="Yerleşik sınıf değişimi için gereken ardışık tick sayısı")
+    ap.add_argument("--belirsizlik", type=float, default=VARSAYILAN_BELIRSIZLIK_ESIGI,
+                    help="Normalize entropi eşiği; üstündeki tahminler belirsiz sayılır")
+    ap.add_argument("--kayitsiz", action="store_true", help="SQLite kaydını kapat")
     ap.add_argument("--kaynak", choices=["csv", "kafka"], default="csv", help="Akış veri kaynağı")
     ap.add_argument("--kafka-sunucu", default="localhost:9092")
     ap.add_argument("--kafka-topic", default="rayli-sensor")
@@ -543,10 +663,13 @@ def main():
 
     sim = AkisSimulatoru(kor_mod=args.kor_mod, baslangic_hizi=args.hiz, histerezis=args.histerezis,
                          kaynak=args.kaynak, kafka_sunucu=args.kafka_sunucu,
-                         kafka_topic=args.kafka_topic)
+                         kafka_topic=args.kafka_topic, belirsizlik_esigi=args.belirsizlik,
+                         kayit=not args.kayitsiz)
     print(f"Model yüklendi   : {MODEL_PATH}")
     print(f"Akış kaynağı     : {args.kaynak} ({len(sim.ticks)} tick x {len(sim.axles)} dingil)")
     print(f"Histerezis       : {sim.histerezis} ardışık tick")
+    print(f"Belirsizlik eşiği: {sim.belirsizlik_esigi} (normalize entropi)")
+    print(f"Kayıt (SQLite)   : {'kapalı' if args.kayitsiz else 'data/rayli_kayit.db'}")
     print(f"Cevap anahtarı   : {'KULLANILMIYOR (kör mod)' if args.kor_mod else KEY_CSV}")
 
     if args.konsol:

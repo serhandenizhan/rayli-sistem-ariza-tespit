@@ -52,6 +52,12 @@ WAGONS_PER_TRAIN = 2                     # her tren 2 vagon
 AXLES_PER_WAGON = 2                      # her vagon 2 dingil -> tren başına 4 dingil
 WHEEL_DIAM_M = 0.92
 
+# Hat başına kaç tren işletilir? Uzun hatlarda gerçekte de daha sık sefer vardır; bu yüzden
+# belirli bir uzunluğun üstündeki hatlara ikinci bir tren konur. Trenler hat üzerinde
+# birbirinden uzak noktalardan başlatılır (sefer aralığı/headway taklidi).
+COK_TRENLI_ESIK_KM = 15.0
+MAKS_TREN_PER_HAT = 2
+
 # --- Tren hareket profili (gerçekçi metro seferi) ---
 MAX_HIZ_KMH = {"Metro": 80.0, "Tramvay": 45.0, "Banliyö": 90.0, "Füniküler": 30.0}
 IVME_MS2 = 1.0                           # kalkış ivmesi
@@ -97,7 +103,7 @@ def ray_kusurlari_uret(hatlar):
     return kusurlar
 
 
-def tren_hareketi(hat, n_steps, rng_local):
+def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None):
     """Gerçek istasyon dizisi üzerinde bir seferin hız/konum profilini üretir.
 
     Dönen diziler adım bazlıdır: konum (km), hız (km/sa), yön (+1/-1), istasyonda mı,
@@ -114,8 +120,12 @@ def tren_hareketi(hat, n_steps, rng_local):
     duruyor_arr = np.zeros(n_steps, dtype=bool)
     sonraki_ist = np.zeros(n_steps, dtype=int)
 
-    # rastgele bir istasyondan, rastgele yönde başla
-    hedef_idx = int(rng_local.integers(1, n_ist))
+    # Başlangıç istasyonu: tek trenli hatta rastgele, çok trenli hatta hat boyunca eşit
+    # aralıklı (trenler birbirinin üstünde başlamasın, sefer aralığı gerçekçi olsun).
+    if baslangic_orani is None:
+        hedef_idx = int(rng_local.integers(1, n_ist))
+    else:
+        hedef_idx = max(1, min(n_ist - 1, int(round(baslangic_orani * (n_ist - 1))) or 1))
     yon = 1
     konum_m = istasyonlar[hedef_idx - 1]["km"] * 1000.0
     hiz = 0.0
@@ -259,16 +269,22 @@ def severity_label(sev_value):
 # ---------------------------------------------------------------------------
 # Seri (dingil) listesi ve arıza bölümleri
 # ---------------------------------------------------------------------------
+def hat_tren_sayisi(hat):
+    """Bir hatta kaç tren işletileceği (uzun hatlarda daha fazla sefer)."""
+    return MAKS_TREN_PER_HAT if hat["uzunluk_km"] >= COK_TRENLI_ESIK_KM else 1
+
+
 def build_series_list(hatlar):
-    """Her simülasyon hattına bir tren; her trene 2 vagon x 2 dingil."""
+    """Her simülasyon hattına bir veya daha fazla tren; her trene 2 vagon x 2 dingil."""
     series = []
-    for i, kod in enumerate(ag.SIMULASYON_HATLARI):
+    for kod in ag.SIMULASYON_HATLARI:
         if kod not in hatlar:
             continue
-        train_id = f"{kod}-{i + 1:02d}"
-        for wagon in range(1, WAGONS_PER_TRAIN + 1):
-            for axle in range(1, AXLES_PER_WAGON + 1):
-                series.append((kod, train_id, f"V{wagon}", f"A{axle}"))
+        for tren_no in range(1, hat_tren_sayisi(hatlar[kod]) + 1):
+            train_id = f"{kod}-{tren_no:02d}"
+            for wagon in range(1, WAGONS_PER_TRAIN + 1):
+                for axle in range(1, AXLES_PER_WAGON + 1):
+                    series.append((kod, train_id, f"V{wagon}", f"A{axle}"))
     return series
 
 
@@ -396,9 +412,15 @@ def main():
 
     # Aynı trenin tüm dingilleri aynı hareketi paylaşır (aynı araç!)
     hareketler = {}
+    hat_tren_listesi = {}
     for kod, train_id, _, _ in series_list:
-        if train_id not in hareketler:
-            hareketler[train_id] = tren_hareketi(hatlar[kod], N_STEPS, rng)
+        hat_tren_listesi.setdefault(kod, [])
+        if train_id not in hat_tren_listesi[kod]:
+            hat_tren_listesi[kod].append(train_id)
+    for kod, trenler in hat_tren_listesi.items():
+        for i, train_id in enumerate(trenler):
+            oran = None if len(trenler) == 1 else (i + 0.5) / len(trenler)
+            hareketler[train_id] = tren_hareketi(hatlar[kod], N_STEPS, rng, oran)
 
     all_rows = []
     for s in series_list:
@@ -432,7 +454,10 @@ def main():
     train_df.to_csv(os.path.join(DATA_DIR, "rayli_sistem_train.csv"), index=False)
     test_df.to_csv(os.path.join(DATA_DIR, "rayli_sistem_test.csv"), index=False)
 
+    cok_trenli = [k for k in ag.SIMULASYON_HATLARI
+                  if k in hatlar and hat_tren_sayisi(hatlar[k]) > 1]
     print(f"Ağ: {len(ag.SIMULASYON_HATLARI)} hat | tren: {len(hareketler)} | dingil: {len(series_list)}")
+    print(f"Çift trenli hatlar (>= {COK_TRENLI_ESIK_KM} km): {', '.join(cok_trenli)}")
     hat_ozet = ", ".join("{} ({})".format(k, hatlar[k]["kisa_ad"])
                          for k in ag.SIMULASYON_HATLARI if k in hatlar)
     print(f"Hatlar: {hat_ozet}")

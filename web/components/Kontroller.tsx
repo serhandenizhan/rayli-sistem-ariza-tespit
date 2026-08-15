@@ -4,18 +4,22 @@ import type { Meta, TickPaketi } from "@/lib/tipler";
 
 const HIZLAR = [1, 2, 5, 10, 25, 50];
 const HISTEREZIS_SECENEK = [1, 2, 3, 5, 8];
+// Normalize entropi eşiği: düşük = katı (çok tahmini belirsiz say), yüksek = gevşek
+const BELIRSIZLIK_SECENEK = [0.2, 0.35, 0.5, 1.0];
 
-export type Sekme = "izleme" | "dingiller" | "dogrulama" | "testler";
+export type Sekme = "izleme" | "dingiller" | "dogrulama" | "gecmis" | "testler";
 
 export const SEKMELER: { id: Sekme; ad: string; ikon: string }[] = [
   { id: "izleme", ad: "Canlı İzleme", ikon: "🗺" },
   { id: "dingiller", ad: "Dingiller & Sensörler", ikon: "🔧" },
   { id: "dogrulama", ad: "Doğrulama & Model", ikon: "🎯" },
+  { id: "gecmis", ad: "Geçmiş", ikon: "🗄" },
   { id: "testler", ad: "Testler", ikon: "🧪" },
 ];
 
 export default function Kontroller({
   meta, tick, bagli, kontrol, oynatiliyor, korMod, histerezis, sekme, onSekme, alarmSayisi,
+  belirsizlikEsigi,
 }: {
   meta: Meta | null;
   tick: TickPaketi | null;
@@ -27,6 +31,7 @@ export default function Kontroller({
   sekme: Sekme;
   onSekme: (s: Sekme) => void;
   alarmSayisi: number;
+  belirsizlikEsigi: number;
 }) {
   const toplam = tick?.toplam_tick ?? meta?.toplam_tick ?? 0;
   const simdi = tick ? tick.tick + 1 : 0;
@@ -102,6 +107,20 @@ export default function Kontroller({
               <button key={h} className={histerezis === h ? "aktif" : ""}
                       onClick={() => kontrol("histerezis", h)}>
                 {h}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="kontrol-grup">
+          <label title="Normalize entropi eşiği: bu değerin üstündeki tahminler 'belirsiz' sayılır ve alarm üretemez. 1.0 = kapalı">
+            Belirsizlik
+          </label>
+          <div className="hiz-grup">
+            {BELIRSIZLIK_SECENEK.map((b) => (
+              <button key={b} className={Math.abs(belirsizlikEsigi - b) < 0.01 ? "aktif" : ""}
+                      onClick={() => kontrol("belirsizlik", b)}>
+                {b === 1.0 ? "kapalı" : b.toFixed(2)}
               </button>
             ))}
           </div>

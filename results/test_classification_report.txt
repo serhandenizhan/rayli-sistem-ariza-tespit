@@ -1,29 +1,29 @@
 === ARIZA TİPİ ===
                precision    recall  f1-score   support
 
-bearing_fault      0.997     0.997     0.997       307
-  brake_fault      0.982     0.945     0.963       345
-  motor_fault      0.936     0.912     0.924       274
-       normal      0.994     0.996     0.995      8450
-   rail_crack      1.000     0.980     0.990       150
-   wheel_flat      0.983     0.995     0.989       402
+bearing_fault      0.995     1.000     0.997       564
+  brake_fault      0.968     0.947     0.958       513
+  motor_fault      0.970     0.920     0.944       450
+       normal      0.994     0.997     0.996     11785
+   rail_crack      0.970     0.977     0.974       266
+   wheel_flat      0.995     0.984     0.990       438
 
-     accuracy                          0.992      9928
-    macro avg      0.982     0.971     0.976      9928
- weighted avg      0.992     0.992     0.992      9928
+     accuracy                          0.992     14016
+    macro avg      0.982     0.971     0.976     14016
+ weighted avg      0.992     0.992     0.992     14016
 
 Macro F1: 0.9764
 
 === ARIZA ŞİDDETİ ===
               precision    recall  f1-score   support
 
-        none      0.997     0.993     0.995      8528
-        mild      0.721     0.903     0.802       452
-    moderate      0.817     0.742     0.778       585
-      severe      0.841     0.771     0.805       363
+        none      0.996     0.993     0.994     11913
+        mild      0.808     0.802     0.805       702
+    moderate      0.843     0.815     0.829       919
+      severe      0.782     0.913     0.842       482
 
-    accuracy                          0.966      9928
-   macro avg      0.844     0.852     0.845      9928
-weighted avg      0.968     0.966     0.966      9928
+    accuracy                          0.969     14016
+   macro avg      0.857     0.881     0.868     14016
+weighted avg      0.969     0.969     0.969     14016
 
-Şiddet accuracy: 0.9661 | Macro F1: 0.8447
+Şiddet accuracy: 0.9686 | Macro F1: 0.8676
