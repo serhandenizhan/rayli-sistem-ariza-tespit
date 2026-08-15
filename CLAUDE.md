@@ -6,9 +6,11 @@ Bu dosya, bu depo üzerinde çalışan bir Claude ajanı (Claude Code vb.) için
 
 Raylı sistemlerde (tren/vagon/dingil) çok sensörlü verilerden arıza tespiti ve sınıflandırması
 için uçtan uca bir proje: **gerçek İstanbul metro ağı** üzerinde sentetik veri üretimi +
-**çok görevli** (arıza tipi + şiddet) 1D-CNN/LSTM modeli + **canlı akış simülasyonu**
-(FastAPI/SSE, histerezisli) + **Next.js dashboard** (canlı ağ haritası dahil) + pytest.
+**çok görevli** (arıza tipi + şiddet) 1D-CNN/LSTM modeli + **denetimsiz anomali tespiti**
+(autoencoder, tamamlayıcı katman) + **canlı akış simülasyonu** (FastAPI/SSE, histerezisli) +
+**Next.js dashboard** (canlı ağ haritası dahil) + pytest + **hafif Docker Compose**.
 Tek komutla çalışır: `./calistir.sh` (kurulum → eğitim → etiketsiz akış → API → arayüz).
+Docker ile de çalışır: `docker compose up --build`.
 
 ## Kurulum ve sık kullanılan komutlar
 
@@ -113,6 +115,14 @@ yapılabilir.
   `/api/kontrol` ile değiştirilebilir. Uç noktalar: `/api/meta`, `/api/ag` (harita için ağ +
   ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler` (+ `POST /api/testler/calistir`), `/api/gecmis` (SQLite özeti),
   `/api/akis` (SSE), `/api/kontrol`.
+  **Anomali entegrasyonu**: `model/rayli_anomali_model.pt` varsa her tick'te aynı X batch'i
+  autoencoder'dan da geçirir; her dingile `anomali`, `anomali_skor` (0-1 normalize) ve
+  `bilinmeyen_anomali` (= denetimli model "normal" diyor AMA autoencoder aynı fikirde değil —
+  kullanıcının "ne olduğunu bilmiyorum" senaryosu) ekler. Model yoksa özellik sessizce devre
+  dışı kalır, ana sistem etkilenmez. Kör mod ve histerezis çalışma anında
+  `/api/kontrol` ile değiştirilebilir. Uç noktalar: `/api/meta`, `/api/ag` (harita için ağ +
+  ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler` (+ `POST /api/testler/calistir`), `/api/gecmis` (SQLite özeti),
+  `/api/akis` (SSE), `/api/kontrol`.
   Testler ayrı bir iş parçacığında çalıştırılır (~12 sn); senkron çalıştırmak SSE akışını
   bloke ederdi. Arayüz `calisiyor`/`gecen_sn` alanlarını yoklayıp ilerlemeyi canlı gösterir.
 - `rayli_kayit.py` — **kalıcılık (SQLite)**. `data/rayli_kayit.db` içinde üç tablo:
@@ -124,6 +134,22 @@ yapılabilir.
 - `rayli_kafka.py` — Kafka adaptörü. Üretici etiketsiz akışı topic'e yayınlar, tüketici topic'i
   DataFrame'e çevirir; sunucu `--kaynak kafka` ile aynı boru hattını mesaj kuyruğundan besler.
   `kafka-python` kurulu değilse anlaşılır bir hata verir (varsayılan akış CSV'dir).
+- `rayli_anomali.py` — **denetimsiz anomali tespiti** (autoencoder), 6 sınıflık denetimli
+  modeli TAMAMLAR, yerine geçmez. `SekansAutoencoder`, WINDOW×FEATURE_COLS'u düzleştirip
+  sıkıştıran/geri açan küçük tam bağlı bir ağdır. Gerekçe: denetimli model dağılım dışı
+  (out-of-distribution) bir girdide bile yüksek güvenle YANLIŞ sınıf söyleyebilir (bilinen bir
+  sinir ağı problemi); belirsizlik/entropi eşiği bunu her zaman yakalayamaz. Autoencoder farklı
+  bir soru sorar: "bu pencereyi normal örüntülerden öğrendiğim gibi yeniden üretebiliyor muyum?"
+  **Dürüstlük notu**: bu sentetik veri setinde yalnızca 6 belgelenmiş arıza tipi var, gerçekten
+  "bilinmeyen" bir arıza örneği yok — `rayli_anomali_egitim.py`'deki değerlendirme, autoencoder'ın
+  bilinen 6 sınıfı da normalden ayırabildiğini (mekanizmanın çalıştığını) doğrular; asıl değeri
+  gerçek dünyada veri setinde hiç bulunmayan GERÇEKTEN yeni bir arıza tipiyle karşılaşıldığında
+  ortaya çıkar.
+- `rayli_anomali_egitim.py` — autoencoder'ı SADECE `fault_type=normal` pencerelerle eğitir;
+  eşik, ayrılan bir validation biriminin yeniden yapılandırma hatasının 99. yüzdelik dilimidir.
+  Mevcut sonuç: normal pencerelerde %1.4 yanlış alarm, bilinen 6 arıza tipini ortalama %86.6
+  oranında "anomali" olarak yakalıyor. Çıktı: `model/rayli_anomali_model.pt` +
+  `results/anomali_egitim_ozeti.json`.
 
 ## Web arayüzü (web/)
 
@@ -226,7 +252,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **77 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **86 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -244,6 +270,24 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
   olmaması, reset, canlı doğruluk eşiği, akışın 300/300 tamamlanması, **belirsizlik**
   (entropi hesabı, belirsiz tahminlerin alarm üretmemesi), **alarm süresi/önceliği**
 - `test_kayit.py` — SQLite şeması, alarm/metrik yazma, dingil/hat/sınıf özet sorguları
+- `test_anomali.py` — autoencoder şekli/hata hesabı, checkpoint yükleme, normal pencerelerde
+  düşük yanlış alarm, bilinen arızaların normalden anlamlı ayrışması (mekanizma doğrulaması);
+  `test_canli_akis.py` içinde ayrıca: anomali alanlarının pakete eklenmesi, "bilinmeyen anomali"
+  tanımının doğruluğu, anomali modeli olmadan sistemin sorunsuz çalışması
+
+## Docker (hafif docker-compose)
+
+`docker-compose.yml` + `docker/Dockerfile.api` + `docker/Dockerfile.web` — bilinçli olarak
+**mikroservis DEĞİL**: sadece iki servis (API, web). Kafka/Redis/Celery ayrımı değerlendirildi
+ve reddedildi — bu projede tek bir simüle akış var, eş zamanlı yük veya bağımsız ölçeklenme
+ihtiyacı yok; ayrım gerçek bir faydaya değil teorik bir beklentiye hizmet ederdi (bkz.
+`docker-compose.yml` başındaki gerekçe). SQLite kaydı (`data/rayli_kayit.db`) `RAYLI_KAYIT_DB`
+ortam değişkeniyle `/app/data_kalici/` altına yönlendirilip ayrı bir volume'e bağlanır —
+`/app/data` üzerine volume bağlamak, imaja gömülü eğitim/ağ verilerini gizlerdi.
+**Not**: bu geliştirme ortamında Docker kurulu değildi; Dockerfile/compose dosyaları dikkatle
+yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile doğrulanamadı — ilk
+çalıştırmada küçük bir sorun çıkarsa (ör. Next.js `output` modu, healthcheck zamanlaması)
+şaşırtıcı olmaz.
 
 ## Sıradaki olası görevler
 

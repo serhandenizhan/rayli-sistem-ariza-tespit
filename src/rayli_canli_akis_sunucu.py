@@ -45,6 +45,7 @@ import torch
 from rayli_model import (FEATURE_COLS, GROUP_COLS, SEVERITY_CLASSES,
                          load_model_checkpoint, rebuild_scaler_and_encoder)
 from rayli_kayit import Kayitci
+from rayli_anomali import load_anomali_checkpoint, yeniden_yapilandirma_hatasi, anomali_skoru_normalize
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "..", "data")
@@ -54,6 +55,7 @@ RESULTS_DIR = os.path.join(BASE_DIR, "..", "results")
 STREAM_CSV = os.path.join(DATA_DIR, "rayli_sistem_test_akis.csv")
 KEY_CSV = os.path.join(DATA_DIR, "rayli_sistem_test_cevap_anahtari.csv")
 MODEL_PATH = os.path.join(MODEL_DIR, "rayli_cnn_lstm_model.pt")
+ANOMALI_MODEL_PATH = os.path.join(MODEL_DIR, "rayli_anomali_model.pt")
 AG_JSON = os.path.join(DATA_DIR, "istanbul_metro_agi.json")
 KUSUR_JSON = os.path.join(DATA_DIR, "ray_kusur_noktalari.json")
 COGRAFYA_JSON = os.path.join(DATA_DIR, "istanbul_cografya.json")
@@ -125,6 +127,17 @@ class AkisSimulatoru:
 
         self.model, self.checkpoint = load_model_checkpoint(MODEL_PATH)
         self.scaler, self.encoder = rebuild_scaler_and_encoder(self.checkpoint)
+
+        # Denetimsiz anomali tespiti (autoencoder) — TAMAMLAYICI, opsiyonel bir katman.
+        # Eğitilmemişse sessizce devre dışı kalır (ana sistemin çalışmasını engellemez).
+        self.anomali_model, self.anomali_esik = None, None
+        if os.path.exists(ANOMALI_MODEL_PATH):
+            self.anomali_model, anomali_ckpt = load_anomali_checkpoint(ANOMALI_MODEL_PATH)
+            self.anomali_esik = anomali_ckpt["esik"]
+            print(f"Anomali modeli yüklendi (eşik={self.anomali_esik:.4f})")
+        else:
+            print("Anomali modeli yok — 'python rayli_anomali_egitim.py' ile eğitilebilir "
+                 "(bu özellik olmadan da sistem normal çalışır).")
         self.classes = list(self.checkpoint["classes"])
         self.sev_classes = list(self.checkpoint.get("severity_classes", SEVERITY_CLASSES))
         self.window = int(self.checkpoint["window"])
@@ -251,11 +264,15 @@ class AkisSimulatoru:
                 logit_tip, logit_sev = self.model(torch.from_numpy(X))
                 probs = torch.softmax(logit_tip, dim=1).numpy()
                 sev_probs = torch.softmax(logit_sev, dim=1).numpy()
+
+            anomali_hata = None
+            if self.anomali_model is not None:
+                anomali_hata = yeniden_yapilandirma_hatasi(self.anomali_model, X)
             for i, key in enumerate(hazir_axles):
                 p, sp = probs[i], sev_probs[i]
                 idx, sidx = int(p.argmax()), int(sp.argmax())
                 entropi = normalize_entropi(p)
-                tahminler[key] = {
+                tahmin = {
                     "pred": self.classes[idx], "conf": float(p[idx]),
                     "probs": [round(float(v), 4) for v in p],
                     "severity": self.sev_classes[sidx], "sev_conf": float(sp[sidx]),
@@ -263,6 +280,15 @@ class AkisSimulatoru:
                     "entropi": round(entropi, 4),
                     "belirsiz": entropi > self.belirsizlik_esigi,
                 }
+                if anomali_hata is not None:
+                    hata_deger = float(anomali_hata[i])
+                    tahmin["anomali_hata"] = round(hata_deger, 5)
+                    tahmin["anomali"] = hata_deger > self.anomali_esik
+                    tahmin["anomali_skor"] = round(anomali_skoru_normalize(hata_deger, self.anomali_esik), 4)
+                    # ASIL İLGİNÇ DURUM: denetimli model "normal" diyor ama denetimsiz katman
+                    # bunu tanıyamıyor — "bu normal değil ama ne olduğunu bilmiyorum" sinyali.
+                    tahmin["bilinmeyen_anomali"] = tahmin["anomali"] and tahmin["pred"] == "normal"
+                tahminler[key] = tahmin
 
         yeni_olaylar = []
         axle_payload = []
@@ -293,6 +319,9 @@ class AkisSimulatoru:
                             severity=t["severity"], sev_conf=round(t["sev_conf"], 4),
                             sev_probs=t["sev_probs"], entropi=t["entropi"],
                             belirsiz=t["belirsiz"])
+                if "anomali" in t:
+                    item.update(anomali=t["anomali"], anomali_skor=t["anomali_skor"],
+                                bilinmeyen_anomali=t["bilinmeyen_anomali"])
                 if t["belirsiz"]:
                     self.belirsiz_sayaci += 1
 
@@ -384,6 +413,7 @@ class AkisSimulatoru:
             [a for a in axle_payload if a.get("oncelik") is not None],
             key=lambda a: -a["oncelik"])
         belirsiz_simdi = sum(1 for a in axle_payload if a.get("belirsiz"))
+        bilinmeyen_anomali_simdi = [a["axle"] for a in axle_payload if a.get("bilinmeyen_anomali")]
 
         payload = {
             "tick": self.tick_index,
@@ -405,6 +435,8 @@ class AkisSimulatoru:
                 for a in aktif_alarmlar[:12]
             ],
             "belirsiz_sayisi": belirsiz_simdi,
+            "anomali_modeli_var": self.anomali_model is not None,
+            "bilinmeyen_anomali_dingiller": bilinmeyen_anomali_simdi,
             "ray_kusuru_tespitleri": [
                 {"kusur_id": kid, "tespit": n,
                  "arasi": next((k.get("arasi") for k in self.ray_kusurlari
@@ -503,6 +535,8 @@ class AkisSimulatoru:
             "tick": self.tick_index,
             "histerezis": self.histerezis,
             "belirsizlik_esigi": self.belirsizlik_esigi,
+            "anomali_modeli_var": self.anomali_model is not None,
+            "anomali_esik": self.anomali_esik,
             "kaynak": self.kaynak,
             "baslangic": self.timestamps[0],
             "bitis": self.timestamps[-1],

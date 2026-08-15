@@ -1,0 +1,52 @@
+# Hafif docker-compose: yalnızca iki servis — API (FastAPI/PyTorch) ve web (Next.js).
+#
+# Bilinçli olarak Kafka/Redis/Celery YOK: bu projede tek bir simüle akış var, eş zamanlı
+# yük veya bağımsız ölçeklenme ihtiyacı yok — mikroservis ayrımı burada gerçek bir faydaya
+# değil, teorik bir "böyle olmalı" beklentisine hizmet ederdi. Kafka'ya geçmek istenirse
+# src/rayli_kafka.py zaten opsiyonel bir adaptör olarak duruyor (docker-compose'un dışında).
+#
+# Kullanım:
+#   docker compose up --build
+#   Dashboard: http://localhost:3000   API: http://localhost:8000/api/meta
+#
+# Ayarlar (opsiyonel, ortam değişkeni ile):
+#   HIZ=10 KOR_MOD=1 docker compose up --build
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      HIZ: "${HIZ:-5}"
+      KOR_MOD: "${KOR_MOD:-}"
+      HISTEREZIS: "${HISTEREZIS:-}"
+      # Kalıcı veritabanı BİLİNÇLİ olarak /app/data DIŞINDA: o dizin imaja gömülü eğitim/ağ
+      # verilerini taşıyor, üzerine volume bağlamak onları gizler. Ayrı bir yol kullanılır.
+      RAYLI_KAYIT_DB: /app/data_kalici/rayli_kayit.db
+    volumes:
+      # SQLite kaydı konteyner yeniden başlatıldığında/güncellendiğinde de kalıcı olsun
+      - rayli-kayit:/app/data_kalici
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/meta')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - "3000:3000"
+    environment:
+      AKIS_API_URL: "http://api:8000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  rayli-kayit:

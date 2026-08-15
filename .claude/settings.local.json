@@ -86,7 +86,22 @@
       "Bash(.venv/bin/python src/rayli_kayit.py --ozet)",
       "Bash(git commit -q -m 'Alarm önceliklendirme, belirsizlik farkındalığı, SQLite kalıcılık ve çoklu tren *)",
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('başlangıç tick:',d.get\\('tick'\\),'| oynatiliyor:',d.get\\('oynatiliyor'\\)\\)\")",
-      "Bash(git commit -q -m 'Üst bar/KPI tek satıra sığdırıldı, buton mantığı düzeltildi, ray kusuru yoğunluğu gerçekçileştirildi *)"
+      "Bash(git commit -q -m 'Üst bar/KPI tek satıra sığdırıldı, buton mantığı düzeltildi, ray kusuru yoğunluğu gerçekçileştirildi *)",
+      "Bash(../.venv/bin/python rayli_anomali_egitim.py)",
+      "Bash(.venv/bin/python -c \"import ast; ast.parse\\(open\\('src/rayli_canli_akis_sunucu.py'\\).read\\(\\)\\); print\\('sözdizimi OK'\\)\")",
+      "Bash(rm -f ../data/rayli_kayit.db)",
+      "Bash(../.venv/bin/python -c ' *)",
+      "Bash(chmod +x /Users/serhan/Downloads/rayli_ariza_tespiti/docker/entrypoint-api.sh)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)",
+      "Bash(bash -n /Users/serhan/Downloads/rayli_ariza_tespiti/docker/entrypoint-api.sh)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('anomali_modeli_var:',d['anomali_modeli_var'],'| esik:',d['anomali_esik']\\)\")",
+      "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"reset\"}')",
+      "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"speed\",\"value\":2}')",
+      "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"play\"}')",
+      "Bash(curl -s -X POST localhost:3000/api/kontrol -H 'Content-Type: application/json' -d '{\"action\":\"pause\"}')",
+      "Bash(timeout 3 curl -sN localhost:3000/api/akis)",
+      "Bash(curl -sN --max-time 3 localhost:3000/api/akis)"
     ]
   }
 }

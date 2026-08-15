@@ -370,3 +370,14 @@ button.ikon.vurgu:not(:disabled):hover { background: rgba(47,191,113,.12); }
   border: 1px solid var(--c-rail); color: var(--c-rail);
   border-radius: 4px; padding: 0 5px;
 }
+
+.anomali-rozet {
+  display: inline-flex; align-items: center; gap: 3px; margin-left: 5px;
+  font-size: 9px; border: 1px solid var(--warn); color: var(--warn);
+  border-radius: 4px; padding: 0 5px; white-space: nowrap;
+}
+.bilinmeyen-kutu {
+  font-size: 12px; line-height: 1.5; color: var(--text);
+  background: rgba(255,176,32,.08); border: 1px solid var(--warn);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
+}

@@ -36,6 +36,10 @@ export interface AxleDurum {
   yerlesik_sure_sn?: number;    // mevcut yerleşik durum ne kadardır sürüyor
   oncelik?: number;             // 0-1 alarm öncelik skoru (şiddet + süre + güven)
   oncelik_seviye?: "kritik" | "yuksek" | "orta" | "dusuk";
+  // Denetimsiz katman (autoencoder) — modeli eğitilmediyse bu alanlar hiç gelmez
+  anomali?: boolean;             // yeniden yapılandırma hatası eşiği aştı mı
+  anomali_skor?: number;         // 0-1 normalize skor (arayüzde çubuk için)
+  bilinmeyen_anomali?: boolean;  // pred=normal AMA anomali=true — "ne olduğunu bilmiyorum"
   // Aşağıdakiler yalnızca kör mod KAPALI iken gelir (cevap anahtarı = doğrulama katmanı)
   gercek?: SinifAdi;
   gercek_severity?: SiddetAdi;
@@ -97,6 +101,8 @@ export interface TickPaketi {
   belirsizlik_esigi: number;
   aktif_alarmlar: AktifAlarm[];
   belirsiz_sayisi: number;
+  anomali_modeli_var: boolean;
+  bilinmeyen_anomali_dingiller: string[];
   ray_kusuru_tespitleri: { kusur_id: string; tespit: number; arasi: string | null }[];
   axles: AxleDurum[];
   yeni_olaylar: Olay[];
@@ -139,6 +145,8 @@ export interface Meta {
   tick: number;
   histerezis: number;
   belirsizlik_esigi: number;
+  anomali_modeli_var: boolean;
+  anomali_esik: number | null;
   kaynak: string;
   baslangic: string;
   bitis: string;

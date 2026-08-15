@@ -64,7 +64,7 @@ port_kontrol "$API_PORT" "canlı akış API'si" "API_PORT"
 port_kontrol "$WEB_PORT" "Next.js dashboard" "WEB_PORT"
 
 # ------------------------------------------------------------------ 1) ortam
-baslik "1/7  Python ortamı"
+baslik "1/8  Python ortamı"
 if [[ ! -x "$PY" ]]; then
   echo "Sanal ortam kuruluyor (.venv)…"
   python3 -m venv "$VENV"
@@ -74,7 +74,7 @@ fi
 echo "Hazır: $($PY -c 'import torch; print("torch", torch.__version__)')"
 
 # -------------------------------------------------------------------- 2) veri
-baslik "2/7  Metro ağı + veri seti"
+baslik "2/8  Metro ağı + veri seti"
 cd "$KOK/src"
 # Gerçek İstanbul metro ağı modeli (İBB açık verisi) — yoksa önbellekten kurulur
 [[ -f "$KOK/data/istanbul_metro_agi.json" ]] || "$PY" istanbul_metro_agi.py
@@ -85,7 +85,7 @@ else
 fi
 
 # ------------------------------------------------------------------ 3) eğitim
-baslik "3/7  Model eğitimi"
+baslik "3/8  Model eğitimi (denetimli)"
 if [[ $EGIT -eq 1 ]]; then
   "$PY" rayli_dl_egitim.py
 else
@@ -93,12 +93,20 @@ else
   [[ -f "$KOK/model/rayli_cnn_lstm_model.pt" ]] || { echo "HATA: eğitilmiş model yok."; exit 1; }
 fi
 
+# ------------------------------------------------------------- 3.5) anomali modeli
+baslik "3.5/8  Anomali tespiti modeli (denetimsiz, tamamlayıcı)"
+if [[ $EGIT -eq 1 || ! -f "$KOK/model/rayli_anomali_model.pt" ]]; then
+  "$PY" rayli_anomali_egitim.py
+else
+  echo "Mevcut anomali modeli kullanılıyor (yeniden eğitmek için: --egitmeden kullanmayın)"
+fi
+
 # ------------------------------------------- 4) etiketsiz akış seti + doğrulama
-baslik "4/7  Etiketsiz akış seti + cevap anahtarı"
+baslik "4/8  Etiketsiz akış seti + cevap anahtarı"
 "$PY" rayli_etiketsiz_uret.py
 
 # ------------------------------------------------------------------ 5) testler
-baslik "5/7  Birim testleri"
+baslik "5/8  Birim testleri"
 if [[ $TEST -eq 1 ]]; then
   # Sonuçlar results/test_ozeti.json'a yazılır ve dashboard'daki test panelinde görünür.
   # Test başarısız olsa bile demo ayağa kalksın diye çıkış kodu yutuluyor (panelde kırmızı görünür).
@@ -108,7 +116,7 @@ else
 fi
 
 # -------------------------------------------------------------- 6) akış API'si
-baslik "6/7  Canlı akış API'si (:$API_PORT)"
+baslik "6/8  Canlı akış API'si (:$API_PORT)"
 "$PY" rayli_canli_akis_sunucu.py --port "$API_PORT" --hiz "$HIZ" $KOR_MOD &
 API_PID=$!
 temizle() {
@@ -134,7 +142,7 @@ if [[ $API_HAZIR -eq 0 ]]; then
 fi
 
 # ------------------------------------------------------------- 6) web arayüzü
-baslik "7/7  Next.js dashboard (:$WEB_PORT)"
+baslik "8/8  Next.js dashboard (:$WEB_PORT)"
 cd "$KOK/web"
 [[ -d node_modules ]] || npm install
 AKIS_API_URL="http://127.0.0.1:$API_PORT" npx next dev -p "$WEB_PORT" &

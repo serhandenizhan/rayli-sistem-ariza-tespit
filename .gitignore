@@ -21,3 +21,4 @@ data/rayli_sistem_tum_veri.csv
 
 # Çalışma anında oluşan kayıt veritabanı (SQLite)
 data/rayli_kayit.db
+web/tsconfig.tsbuildinfo

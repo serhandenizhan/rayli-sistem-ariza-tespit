@@ -12,6 +12,7 @@ import DogrulamaPaneli from "@/components/DogrulamaPaneli";
 import EgitimPaneli from "@/components/EgitimPaneli";
 import TestPaneli from "@/components/TestPaneli";
 import AktifAlarmlar from "@/components/AktifAlarmlar";
+import AnomaliPaneli from "@/components/AnomaliPaneli";
 import GecmisPaneli from "@/components/GecmisPaneli";
 import { SINIF_ETIKET, SINIF_RENK } from "@/lib/tipler";
 import { useAkis } from "@/lib/useAkis";
@@ -107,6 +108,8 @@ export default function Sayfa() {
           <div className="izgara">
             <div className="sutun">
               <DogrulamaPaneli metrikler={tick?.metrikler} meta={meta} />
+              <AnomaliPaneli axles={tick?.axles ?? []} meta={meta}
+                             bilinmeyenler={tick?.bilinmeyen_anomali_dingiller ?? []} />
             </div>
             <div className="sutun">
               <EgitimPaneli egitim={meta?.egitim ?? null} />

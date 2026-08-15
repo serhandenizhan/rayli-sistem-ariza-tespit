@@ -57,6 +57,12 @@ export default function DingilIzgara({
                       <span className="bekliyor"
                             title={`Model kararsız (entropi ${a.entropi?.toFixed(2)}) — bu tahmin alarm üretmez`}>❔</span>
                     )}
+                    {a.bilinmeyen_anomali && (
+                      <span className="anomali-rozet"
+                            title={`Denetimli model 'normal' diyor ama denetimsiz katman (autoencoder) bu örüntüyü tanımıyor (skor ${a.anomali_skor?.toFixed(2)}). Bu, 6 bilinen sınıftan hiçbirine benzemeyen bir sapma olabilir.`}>
+                        🔍 bilinmeyen anomali
+                      </span>
+                    )}
                   </div>
                   {a.hazir && a.severity && a.severity !== "none" && (
                     <span className="siddet-rozet" style={{ color: SIDDET_RENK[a.severity],

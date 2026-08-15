@@ -293,3 +293,50 @@ def test_ray_catlagi_alarm_sayisi_dengeli(sim):
     ray = sayac.get("rail_crack", 0)
     digerleri = sum(v for k, v in sayac.items() if k != "rail_crack")
     assert ray <= max(digerleri, 5), f"rail_crack aşırı baskın: {ray} vs diğerleri {digerleri}"
+
+
+# ------------------------------------------------------- anomali (unsupervised) katmanı
+def test_anomali_katmani_paketlere_ekleniyor(sim):
+    """Anomali modeli yüklüyse her hazır tahmine anomali skoru ve bayrağı eklenmeli."""
+    if sim.anomali_model is None:
+        pytest.skip("Anomali modeli eğitilmemiş")
+    sim.reset()
+    for _ in range(sim.window):
+        p = sim.bir_tick_isle()
+    for a in p["axles"]:
+        assert "anomali_skor" in a
+        assert 0.0 <= a["anomali_skor"] <= 1.0
+        assert isinstance(a["anomali"], bool)
+        assert isinstance(a["bilinmeyen_anomali"], bool)
+
+
+def test_bilinmeyen_anomali_sadece_normal_tahminde_olur(sim):
+    """'bilinmeyen_anomali' TANIM GEREĞİ yalnızca denetimli model 'normal' derken
+    anomali bayrağı da True olan dingillerde işaretlenmeli."""
+    if sim.anomali_model is None:
+        pytest.skip("Anomali modeli eğitilmemiş")
+    sim.reset()
+    for _ in range(80):
+        p = sim.bir_tick_isle()
+        if p is None:
+            break
+    for a in p["axles"]:
+        if a.get("bilinmeyen_anomali"):
+            assert a["pred"] == "normal"
+            assert a["anomali"] is True
+
+
+def test_anomali_modeli_olmadan_sunucu_calisir():
+    """Anomali checkpoint'i olmasa bile ana sistem hiçbir hata vermeden çalışmalı
+    (özellik TAMAMEN opsiyonel, ana sınıflandırmayı etkilememeli)."""
+    import rayli_canli_akis_sunucu as modul
+    eski_yol = modul.ANOMALI_MODEL_PATH
+    try:
+        modul.ANOMALI_MODEL_PATH = "/olmayan/bir/yol.pt"
+        s = modul.AkisSimulatoru(baslangic_hizi=1000, kayit=False)
+        assert s.anomali_model is None
+        p = s.bir_tick_isle()
+        assert p is not None
+        assert "anomali_skor" not in p["axles"][0] or p["axles"][0].get("anomali_skor") is None
+    finally:
+        modul.ANOMALI_MODEL_PATH = eski_yol

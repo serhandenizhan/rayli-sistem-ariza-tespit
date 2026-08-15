@@ -21,9 +21,11 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
 - **Kalıcılık**: alarmlar ve metrikler SQLite'a yazılır, geçmişe dönük sorgulanabilir
 - **Canlı harita**: gerçek İstanbul coğrafyası (kıyı çizgisi, Boğaz, Haliç, Adalar) üzerinde
   trenler gerçek hatlarda, tahmin rengiyle hareket eder
-- **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / testler
+- **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / geçmiş / testler
 - **İnteraktif harita**: fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma, ilçe adları
-- **77 birim testi**: arayüzde okunabilir sonuç paneliyle
+- **Denetimsiz anomali tespiti**: autoencoder, 6 sınıflık modeli tamamlayan "bilinmeyen anomali" katmanı
+- **Kalıcılık + Docker**: SQLite alarm geçmişi, hafif `docker-compose` (API + web)
+- **86 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
 
@@ -252,7 +254,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 77 test
+./testleri_calistir.sh              # 86 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 
@@ -261,6 +263,45 @@ cevap anahtarının paketlere sızmaması), gerçek metro ağının doğruluğun
 koordinatların İstanbul içinde olması), model checkpoint'ini ve canlı akış motorunu (histerezis
 davranışı, doğruluk regresyon eşiği) doğrular. Sonuçlar `results/test_ozeti.json`'a yazılır ve
 dashboard'daki **Birim Testleri** panelinde görünür.
+
+## Denetimsiz anomali tespiti (autoencoder)
+
+6 sınıflık denetimli sınıflandırıcı, dağılım dışı (out-of-distribution) bir girdide bile
+yüksek güvenle yanlış sınıf söyleyebilir — bilinen bir sinir ağı problemi. Bunu tamamlamak
+için `src/rayli_anomali.py` + `src/rayli_anomali_egitim.py`, **sadece `normal` verilerle
+eğitilmiş küçük bir autoencoder** ekler:
+
+```bash
+cd src && python rayli_anomali_egitim.py
+```
+
+Eşik, ayrılan bir doğrulama biriminin yeniden yapılandırma hatasının 99. yüzdelik dilimidir.
+Mevcut sonuç: normal pencerelerde **%1.4 yanlış alarm**, bilinen 6 arıza tipini ortalama
+**%86.6** oranında "anomali" olarak yakalıyor.
+
+En ilginç durum arayüzde **🔍 bilinmeyen anomali** rozetiyle işaretlenir: denetimli model
+"normal" diyor ama bu katman aynı fikirde değil — "bu normal değil, ama ne olduğunu da
+bilmiyorum" sinyali. Dürüstlük notu: bu sentetik veri setinde yalnızca 6 belgelenmiş arıza
+tipi var; mekanizmanın asıl değeri, veri setinde hiç bulunmayan gerçekten yeni bir arıza
+tipiyle karşılaşıldığında ortaya çıkar.
+
+## Docker (hafif — mikroservis değil)
+
+```bash
+docker compose up --build
+```
+
+Yalnızca iki servis: **API** (FastAPI/PyTorch) ve **web** (Next.js). Kafka/Redis/Celery
+bilinçli olarak yok — bu projede tek bir simüle akış var, eş zamanlı yük veya bağımsız
+ölçeklenme ihtiyacı yok; o ayrım gerçek bir faydaya değil teorik bir beklentiye hizmet ederdi.
+Kafka'ya geçmek istenirse `src/rayli_kafka.py` zaten opsiyonel bir adaptör olarak duruyor.
+
+```bash
+HIZ=10 KOR_MOD=1 docker compose up --build   # hız/kör mod ortam değişkeniyle ayarlanabilir
+```
+
+> **Not**: bu depo Docker kurulu olmayan bir ortamda hazırlandı; dosyalar dikkatle yazıldı
+> ama gerçek bir `docker compose build` ile doğrulanamadı.
 
 ## Kafka ile besleme (opsiyonel)
 

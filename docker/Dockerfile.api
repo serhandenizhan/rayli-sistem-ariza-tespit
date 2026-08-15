@@ -1,0 +1,21 @@
+# Canlı akış API'si (FastAPI + PyTorch). Hafif docker-compose'un iki servisinden biri.
+#
+# Neden mikroservis DEĞİL: bu projede tek bir simüle akış, tek kullanıcı ve eş zamanlı
+# yük yok — Kafka/Redis/Celery ayrımı gerçek bir ölçeklenme ihtiyacına değil, teorik bir
+# beklentiye hizmet ederdi. Bunun yerine tek konteynerde FastAPI + Uvicorn çalışır;
+# Kafka'ya geçmek istenirse rayli_kafka.py zaten opsiyonel bir adaptör olarak duruyor.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Depoyu bütünüyle kopyala (.dockerignore ile .venv/node_modules/.git hariç tutulur) —
+# model, data ve results dizinleri git'e gömülü olduğu için eğitim yeniden çalıştırılmadan
+# konteyner içinde de doğrudan kullanılabilir.
+COPY . .
+
+EXPOSE 8000
+WORKDIR /app/src
+ENTRYPOINT ["/app/docker/entrypoint-api.sh"]

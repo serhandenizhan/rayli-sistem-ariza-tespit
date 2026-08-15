@@ -29,7 +29,9 @@ from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "..", "data")
-VARSAYILAN_DB = os.path.join(DATA_DIR, "rayli_kayit.db")
+# RAYLI_KAYIT_DB ortam değişkeniyle ezilebilir — Docker'da kalıcı veritabanını, imaja gömülü
+# eğitim/veri dosyalarını GİZLEMEYECEK ayrı bir volume yoluna (data_kalici/) yönlendirmek için.
+VARSAYILAN_DB = os.environ.get("RAYLI_KAYIT_DB") or os.path.join(DATA_DIR, "rayli_kayit.db")
 
 SEMA = """
 CREATE TABLE IF NOT EXISTS calistirmalar (
