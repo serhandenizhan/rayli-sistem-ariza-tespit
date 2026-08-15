@@ -239,3 +239,57 @@ def test_aktif_alarmlar_oncelige_gore_sirali(sim):
             break
     skorlar = [a["oncelik"] for a in p["aktif_alarmlar"]]
     assert skorlar == sorted(skorlar, reverse=True)
+
+
+# ------------------------------------------------------- ray kusuru tekrarları
+def test_ray_kusuru_yogunlugu_makul(veri_dizini):
+    """Ağdaki aktif ray kusuru sayısı gerçekçi olmalı: bakımlı bir metro ağında aynı anda
+    onlarca aktif kusur bulunmaz (hat başına en fazla bir tane)."""
+    import json
+    import os
+    yol = os.path.join(veri_dizini, "ray_kusur_noktalari.json")
+    if not os.path.exists(yol):
+        pytest.skip("Ray kusuru dosyası yok")
+    with open(yol, encoding="utf-8") as f:
+        kusurlar = json.load(f)
+    hatlar = [k["hat"] for k in kusurlar]
+    assert len(kusurlar) <= 12, f"ağda çok fazla aktif ray kusuru var: {len(kusurlar)}"
+    assert len(hatlar) == len(set(hatlar)), "bir hatta birden fazla kusur tanımlanmış"
+
+
+def test_ray_catlagi_alarmi_kusura_baglanir(sim):
+    """Ray çatlağı alarmı, hat üzerindeki SABİT kusur noktasıyla eşleştirilmeli ve
+    aynı kusurun kaçıncı tespiti olduğu sayılmalı (tekrar eden kusur takibi)."""
+    sim.reset()
+    ray_olaylari = []
+    for _ in range(300):
+        p = sim.bir_tick_isle()
+        if p is None:
+            break
+        ray_olaylari += [o for o in p["yeni_olaylar"] if o["yeni"] == "rail_crack"]
+    if not ray_olaylari:
+        pytest.skip("bu akışta ray çatlağı alarmı oluşmadı")
+    eslesen = [o for o in ray_olaylari if o.get("kusur_id")]
+    assert eslesen, "hiçbir ray çatlağı alarmı kusur noktasıyla eşleşmedi"
+    for o in eslesen:
+        assert o["tekrar_no"] >= 1
+        assert "@" in o["kusur_id"]
+
+
+def test_ray_catlagi_alarm_sayisi_dengeli(sim):
+    """Ray çatlağı, konuma bağlı olduğu için doğal olarak tekrar eder; yine de tek bir sınıf
+    diğerlerinin toplamını aşacak kadar baskın olmamalı (kusur yoğunluğu gerçekçi olmalı)."""
+    sim.reset()
+    sayac = {}
+    for _ in range(300):
+        p = sim.bir_tick_isle()
+        if p is None:
+            break
+        for o in p["yeni_olaylar"]:
+            if o["tip"] == "alarm":
+                sayac[o["yeni"]] = sayac.get(o["yeni"], 0) + 1
+    if not sayac:
+        pytest.skip("alarm oluşmadı")
+    ray = sayac.get("rail_crack", 0)
+    digerleri = sum(v for k, v in sayac.items() if k != "rail_crack")
+    assert ray <= max(digerleri, 5), f"rail_crack aşırı baskın: {ray} vs diğerleri {digerleri}"

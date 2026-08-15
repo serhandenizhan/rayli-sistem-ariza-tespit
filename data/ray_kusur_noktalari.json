@@ -1,209 +1,92 @@
 [
   {
     "hat": "M1A",
-    "km": 5.781,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Bakırköy – Zeytinburnu",
-    "lat": 40.999195,
-    "lon": 28.882643
-  },
-  {
-    "hat": "M1A",
-    "km": 13.104,
+    "km": 8.093,
+    "kusur_id": "M1A@8.09",
     "genislik_km": 0.12,
     "siddet": "severe",
-    "arasi": "Kocatepe – Sağmalcılar",
-    "lat": 41.044954,
-    "lon": 28.900918
-  },
-  {
-    "hat": "M1B",
-    "km": 1.296,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Bağcılar Meydan – Üçyüzlü",
-    "lat": 41.0348,
-    "lon": 28.858046
+    "arasi": "Merter – Davutpaşa - YTÜ",
+    "lat": 41.014669,
+    "lon": 28.898358
   },
   {
     "hat": "M2",
-    "km": 5.763,
+    "km": 8.068,
+    "kusur_id": "M2@8.07",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "Taksim – Osmanbey",
-    "lat": 41.047998,
-    "lon": 28.986864
-  },
-  {
-    "hat": "M2",
-    "km": 13.063,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Sanayi Mah. – Seyrantepe",
-    "lat": 41.099278,
-    "lon": 28.998555
+    "arasi": "Şişli – Gayrettepe",
+    "lat": 41.065611,
+    "lon": 28.997166
   },
   {
     "hat": "M3",
-    "km": 4.752,
+    "km": 6.653,
+    "kusur_id": "M3@6.65",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "İstoç – İkitelli Sanayi",
-    "lat": 41.068053,
-    "lon": 28.816251
-  },
-  {
-    "hat": "M3",
-    "km": 10.771,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Şehir Hastanesi – Toplu Konutlar",
-    "lat": 41.105395,
-    "lon": 28.77277
+    "arasi": "İkitelli Sanayi – Turgut Özal",
+    "lat": 41.077701,
+    "lon": 28.799368
   },
   {
     "hat": "M4",
-    "km": 9.447,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Bostancı – Küçükyalı",
-    "lat": 40.964452,
-    "lon": 29.105484
-  },
-  {
-    "hat": "M4",
-    "km": 21.413,
+    "km": 13.226,
+    "kusur_id": "M4@13.23",
     "genislik_km": 0.12,
     "siddet": "severe",
-    "arasi": "Kartal – Yakacık - Adnan Kahveci",
-    "lat": 40.902706,
-    "lon": 29.217666
+    "arasi": "Küçükyalı – Maltepe",
+    "lat": 40.939038,
+    "lon": 29.135252
   },
   {
     "hat": "M5",
-    "km": 4.791,
+    "km": 6.707,
+    "kusur_id": "M5@6.71",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "Altınşehir – Ihlamurkuyu",
-    "lat": 41.01891,
-    "lon": 29.133034
-  },
-  {
-    "hat": "M5",
-    "km": 10.86,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Bulgurlu – Kısıklı",
-    "lat": 41.019514,
-    "lon": 29.068557
-  },
-  {
-    "hat": "M6",
-    "km": 0.852,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Nispetiye – Etiler",
-    "lat": 41.077363,
-    "lon": 29.024388
+    "arasi": "Çakmak – Yamanevler",
+    "lat": 41.023521,
+    "lon": 29.111109
   },
   {
     "hat": "M7",
-    "km": 5.361,
+    "km": 7.505,
+    "kusur_id": "M7@7.50",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "Karadeniz Mah. – Yenimahalle",
-    "lat": 41.081908,
-    "lon": 28.879813
-  },
-  {
-    "hat": "M7",
-    "km": 12.152,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Alibeyköy – Nurtepe",
-    "lat": 41.079549,
-    "lon": 28.958922
+    "arasi": "Yenimahalle – Kazım Karabekir",
+    "lat": 41.085049,
+    "lon": 28.905036
   },
   {
     "hat": "M8",
-    "km": 3.996,
+    "km": 5.594,
+    "kusur_id": "M8@5.59",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "İmes – Mevlana",
-    "lat": 40.998584,
-    "lon": 29.155653
-  },
-  {
-    "hat": "M8",
-    "km": 9.058,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Küçükbakkalköy – Kozyatağı",
-    "lat": 40.978362,
-    "lon": 29.107092
-  },
-  {
-    "hat": "M9",
-    "km": 1.383,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Olimpiyat – Ziya Gökalp Mahallesi",
-    "lat": 41.075435,
-    "lon": 28.78284
+    "arasi": "Mevlana – Kayışdağı",
+    "lat": 40.988031,
+    "lon": 29.144724
   },
   {
     "hat": "T1",
-    "km": 5.097,
+    "km": 7.136,
+    "kusur_id": "T1@7.14",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "Beyazıt – Üniversite-Laleli",
-    "lat": 41.009541,
-    "lon": 28.960371
-  },
-  {
-    "hat": "T1",
-    "km": 11.553,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Akşemsettin – Zeytinburnu",
-    "lat": 41.003004,
-    "lon": 28.899887
-  },
-  {
-    "hat": "T3",
-    "km": 0.618,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Kilise – Bahariye",
-    "lat": 40.98507,
-    "lon": 29.027653
+    "arasi": "Fındıkzade – Çapa",
+    "lat": 41.013376,
+    "lon": 28.937088
   },
   {
     "hat": "T4",
-    "km": 4.293,
+    "km": 6.01,
+    "kusur_id": "T4@6.01",
     "genislik_km": 0.12,
     "siddet": "moderate",
-    "arasi": "Hacı Şükrü – 50.Yıl",
-    "lat": 41.089226,
-    "lon": 28.866027
-  },
-  {
-    "hat": "T4",
-    "km": 9.731,
-    "genislik_km": 0.12,
-    "siddet": "severe",
-    "arasi": "Sağmalcılar-Pancar Motor – Uluyol-Bereç",
-    "lat": 41.054164,
-    "lon": 28.91022
-  },
-  {
-    "hat": "T5",
-    "km": 2.445,
-    "genislik_km": 0.12,
-    "siddet": "moderate",
-    "arasi": "Silahtarağa Mahallesi – Eyüpsultan Devlet Hastanesi",
-    "lat": 41.057892,
-    "lon": 28.941375
+    "arasi": "Metris – Karadeniz",
+    "lat": 41.077567,
+    "lon": 28.879194
   }
 ]

@@ -58,8 +58,15 @@ body {
 .ust-satir > .baslik-blok { flex: 1 1 auto; min-width: 0; }
 .ust-satir .rozet { flex: 0 0 auto; white-space: nowrap; }
 .ust-satir .ikon { flex: 0 0 auto; white-space: nowrap; }
-@media (max-width: 1100px) { .ust-satir { flex-wrap: wrap; } }
-.ust-satir.alt-satir { border-top: 1px solid var(--line); padding-top: 11px; gap: 12px; }
+@media (max-width: 860px) { .ust-satir { flex-wrap: wrap; } }
+/* Dar ekranda ilerleme çubuğu gizlenir — "tick 132/300" rozeti aynı bilgiyi zaten veriyor */
+@media (max-width: 1250px) { .ust-satir .ilerleme { display: none; } }
+.ust-satir.alt-satir { border-top: 1px solid var(--line); padding-top: 11px; gap: 8px; }
+.ust-satir.alt-satir { flex-wrap: nowrap; }
+.ust-satir.alt-satir .hiz-grup { gap: 3px; }
+.ust-satir.alt-satir .hiz-grup button { padding: 4px 7px; font-size: 10.5px; }
+.ust-satir.alt-satir .kontrol-grup > label { font-size: 8.5px; letter-spacing: .04em; }
+@media (max-width: 860px) { .ust-satir.alt-satir { flex-wrap: wrap; } }
 .ust-bar h1 {
   font-size: 15px; margin: 0; letter-spacing: .2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -113,12 +120,22 @@ button.ikon { padding: 7px 14px; font-weight: 600; }
 .ilerleme > div { height: 100%; background: linear-gradient(90deg, var(--accent), #7de2d1); transition: width .2s; }
 
 /* ---------------------------------------------------------------- KPI */
-.kpi-satir { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
-@media (max-width: 1000px) { .kpi-satir { grid-template-columns: repeat(2, 1fr); } }
-.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
-.kpi .baslik { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
-.kpi .deger { font-size: 26px; font-weight: 650; margin-top: 4px; letter-spacing: -.5px; }
-.kpi .alt { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.kpi-satir { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+@media (max-width: 900px) { .kpi-satir { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 720px) { .kpi-satir { grid-template-columns: repeat(2, 1fr); } }
+.kpi {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 12px; min-width: 0;
+}
+.kpi .baslik {
+  font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kpi .deger { font-size: 22px; font-weight: 650; margin-top: 3px; letter-spacing: -.5px; }
+.kpi .alt {
+  font-size: 10px; color: var(--muted); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 /* -------------------------------------------------------------- dingiller */
 .dingil-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 7px; }
@@ -244,10 +261,12 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* ------------------------------------------------------------------ sekmeler */
-.sekmeler { display: flex; gap: 4px; flex-wrap: wrap; }
+.sekmeler { display: flex; gap: 3px; flex-wrap: nowrap; }
+/* Çok dar ekranda sekme ikonları gizlenir, metin kalır */
+@media (max-width: 1000px) { .sekme-ikon { display: none; } }
 .sekme {
-  position: relative; display: inline-flex; align-items: center; gap: 7px;
-  padding: 8px 14px; font-size: 12.5px; border-radius: 8px;
+  position: relative; display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 9px; font-size: 11.5px; border-radius: 8px; white-space: nowrap;
   background: transparent; border: 1px solid transparent; color: var(--muted);
 }
 .sekme:hover { background: var(--panel-2); border-color: var(--line); color: var(--text); }
@@ -341,3 +360,13 @@ tbody tr:last-child td { border-bottom: none; }
 .alarm-sag { text-align: right; }
 .alarm-sag .sure { font-size: 12px; font-weight: 600; }
 .alarm-sag .skor { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Başlat düğmesi birincil eylem — vurgulu kenarlık */
+button.ikon.vurgu:not(:disabled) { border-color: var(--ok); color: var(--ok); }
+button.ikon.vurgu:not(:disabled):hover { background: rgba(47,191,113,.12); }
+
+.tekrar-rozet {
+  display: inline-block; margin-left: 6px; font-size: 9.5px;
+  border: 1px solid var(--c-rail); color: var(--c-rail);
+  border-radius: 4px; padding: 0 5px;
+}

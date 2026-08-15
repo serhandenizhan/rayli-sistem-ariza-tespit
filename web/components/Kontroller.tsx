@@ -11,8 +11,8 @@ export type Sekme = "izleme" | "dingiller" | "dogrulama" | "gecmis" | "testler";
 
 export const SEKMELER: { id: Sekme; ad: string; ikon: string }[] = [
   { id: "izleme", ad: "Canlı İzleme", ikon: "🗺" },
-  { id: "dingiller", ad: "Dingiller & Sensörler", ikon: "🔧" },
-  { id: "dogrulama", ad: "Doğrulama & Model", ikon: "🎯" },
+  { id: "dingiller", ad: "Dingiller", ikon: "🔧" },
+  { id: "dogrulama", ad: "Doğrulama", ikon: "🎯" },
   { id: "gecmis", ad: "Geçmiş", ikon: "🗄" },
   { id: "testler", ad: "Testler", ikon: "🧪" },
 ];
@@ -38,6 +38,8 @@ export default function Kontroller({
   const yuzde = toplam ? (simdi / toplam) * 100 : 0;
   const hiz = tick?.hiz ?? 5;
   const saat = tick?.timestamp?.slice(11, 19) ?? "--:--:--";
+  // Akış hiç ilerlemediyse (tick 0 ve paket yok) "Başlat"; sıfırlanacak veri de yoktur
+  const baslamadi = !tick || tick.tick === 0;
 
   return (
     <div className="ust-bar">
@@ -54,21 +56,32 @@ export default function Kontroller({
           <span className={"nokta" + (bagli && oynatiliyor ? " canli" : "")} />
           {bagli ? (oynatiliyor ? "CANLI" : "DURAKLADI") : "BAĞLANTI YOK"}
         </div>
-        <div className="rozet mono">🕑 {saat}</div>
-        <div className="rozet mono">tick {simdi}/{toplam}</div>
+        <div className="rozet mono">🕑 {saat} · {simdi}/{toplam}</div>
         <div className="ilerleme"><div style={{ width: `${yuzde}%` }} /></div>
 
         <div className="bosluk" />
 
-        {/* Oynat düğmesinin etiketi duruma göre değişir: akış hiç ilerlememişse "Başlat",
-            duraklatılmış bir akışta ise "Devam". Sıfırla, akışı baştan alır. */}
+        {/* Kör mod bilinçli olarak üst satırda: alt satırda sekmelerin taşmadan sığması için */}
+        <div className="kontrol-grup">
+          <label title="Açıkken cevap anahtarı arayüze hiç gönderilmez — tam kör demo">Kör mod</label>
+          <button className={korMod ? "aktif" : ""} onClick={() => kontrol("kor_mod", !korMod)}>
+            {korMod ? "🙈 Açık" : "👁 Kapalı"}
+          </button>
+        </div>
+
+        {/* Akışı BAŞLATAN tek düğme "Başlat/Devam"tır. Sıfırla yalnızca duraklatılmışken ve
+            işlenmiş veri varken etkindir; veriyi temizler ve akışı duraklatılmış bırakır. */}
         <button className="ikon" onClick={() => kontrol("pause")} disabled={!oynatiliyor}>
           ⏸ Duraklat
         </button>
-        <button className="ikon" onClick={() => kontrol("play")} disabled={oynatiliyor}>
-          ▶ {simdi <= 1 ? "Başlat" : "Devam"}
+        <button className="ikon vurgu" onClick={() => kontrol("play")} disabled={oynatiliyor}>
+          ▶ {baslamadi ? "Başlat" : "Devam"}
         </button>
-        <button className="ikon" onClick={() => kontrol("reset")}>⟲ Sıfırla</button>
+        <button className="ikon" onClick={() => kontrol("reset")}
+                disabled={oynatiliyor || baslamadi}
+                title={oynatiliyor ? "Önce duraklatın" : baslamadi ? "Sıfırlanacak veri yok" : "İşlenmiş verileri sıfırla"}>
+          ⟲ Sıfırla
+        </button>
       </div>
 
       {/* --- 2. satır: sekmeler (sol) + simülasyon ayarları (sağ) --- */}
@@ -120,18 +133,12 @@ export default function Kontroller({
             {BELIRSIZLIK_SECENEK.map((b) => (
               <button key={b} className={Math.abs(belirsizlikEsigi - b) < 0.01 ? "aktif" : ""}
                       onClick={() => kontrol("belirsizlik", b)}>
-                {b === 1.0 ? "kapalı" : b.toFixed(2)}
+                {b === 1.0 ? "—" : b.toFixed(2).replace(/0$/, "")}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="kontrol-grup">
-          <label title="Açıkken cevap anahtarı arayüze hiç gönderilmez — tam kör demo">Kör mod</label>
-          <button className={korMod ? "aktif" : ""} onClick={() => kontrol("kor_mod", !korMod)}>
-            {korMod ? "🙈 Açık" : "👁 Kapalı"}
-          </button>
-        </div>
       </div>
     </div>
   );

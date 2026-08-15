@@ -1,29 +1,29 @@
 === ARIZA TİPİ ===
                precision    recall  f1-score   support
 
-bearing_fault      0.995     1.000     0.997       564
-  brake_fault      0.968     0.947     0.958       513
-  motor_fault      0.970     0.920     0.944       450
-       normal      0.994     0.997     0.996     11785
-   rail_crack      0.970     0.977     0.974       266
-   wheel_flat      0.995     0.984     0.990       438
+bearing_fault      1.000     1.000     1.000       634
+  brake_fault      0.959     0.950     0.955       522
+  motor_fault      0.960     0.926     0.943       446
+       normal      0.994     0.997     0.995     11838
+   rail_crack      1.000     1.000     1.000        61
+   wheel_flat      1.000     0.979     0.989       515
 
      accuracy                          0.992     14016
-    macro avg      0.982     0.971     0.976     14016
+    macro avg      0.986     0.975     0.980     14016
  weighted avg      0.992     0.992     0.992     14016
 
-Macro F1: 0.9764
+Macro F1: 0.9804
 
 === ARIZA ŞİDDETİ ===
               precision    recall  f1-score   support
 
-        none      0.996     0.993     0.994     11913
-        mild      0.808     0.802     0.805       702
-    moderate      0.843     0.815     0.829       919
-      severe      0.782     0.913     0.842       482
+        none      0.996     0.993     0.995     11954
+        mild      0.806     0.854     0.829       700
+    moderate      0.869     0.707     0.780       885
+      severe      0.693     0.925     0.792       477
 
-    accuracy                          0.969     14016
-   macro avg      0.857     0.881     0.868     14016
-weighted avg      0.969     0.969     0.969     14016
+    accuracy                          0.966     14016
+   macro avg      0.841     0.870     0.849     14016
+weighted avg      0.968     0.966     0.966     14016
 
-Şiddet accuracy: 0.9686 | Macro F1: 0.8676
+Şiddet accuracy: 0.9660 | Macro F1: 0.8492

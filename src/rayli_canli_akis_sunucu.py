@@ -118,7 +118,8 @@ class AkisSimulatoru:
 
     def __init__(self, kor_mod=False, baslangic_hizi=5.0, histerezis=VARSAYILAN_HISTEREZIS,
                  kaynak="csv", kafka_sunucu=None, kafka_topic=None,
-                 belirsizlik_esigi=VARSAYILAN_BELIRSIZLIK_ESIGI, kayit=True):
+                 belirsizlik_esigi=VARSAYILAN_BELIRSIZLIK_ESIGI, kayit=True,
+                 otomatik_basla=False):
         if not os.path.exists(MODEL_PATH):
             raise SystemExit(f"Model bulunamadı: {MODEL_PATH}\nÖnce 'python rayli_dl_egitim.py' çalıştırın.")
 
@@ -147,11 +148,22 @@ class AkisSimulatoru:
         self.answer_key = dict(zip(key_df["sample_id"], key_df["fault_type"]))
         self.severity_key = dict(zip(key_df["sample_id"], key_df["fault_severity"]))
 
+        # Ray kusuru noktaları: rail_crack alarmlarını SABİT KUSURA bağlamak için.
+        # Aynı kusur her tren geçişinde yeniden tespit edilir; bunları ayrı ayrı alarm gibi
+        # saymak yerine tek bir kusur kaydının tekrarı olarak izliyoruz (gerçek arıza yönetim
+        # sistemleri de aynı konumdaki tekrarlı tespitleri tek iş emrinde toplar).
+        self.ray_kusurlari = []
+        if os.path.exists(KUSUR_JSON):
+            with open(KUSUR_JSON, encoding="utf-8") as f:
+                self.ray_kusurlari = json.load(f)
+
         # Kalıcılık: alarmlar ve metrikler SQLite'a yazılır (bkz. rayli_kayit.py)
         self.kayitci = Kayitci() if kayit else None
 
         self.hiz = baslangic_hizi
-        self.oynatiliyor = True
+        # Akış DURAKLATILMIŞ başlar: demoyu arayüzdeki "Başlat" düğmesi çalıştırır.
+        # (--otomatik-basla ile eski davranışa dönülebilir; konsol modu bu bayrağı yok sayar.)
+        self.oynatiliyor = otomatik_basla
         self.reset()
 
     def _akis_verisi_oku(self, kaynak, kafka_sunucu, kafka_topic):
@@ -183,6 +195,7 @@ class AkisSimulatoru:
         # Yerleşik durumun hangi tick'te başladığı — alarm süresi ve önceliği için
         self.yerlesik_baslangic = {a: 0 for a in self.axles}
         self.belirsiz_sayaci = 0
+        self.kusur_tespit_sayaci = {}     # kusur_id -> kaç kez tespit edildi
 
         if getattr(self, "kayitci", None):
             self.kayitci.calistirma_basla(
@@ -190,6 +203,22 @@ class AkisSimulatoru:
                 dingil_sayisi=len(self.axles),
                 hat_sayisi=len({h for h in self.axle_hat.values() if h}),
             )
+
+    def _kusur_bul(self, line_id, km):
+        """Verilen hat/km konumuna en yakın bilinen ray kusurunu döndürür (yoksa None).
+
+        Tolerans, kusur bölgesinin genişliğinin biraz üstünde tutulur: tren kusuru geçerken
+        alarm birkaç tick gecikmeyle yerleşebildiği için konum tam üstünde olmayabilir."""
+        en_yakin, en_mesafe = None, 1e9
+        for k in self.ray_kusurlari:
+            if k.get("hat") != line_id:
+                continue
+            mesafe = abs(float(k["km"]) - float(km))
+            if mesafe < en_mesafe:
+                en_yakin, en_mesafe = k, mesafe
+        if en_yakin is not None and en_mesafe <= float(en_yakin.get("genislik_km", 0.12)) + 0.8:
+            return en_yakin
+        return None
 
     # -------------------------------------------------------------- tick işle
     def bir_tick_isle(self):
@@ -328,6 +357,16 @@ class AkisSimulatoru:
                         "oncelik": (oncelik_hesapla(t["severity"], 0.0, t["conf"])
                                     if yeni_sinif != "normal" else None),
                     }
+                    # Ray çatlağı alarmını sabit kusur noktasıyla eşleştir: aynı kusurun
+                    # kaçıncı tespiti olduğunu say (tekrar eden kusur takibi).
+                    if yeni_sinif == "rail_crack":
+                        kusur = self._kusur_bul(row.get("line_id"), row["track_km"])
+                        if kusur:
+                            kid = kusur.get("kusur_id") or f"{kusur['hat']}@{kusur['km']}"
+                            self.kusur_tespit_sayaci[kid] = self.kusur_tespit_sayaci.get(kid, 0) + 1
+                            olay["kusur_id"] = kid
+                            olay["kusur_arasi"] = kusur.get("arasi")
+                            olay["tekrar_no"] = self.kusur_tespit_sayaci[kid]
                     if not self.kor_mod and gercek is not None:
                         olay["gercek"] = gercek
                     yeni_olaylar.append(olay)
@@ -366,6 +405,12 @@ class AkisSimulatoru:
                 for a in aktif_alarmlar[:12]
             ],
             "belirsiz_sayisi": belirsiz_simdi,
+            "ray_kusuru_tespitleri": [
+                {"kusur_id": kid, "tespit": n,
+                 "arasi": next((k.get("arasi") for k in self.ray_kusurlari
+                                if (k.get("kusur_id") or "") == kid), None)}
+                for kid, n in sorted(self.kusur_tespit_sayaci.items(), key=lambda x: -x[1])
+            ],
             "metrikler": self._metrikler(),
         }
 
@@ -454,6 +499,8 @@ class AkisSimulatoru:
             "tick_seconds": TICK_SECONDS,
             "toplam_tick": len(self.ticks),
             "kor_mod": self.kor_mod,
+            "oynatiliyor": self.oynatiliyor,
+            "tick": self.tick_index,
             "histerezis": self.histerezis,
             "belirsizlik_esigi": self.belirsizlik_esigi,
             "kaynak": self.kaynak,
@@ -579,8 +626,10 @@ def create_app(sim: AkisSimulatoru):
         elif action == "pause":
             sim.oynatiliyor = False
         elif action == "reset":
+            # Sıfırlama YALNIZCA veriyi temizler; akışı kendiliğinden başlatmaz.
+            # Başlatmak tek bir düğmenin işidir ("Başlat"/"Devam").
             sim.reset()
-            sim.oynatiliyor = True   # "Baştan" her zaman oynatarak başlar
+            sim.oynatiliyor = False
         elif action == "speed":
             sim.hiz = float(body.get("value", 1))
         elif action == "kor_mod":
@@ -600,6 +649,10 @@ def create_app(sim: AkisSimulatoru):
 
         async def gen():
             try:
+                # Akış duraklatılmış başlarsa ilk paket gelene kadar hiçbir bayt yazılmaz ve
+                # tarayıcının EventSource'u "bağlanıyor" durumunda takılır. Bu yorum satırı
+                # bağlantıyı hemen kurar.
+                yield ": baglandi\n\n"
                 if sim.son_payload:      # sonradan bağlanan istemciye anlık durumu ver
                     yield f"data: {json.dumps(sim.son_payload, ensure_ascii=False)}\n\n"
                 while True:
@@ -655,6 +708,8 @@ def main():
     ap.add_argument("--belirsizlik", type=float, default=VARSAYILAN_BELIRSIZLIK_ESIGI,
                     help="Normalize entropi eşiği; üstündeki tahminler belirsiz sayılır")
     ap.add_argument("--kayitsiz", action="store_true", help="SQLite kaydını kapat")
+    ap.add_argument("--otomatik-basla", action="store_true",
+                    help="Akışı duraklatılmış değil, doğrudan oynatarak başlat")
     ap.add_argument("--kaynak", choices=["csv", "kafka"], default="csv", help="Akış veri kaynağı")
     ap.add_argument("--kafka-sunucu", default="localhost:9092")
     ap.add_argument("--kafka-topic", default="rayli-sensor")
@@ -664,7 +719,7 @@ def main():
     sim = AkisSimulatoru(kor_mod=args.kor_mod, baslangic_hizi=args.hiz, histerezis=args.histerezis,
                          kaynak=args.kaynak, kafka_sunucu=args.kafka_sunucu,
                          kafka_topic=args.kafka_topic, belirsizlik_esigi=args.belirsizlik,
-                         kayit=not args.kayitsiz)
+                         kayit=not args.kayitsiz, otomatik_basla=args.otomatik_basla)
     print(f"Model yüklendi   : {MODEL_PATH}")
     print(f"Akış kaynağı     : {args.kaynak} ({len(sim.ticks)} tick x {len(sim.axles)} dingil)")
     print(f"Histerezis       : {sim.histerezis} ardışık tick")
@@ -673,6 +728,7 @@ def main():
     print(f"Cevap anahtarı   : {'KULLANILMIYOR (kör mod)' if args.kor_mod else KEY_CSV}")
 
     if args.konsol:
+        sim.oynatiliyor = True          # konsol modu kendi döngüsünü sürer
         konsol_modu(sim)
         return
 

@@ -29,30 +29,30 @@ export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; m
   return (
     <div className="kpi-satir">
       <Kpi
-        baslik="Aktif Arıza Alarmı"
+        baslik="Aktif Alarm"
         deger={`${arizali}`}
         alt={`${toplamDingil} dingilin ${arizali} tanesi arızalı sınıflandı`}
         renk={arizali > 0 ? "var(--bad)" : "var(--ok)"}
       />
       <Kpi
-        baslik="Baskın Arıza Tipi"
+        baslik="Baskın Arıza"
         deger={enSik ? SINIF_ETIKET[enSik[0]] : "—"}
         alt={enSik ? `${enSik[1]} dingilde` : "tüm dingiller normal"}
       />
       <Kpi
-        baslik="Canlı Doğruluk"
+        baslik="Tip Doğruluğu"
         deger={acc != null ? `%${(acc * 100).toFixed(1)}` : "—"}
         alt={m?.kor_mod ? "kör mod: cevap anahtarı kapalı" : `${m?.dogru ?? 0}/${m?.degerlendirilen ?? 0} tahmin doğru`}
         renk={accRenk}
       />
       <Kpi
-        baslik="Canlı Şiddet Doğruluğu"
+        baslik="Şiddet Doğruluğu"
         deger={m?.severity_accuracy != null ? `%${(m.severity_accuracy * 100).toFixed(1)}` : "—"}
         alt={`macro F1 (tip): ${m?.macro_f1 != null ? m.macro_f1.toFixed(3) : "—"} · offline: ${
           meta?.egitim ? meta.egitim.macro_f1.toFixed(3) : "—"}`}
       />
       <Kpi
-        baslik="Belirsiz Tahmin"
+        baslik="Belirsiz"
         deger={`${tick?.belirsiz_sayisi ?? 0}`}
         alt={`entropi > ${tick?.belirsizlik_esigi?.toFixed(2) ?? "—"} · alarm üretmez`}
         renk={(tick?.belirsiz_sayisi ?? 0) > 0 ? "var(--warn)" : undefined}

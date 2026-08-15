@@ -21,7 +21,8 @@ export function useAkis() {
   const [hata, setHata] = useState<string | null>(null);
   // Kontrol durumları SSE paketine bağlı kalırsa duraklatınca buton donmuş görünür —
   // bu yüzden ayrı state tutup her kontrol çağrısının anlık sunucu yanıtından güncelliyoruz.
-  const [oynatiliyor, setOynatiliyor] = useState(true);
+  // Başlangıç değeri /api/meta'dan gelir: akış duraklatılmış başlar.
+  const [oynatiliyor, setOynatiliyor] = useState(false);
   const [korMod, setKorMod] = useState(false);
   const [histerezis, setHisterezis] = useState(3);
   const [belirsizlikEsigi, setBelirsizlikEsigi] = useState(0.35);
@@ -39,6 +40,7 @@ export function useAkis() {
         if (iptal) return;
         setMeta(m);
         setKorMod(m.kor_mod);
+        setOynatiliyor(m.oynatiliyor);
         setHisterezis(m.histerezis);
         setBelirsizlikEsigi(m.belirsizlik_esigi);
       })
@@ -85,7 +87,13 @@ export function useAkis() {
       if (typeof data.kor_mod === "boolean") setKorMod(data.kor_mod);
       if (typeof data.histerezis === "number") setHisterezis(data.histerezis);
       if (typeof data.belirsizlik_esigi === "number") setBelirsizlikEsigi(data.belirsizlik_esigi);
-      if (action === "reset") { gecmisRef.current.clear(); setOlaylar([]); }
+      if (action === "reset") {
+        // Sunucu duraklatılmış hâlde sıfırlandığı için yeni SSE paketi gelmez; istemci
+        // durumunu da temizlemezsek KPI'lar ve "Devam" etiketi eski veriyi göstermeye devam eder.
+        gecmisRef.current.clear();
+        setOlaylar([]);
+        setTick(null);
+      }
     } catch { /* sunucu kapalıysa sessiz geç */ }
   }, []);
 

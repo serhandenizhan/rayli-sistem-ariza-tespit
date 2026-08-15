@@ -31,6 +31,12 @@ export default function OlayGunlugu({ olaylar, histerezis }: { olaylar: Olay[]; 
                   <>→ <b style={{ color: "var(--ok)" }}>normale döndü</b></>
                 )}
                 {o.istasyon && <span className="ipucu"> · {o.istasyon}</span>}
+                {o.tekrar_no && o.tekrar_no > 1 && (
+                  <span className="tekrar-rozet"
+                        title={`Aynı sabit kusur (${o.kusur_arasi ?? o.kusur_id}) yeniden tespit edildi`}>
+                    ↻ {o.tekrar_no}. tespit
+                  </span>
+                )}
                 {o.gercek && o.gercek !== o.yeni && (
                   <span style={{ color: "var(--warn)" }}> · gerçek: {SINIF_ETIKET[o.gercek]}</span>
                 )}

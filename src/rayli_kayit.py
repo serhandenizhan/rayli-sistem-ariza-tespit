@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS alarmlar (
     tip           TEXT,              -- alarm | temizlendi
     sure_sn       REAL,              -- önceki durumun ne kadar sürdüğü
     oncelik       REAL,
+    kusur_id      TEXT,              -- ray çatlağı ise: sabit kusur noktasının kimliği
     gercek        TEXT,              -- kör mod kapalıysa cevap anahtarı (doğrulama için)
     FOREIGN KEY (calistirma_id) REFERENCES calistirmalar(id)
 );
@@ -113,13 +114,13 @@ class Kayitci:
             return
         self.baglanti.execute(
             "INSERT INTO alarmlar (calistirma_id, kayit_zamani, sim_zamani, tick, axle, line_id,"
-            " onceki, yeni, severity, conf, istasyon, tip, sure_sn, oncelik, gercek)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            " onceki, yeni, severity, conf, istasyon, tip, sure_sn, oncelik, kusur_id, gercek)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (self.calistirma_id, datetime.now().isoformat(timespec="seconds"),
              olay.get("ts"), olay.get("tick"), olay.get("axle"), olay.get("line_id"),
              olay.get("onceki"), olay.get("yeni"), olay.get("severity"), olay.get("conf"),
              olay.get("istasyon"), olay.get("tip"), olay.get("sure_sn"), olay.get("oncelik"),
-             olay.get("gercek")),
+             olay.get("kusur_id"), olay.get("gercek")),
         )
         self.baglanti.commit()
 
@@ -170,6 +171,18 @@ class Kayitci:
             "SELECT yeni AS sinif, COUNT(*) AS adet, ROUND(AVG(sure_sn), 1) AS ort_sure_sn"
             " FROM alarmlar WHERE tip='alarm' GROUP BY yeni ORDER BY adet DESC")
 
+    def kusur_ozeti(self):
+        """Tekrar eden ray kusurları — aynı sabit noktada kaç kez tespit yapıldığı.
+
+        Ray çatlağı konuma bağlı bir arızadır: kusur onarılana kadar HER tren geçişinde
+        yeniden tespit edilir. Bu tespitleri ayrı ayrı alarm saymak yanıltıcı olur; burada
+        kusur noktası bazında gruplanır (tek bir iş emrine karşılık gelir)."""
+        return self._sorgu(
+            "SELECT kusur_id, COUNT(*) AS tespit_sayisi, COUNT(DISTINCT axle) AS dingil_sayisi,"
+            " MIN(kayit_zamani) AS ilk_tespit, MAX(kayit_zamani) AS son_tespit"
+            " FROM alarmlar WHERE kusur_id IS NOT NULL"
+            " GROUP BY kusur_id ORDER BY tespit_sayisi DESC")
+
     def calistirma_listesi(self, limit=10):
         return self._sorgu(
             "SELECT c.*, (SELECT COUNT(*) FROM alarmlar a WHERE a.calistirma_id=c.id AND a.tip='alarm')"
@@ -185,6 +198,7 @@ class Kayitci:
             "dingiller": self.dingil_ozeti(),
             "hatlar": self.hat_ozeti(),
             "siniflar": self.sinif_ozeti(),
+            "ray_kusurlari": self.kusur_ozeti(),
             "calistirmalar": self.calistirma_listesi(),
             "son_alarmlar": self.son_alarmlar(30),
         }

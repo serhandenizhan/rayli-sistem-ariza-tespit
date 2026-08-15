@@ -132,6 +132,32 @@ export default function GecmisPaneli({ gecmis, yenile }: {
           </div>
 
           <div className="panel">
+            <header><h2>Tekrar Eden Ray Kusurları</h2></header>
+            {(gecmis.ray_kusurlari ?? []).length === 0 ? (
+              <div className="aciklama-kutu">Henüz sabit ray kusuru tespiti kaydedilmedi.</div>
+            ) : (
+              <table>
+                <thead><tr><th>Kusur</th><th>Tespit</th><th>Dingil</th></tr></thead>
+                <tbody>
+                  {(gecmis.ray_kusurlari ?? []).map((k) => (
+                    <tr key={k.kusur_id}>
+                      <td className="mono" style={{ fontSize: 11 }}>{k.kusur_id}</td>
+                      <td className="mono">{k.tespit_sayisi}</td>
+                      <td className="mono">{k.dingil_sayisi}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="aciklama-kutu" style={{ marginTop: 10 }}>
+              Ray çatlağı <b>konuma bağlı</b> bir arızadır: kusur onarılana kadar oradan geçen
+              <b> her tren</b> onu yeniden tespit eder. Bu yüzden tespitler ayrı ayrı arıza
+              değil, <b>tek bir kusur kaydının tekrarı</b> olarak gruplanır — gerçek bakım
+              sistemlerinde de aynı noktadaki tekrarlı tespitler tek iş emrine bağlanır.
+            </div>
+          </div>
+
+          <div className="panel">
             <header><h2>Çalıştırma Geçmişi</h2></header>
             <table>
               <thead><tr><th>#</th><th>Başlangıç</th><th>Dingil</th><th>Histerezis</th><th>Alarm</th></tr></thead>

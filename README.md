@@ -23,7 +23,7 @@ simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımlar
   trenler gerçek hatlarda, tahmin rengiyle hareket eder
 - **Sekmeli arayüz**: canlı izleme / dingiller / doğrulama / testler
 - **İnteraktif harita**: fare tekerleğiyle yakınlaştırma, sürükleyerek kaydırma, ilçe adları
-- **74 birim testi**: arayüzde okunabilir sonuç paneliyle
+- **77 birim testi**: arayüzde okunabilir sonuç paneliyle
 
 ## Klasör yapısı
 
@@ -158,8 +158,8 @@ kayba 0.4 ağırlıkla katılır (asıl görev tip sınıflandırmasıdır).
 
 | Görev | Accuracy | Macro F1 |
 |---|---|---|
-| Arıza tipi | %99.2 | 0.9764 |
-| Arıza şiddeti | %96.6 | 0.8447 |
+| Arıza tipi | %99.2 | 0.9804 |
+| Arıza şiddeti | %96.5 | 0.85 |
 
 `bearing_fault` 0.997, `rail_crack` 0.990, `normal` 0.995 F1; en zayıf sınıf `motor_fault`
 (0.924). Sınıf dengesizliği, karekök yumuşatmalı ters frekans ağırlığıyla ele alınır — tam
@@ -252,7 +252,7 @@ canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 74 test
+./testleri_calistir.sh              # 77 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 

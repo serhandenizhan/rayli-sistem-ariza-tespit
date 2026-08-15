@@ -29,6 +29,7 @@ python rayli_tahmin.py --n 20   # ilk 20 sekans için satır satır gerçek/tahm
 python rayli_etiketsiz_uret.py  # test setini etiketsiz akış + cevap anahtarı olarak ayırır
 python rayli_canli_akis_sunucu.py --konsol   # canlı akışı arayüzsüz, konsolda izle
 python rayli_canli_akis_sunucu.py --histerezis 5   # N ardışık tick kuralı
+python rayli_canli_akis_sunucu.py --otomatik-basla # duraklatılmış değil, oynatarak başla
 python istanbul_metro_agi.py    # İBB açık verisinden metro ağı modelini kurar
 python istanbul_metro_agi.py --indir   # ham GeoJSON'ları İBB'den yeniden indir
 python rayli_kafka.py --uret    # etiketsiz akışı Kafka topic'ine yayınla (broker gerekir)
@@ -97,6 +98,14 @@ yapılabilir.
   tahminler `belirsiz` işaretlenir ve **histerezis sayacını ilerletmez** — yani modelin kararsız
   kaldığı anlar alarm üretemez. Eşik `/api/kontrol` ile çalışma anında değiştirilebilir
   (1.0 = kapalı).
+  **Akış duraklatılmış başlar** (`otomatik_basla=False`): demoyu arayüzdeki "Başlat" düğmesi
+  çalıştırır. `reset` YALNIZCA veriyi temizler, akışı kendiliğinden başlatmaz — başlatmak tek
+  bir düğmenin işidir. SSE üreteci bağlanır bağlanmaz `: baglandi` yorumu yazar; aksi hâlde
+  duraklatılmış akışta ilk bayt gelmediği için tarayıcının EventSource'u "bağlanıyor"da takılır.
+  **Ray kusuru tekrarları**: rail_crack konuma bağlıdır ve kusur onarılana kadar HER tren
+  geçişinde yeniden tespit edilir. Alarm, hat üzerindeki sabit kusur noktasıyla eşleştirilip
+  (`_kusur_bul`) `kusur_id` ve `tekrar_no` ile etiketlenir; böylece tekrarlı tespitler ayrı
+  arızalar gibi değil, tek bir kusur kaydının tekrarı olarak izlenir.
   **Alarm süresi ve önceliği**: her dingilin yerleşik durumunun ne zaman başladığı tutulur;
   `oncelik_hesapla()` şiddet (%50) + süre (%30, 2 dakikada doygunlaşır) + güven (%20)
   birleşimiyle 0-1 arası skor üretir, `oncelik_seviyesi()` bunu kritik/yüksek/orta/düşük'e
@@ -175,8 +184,14 @@ Sentetik veri gerçekçi ama tam fiziksel doğrulukta değildir; ilerideki iyile
 - Ham sensör sinyali yok, doğrudan özellik (RMS, kurtosis, FFT tepe frekansı vb.) simüle edildi.
 - Sıcaklık/nem gibi yavaş değişen sensörler bağımsız gürültüyle üretildi; gerçekte zamanla
   yumuşak trend (otokorelasyon) gösterirler.
-- `rail_crack` konuma bağlı bir arızadır; artık gerçek hat üzerinde sabit km noktalarına
-  bağlıdır (tren her geçişte tetikler), ancak hâlâ zaman bazlı pencereye örnekleniyor.
+- `rail_crack` konuma bağlı bir arızadır; gerçek hat üzerinde sabit km noktalarına bağlıdır
+  (tren her geçişte tetikler), ancak hâlâ zaman bazlı pencereye örnekleniyor.
+  **Kusur yoğunluğu**: `KUSURLU_HAT_MIN_KM` ile yalnızca 10 km üstü hatlara ve hat başına BİR
+  kusur konur (9 kusur). Önceden hat başına 2'ye kadar çıkıyordu (23 kusur) ve rail_crack
+  diğer sınıflardan kat kat fazla alarm üretiyordu: satır sayısı en az olduğu hâlde **324
+  bölüm** oluşuyordu (diğer sınıflar ~20), çünkü her tren geçişi ~12 saniyelik yeni bir olay
+  demekti. Bakımlı bir ağda bu kadar aktif kusur bulunmaz; yoğunluk düşürülünce bölüm sayısı
+  75'e indi ve alarm dağılımı dengelendi.
 - İstasyon sırası kaynak veriden değil, coğrafi konumlardan türetiliyor (bkz.
   `istanbul_metro_agi.py`); şubeli hatlarda (M2'nin Seyrantepe kolu) şube, ana hattın
   arasına yerleşiyor.
@@ -188,9 +203,9 @@ Model **çok görevlidir**: tek gövde (CNN+LSTM), iki başlık — arıza tipi 
 şiddeti (none/mild/moderate/severe). Toplam kayıp = tip + `SEVERITY_AGIRLIK`(0.4) × şiddet.
 
 Gerçek metro ağı verisiyle eğitilen mevcut model, test setinde:
-- **Arıza tipi: accuracy %99.2, macro F1 0.9764** (`bearing_fault` 0.997, `normal` 0.996,
-  `wheel_flat` 0.990; en zayıf `motor_fault` F1 0.944)
-- **Arıza şiddeti: accuracy %96.8, macro F1 0.85** (mild/moderate sınırları doğası gereği bulanık)
+- **Arıza tipi: accuracy %99.2, macro F1 0.9804** (`bearing_fault` ve `rail_crack` 1.000,
+  `normal` 0.995; en zayıf `motor_fault` F1 0.943)
+- **Arıza şiddeti: accuracy %96.5, macro F1 0.85** (mild/moderate sınırları doğası gereği bulanık)
 
 **Sınıf ağırlığı yumuşatma (`AGIRLIK_YUMUSATMA = 0.5`)**: veri %85 `normal` olduğu için tam
 "balanced" ters frekans ağırlığı nadir sınıflara ~35 kat ağırlık verip modeli "arıza de" yönünde
@@ -211,7 +226,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **74 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **77 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.

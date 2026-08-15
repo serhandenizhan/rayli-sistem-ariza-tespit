@@ -72,17 +72,24 @@ FAULT_TYPES = ["wheel_flat", "bearing_fault", "brake_fault", "motor_fault"]
 # ---------------------------------------------------------------------------
 # Tren hareketi (gerçek hat üzerinde)
 # ---------------------------------------------------------------------------
+# Ağ genelinde kaç ray kusuru bulunur? Bakımlı bir metro ağında aynı anda çok sayıda aktif
+# ray kusuru olmaz; tespit edilenler kısa sürede onarılır. Bu yüzden kusur yalnızca belirli
+# uzunluğun üstündeki hatlara ve hat başına BİR tane konur (önceden hat başına 2'ye kadar
+# çıkıyordu ve ağda 23 kusur oluşuyordu — bu, rail_crack'in diğer sınıflardan kat kat fazla
+# alarm üretmesine yol açan gerçekçi olmayan bir yoğunluktu).
+KUSURLU_HAT_MIN_KM = 10.0
+
+
 def ray_kusurlari_uret(hatlar):
-    """Her hat için sabit ray kusuru noktaları belirler ve hangi istasyonlar arasında
-    olduklarını çözer. Tren bu noktadan her geçişinde rail_crack örüntüsü tetiklenir."""
+    """Ağ üzerinde sabit ray kusuru noktaları belirler ve hangi istasyonlar arasında
+    olduklarını çözer. Tren bu noktadan her geçişinde rail_crack örüntüsü tetiklenir;
+    aynı kusur tekrar tekrar tespit edilir (gerçek hayatta olduğu gibi)."""
     kusurlar = []
     for kod, hat in hatlar.items():
         uzunluk = hat["uzunluk_km"]
-        if uzunluk < 2:
+        if uzunluk < KUSURLU_HAT_MIN_KM:
             continue
-        # hat boyunca 1-2 kusur noktası: %30 ve (uzunsa) %68 konumlarında
-        oranlar = [0.30] if uzunluk < 10 else [0.30, 0.68]
-        for i, oran in enumerate(oranlar):
+        for i, oran in enumerate([0.42]):        # hat ortasına yakın tek kusur
             km = round(uzunluk * oran, 3)
             onceki, sonraki = hat["istasyonlar"][0], hat["istasyonlar"][-1]
             for a, b in zip(hat["istasyonlar"], hat["istasyonlar"][1:]):
@@ -94,8 +101,9 @@ def ray_kusurlari_uret(hatlar):
             kusurlar.append({
                 "hat": kod,
                 "km": km,
+                "kusur_id": f"{kod}@{km:.2f}",
                 "genislik_km": 0.12,
-                "siddet": "severe" if i == 1 else "moderate",
+                "siddet": "severe" if kod in ("M4", "M1A") else "moderate",
                 "arasi": f"{onceki['ad']} – {sonraki['ad']}",
                 "lat": round(onceki["lat"] + (sonraki["lat"] - onceki["lat"]) * oran_ic, 6),
                 "lon": round(onceki["lon"] + (sonraki["lon"] - onceki["lon"]) * oran_ic, 6),

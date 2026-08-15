@@ -56,6 +56,9 @@ export interface Olay {
   istasyon?: string | null;
   tip: "alarm" | "temizlendi";
   gercek?: SinifAdi;
+  kusur_id?: string;      // ray çatlağı ise: sabit kusur noktası kimliği
+  kusur_arasi?: string;   // kusurun hangi istasyonlar arasında olduğu
+  tekrar_no?: number;     // aynı kusurun kaçıncı tespiti
 }
 
 export interface Metrikler {
@@ -94,6 +97,7 @@ export interface TickPaketi {
   belirsizlik_esigi: number;
   aktif_alarmlar: AktifAlarm[];
   belirsiz_sayisi: number;
+  ray_kusuru_tespitleri: { kusur_id: string; tespit: number; arasi: string | null }[];
   axles: AxleDurum[];
   yeni_olaylar: Olay[];
   sayaclar: Record<string, number>;
@@ -131,6 +135,8 @@ export interface Meta {
   tick_seconds: number;
   toplam_tick: number;
   kor_mod: boolean;
+  oynatiliyor: boolean;   // sunucunun anlık akış durumu (duraklatılmış başlar)
+  tick: number;
   histerezis: number;
   belirsizlik_esigi: number;
   kaynak: string;
@@ -267,6 +273,8 @@ export interface GecmisOzet {
   dingiller?: GecmisDingil[];
   hatlar?: { line_id: string; alarm_sayisi: number; dingil_sayisi: number }[];
   siniflar?: { sinif: string; adet: number; ort_sure_sn: number | null }[];
+  ray_kusurlari?: { kusur_id: string; tespit_sayisi: number; dingil_sayisi: number;
+                    ilk_tespit: string; son_tespit: string }[];
   calistirmalar?: { id: number; baslangic: string; histerezis: number; dingil_sayisi: number;
                     hat_sayisi: number; alarm_sayisi: number }[];
   son_alarmlar?: GecmisAlarm[];
