@@ -35,6 +35,7 @@ import argparse
 import asyncio
 import json
 import os
+import sys
 from collections import deque
 
 import numpy as np
@@ -407,14 +408,53 @@ def create_app(sim: AkisSimulatoru):
     async def olaylar():
         return {"olaylar": list(sim.olaylar)}
 
+    # --- pytest'i arayüzden çalıştırma ---
+    # Testler ~15 saniye sürdüğü için senkron çalıştırmak SSE akışını bloke ederdi; bu yüzden
+    # ayrı bir iş parçacığında başlatılıp durumu yoklanır (arayüz geçen süreyi canlı gösterir).
+    test_durumu = {"calisiyor": False, "baslangic": None, "bitis": None, "hata": None}
+
+    def _pytest_calistir():
+        import subprocess
+        import time
+        try:
+            subprocess.run(
+                [sys.executable, "-m", "pytest", "-q"],
+                cwd=os.path.join(BASE_DIR, ".."),
+                capture_output=True, text=True, timeout=600,
+            )
+        except Exception as e:                                   # noqa: BLE001
+            test_durumu["hata"] = str(e)
+        finally:
+            test_durumu["calisiyor"] = False
+            test_durumu["bitis"] = time.time()
+
     @app.get("/api/testler")
     async def testler():
-        """pytest sonuç özeti (results/test_ozeti.json) — arayüzdeki test panelini besler."""
+        """pytest sonuç özeti (results/test_ozeti.json) + çalışma durumu.
+        Arayüzdeki test panelini besler."""
+        import time
         yol = os.path.join(RESULTS_DIR, "test_ozeti.json")
+        durum = {
+            "calisiyor": test_durumu["calisiyor"],
+            "gecen_sn": (round(time.time() - test_durumu["baslangic"], 1)
+                         if test_durumu["calisiyor"] and test_durumu["baslangic"] else None),
+            "hata": test_durumu["hata"],
+        }
         if not os.path.exists(yol):
-            return {"var": False, "mesaj": "Test özeti yok. './testleri_calistir.sh' çalıştırın."}
+            return {"var": False, "mesaj": "Test özeti yok. './testleri_calistir.sh' çalıştırın.", **durum}
         with open(yol, encoding="utf-8") as f:
-            return {"var": True, **json.load(f)}
+            return {"var": True, **json.load(f), **durum}
+
+    @app.post("/api/testler/calistir")
+    async def testleri_calistir():
+        """Birim testlerini yeniden çalıştırır (arka planda). Zaten çalışıyorsa yeni iş başlatmaz."""
+        import threading
+        import time
+        if test_durumu["calisiyor"]:
+            return {"calisiyor": True, "mesaj": "Testler zaten çalışıyor"}
+        test_durumu.update(calisiyor=True, baslangic=time.time(), bitis=None, hata=None)
+        threading.Thread(target=_pytest_calistir, daemon=True).start()
+        return {"calisiyor": True, "mesaj": "Testler başlatıldı"}
 
     @app.post("/api/kontrol")
     async def kontrol(request: Request):

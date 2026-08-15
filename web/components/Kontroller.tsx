@@ -41,8 +41,7 @@ export default function Kontroller({
         <div className="baslik-blok">
           <h1>🚇 İstanbul Raylı Sistem — Canlı Arıza İzleme</h1>
           <div className="alt">
-            CNN + LSTM (çok görevli: tip + şiddet) · {meta?.window ?? 10} adımlık pencere (20 sn) ·
-            {" "}{meta?.axles.length ?? 0} dingil · etiketsiz akış · kaynak: {meta?.kaynak ?? "csv"}
+            CNN+LSTM · tip + şiddet · {meta?.axles.length ?? 0} dingil · etiketsiz akış
           </div>
         </div>
 
@@ -56,9 +55,15 @@ export default function Kontroller({
 
         <div className="bosluk" />
 
-        <button className="ikon" onClick={() => kontrol("pause")} disabled={!oynatiliyor}>⏸ Duraklat</button>
-        <button className="ikon" onClick={() => kontrol("play")} disabled={oynatiliyor}>▶ Devam</button>
-        <button className="ikon" onClick={() => kontrol("reset")}>⟲ Baştan</button>
+        {/* Oynat düğmesinin etiketi duruma göre değişir: akış hiç ilerlememişse "Başlat",
+            duraklatılmış bir akışta ise "Devam". Sıfırla, akışı baştan alır. */}
+        <button className="ikon" onClick={() => kontrol("pause")} disabled={!oynatiliyor}>
+          ⏸ Duraklat
+        </button>
+        <button className="ikon" onClick={() => kontrol("play")} disabled={oynatiliyor}>
+          ▶ {simdi <= 1 ? "Başlat" : "Devam"}
+        </button>
+        <button className="ikon" onClick={() => kontrol("reset")}>⟲ Sıfırla</button>
       </div>
 
       {/* --- 2. satır: sekmeler (sol) + simülasyon ayarları (sağ) --- */}

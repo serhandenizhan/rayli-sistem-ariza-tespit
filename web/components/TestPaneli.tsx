@@ -15,17 +15,34 @@ const SONUC_RENK: Record<string, string> = {
   passed: "var(--ok)", failed: "var(--bad)", skipped: "var(--muted)",
 };
 
-/** pytest sonuçlarını (results/test_ozeti.json) okunabilir biçimde gösterir. */
-export default function TestPaneli({ testler, yenile }: { testler: TestOzeti | null; yenile: () => void }) {
+/** pytest sonuçlarını (results/test_ozeti.json) okunabilir biçimde gösterir ve
+ *  arayüzden yeniden çalıştırmayı sağlar. */
+export default function TestPaneli({ testler, calistir }: {
+  testler: TestOzeti | null;
+  calistir: () => void;
+}) {
   const [acik, setAcik] = useState<string | null>(null);
+  const calisiyor = !!testler?.calisiyor;
+  // Testler ~15 sn sürüyor; ilerleme çubuğu için son çalıştırmanın süresini referans al
+  const beklenenSure = Math.max(testler?.toplam_sure ?? 14, 5);
+  const gecen = testler?.gecen_sn ?? 0;
+  const ilerleme = calisiyor ? Math.min((gecen / beklenenSure) * 100, 97) : 100;
+
+  const CalistirDugmesi = (
+    <button onClick={calistir} disabled={calisiyor}
+            style={{ fontSize: 11, padding: "5px 10px" }}
+            title="Birim testlerini sunucuda yeniden çalıştırır (pytest)">
+      {calisiyor ? "⏳ Çalışıyor…" : "⟳ Testleri çalıştır"}
+    </button>
+  );
 
   if (!testler?.var) {
     return (
       <div className="panel">
-        <header><h2>Birim Testleri</h2></header>
+        <header><h2>Birim Testleri</h2>{CalistirDugmesi}</header>
         <div className="aciklama-kutu">
           {testler?.mesaj ?? "Test sonucu yok."}<br />
-          Çalıştırmak için: <span className="mono">./testleri_calistir.sh</span>
+          Çalıştırmak için: <span className="mono">./testleri_calistir.sh</span> veya yukarıdaki düğme.
         </div>
       </div>
     );
@@ -44,8 +61,22 @@ export default function TestPaneli({ testler, yenile }: { testler: TestOzeti | n
     <div className="panel">
       <header>
         <h2>Birim Testleri</h2>
-        <button style={{ fontSize: 11, padding: "4px 9px" }} onClick={yenile}>⟳ Yenile</button>
+        {CalistirDugmesi}
       </header>
+
+      {calisiyor && (
+        <div className="test-calisiyor">
+          <div className="satir">
+            <span>pytest çalışıyor…</span>
+            <span className="mono">{gecen.toFixed(1)}s / ~{beklenenSure.toFixed(0)}s</span>
+          </div>
+          <div className="ilerleme"><div style={{ width: `${ilerleme}%` }} /></div>
+          <div className="alt">
+            {testler.toplam ?? 0} test yeniden çalıştırılıyor — veri şeması, metro ağı, model
+            ve canlı akış motoru doğrulanıyor.
+          </div>
+        </div>
+      )}
 
       <div className="test-ozet" style={{ borderColor: hepsiGecti ? "var(--ok)" : "var(--bad)" }}>
         <div>

@@ -180,6 +180,9 @@ export interface TestKaydi {
 export interface TestOzeti {
   var: boolean;
   mesaj?: string;
+  calisiyor?: boolean;      // pytest şu anda çalışıyor mu
+  gecen_sn?: number | null; // çalışıyorsa geçen süre
+  hata?: string | null;
   calistirma_zamani?: string;
   toplam?: number;
   gecti?: number;

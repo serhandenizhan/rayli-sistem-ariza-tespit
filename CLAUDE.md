@@ -92,7 +92,9 @@ yapılabilir.
   **Histerezis**: bir sınıf N ardışık tick tahmin edilmeden "yerleşik" olmaz (`yerlesik` alanı);
   alarm günlüğü yalnızca yerleşik değişimlerde kayıt atar. Kör mod ve histerezis çalışma anında
   `/api/kontrol` ile değiştirilebilir. Uç noktalar: `/api/meta`, `/api/ag` (harita için ağ +
-  ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler`, `/api/akis` (SSE), `/api/kontrol`.
+  ray kusurları), `/api/durum`, `/api/olaylar`, `/api/testler` (+ `POST /api/testler/calistir`), `/api/akis` (SSE), `/api/kontrol`.
+  Testler ayrı bir iş parçacığında çalıştırılır (~12 sn); senkron çalıştırmak SSE akışını
+  bloke ederdi. Arayüz `calisiyor`/`gecen_sn` alanlarını yoklayıp ilerlemeyi canlı gösterir.
 - `rayli_kafka.py` — Kafka adaptörü. Üretici etiketsiz akışı topic'e yayınlar, tüketici topic'i
   DataFrame'e çevirir; sunucu `--kaynak kafka` ile aynı boru hattını mesaj kuyruğundan besler.
   `kafka-python` kurulu değilse anlaşılır bir hata verir (varsayılan akış CSV'dir).

@@ -54,9 +54,16 @@ body {
   position: sticky; top: 0; z-index: 20;
   backdrop-filter: blur(6px);
 }
-.ust-satir { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ust-satir { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; min-width: 0; }
+.ust-satir > .baslik-blok { flex: 1 1 auto; min-width: 0; }
+.ust-satir .rozet { flex: 0 0 auto; white-space: nowrap; }
+.ust-satir .ikon { flex: 0 0 auto; white-space: nowrap; }
+@media (max-width: 1100px) { .ust-satir { flex-wrap: wrap; } }
 .ust-satir.alt-satir { border-top: 1px solid var(--line); padding-top: 11px; gap: 12px; }
-.ust-bar h1 { font-size: 16px; margin: 0; letter-spacing: .2px; }
+.ust-bar h1 {
+  font-size: 15px; margin: 0; letter-spacing: .2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .ust-bar .alt { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .bosluk { flex: 1; }
 
@@ -102,7 +109,7 @@ button.ikon { padding: 7px 14px; font-weight: 600; }
   100% { box-shadow: 0 0 0 0 rgba(47,191,113,0); }
 }
 
-.ilerleme { height: 4px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 160px; flex: 1 1 200px; }
+.ilerleme { height: 4px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 60px; flex: 1 1 120px; }
 .ilerleme > div { height: 100%; background: linear-gradient(90deg, var(--accent), #7de2d1); transition: width .2s; }
 
 /* ---------------------------------------------------------------- KPI */
@@ -114,17 +121,17 @@ button.ikon { padding: 7px 14px; font-weight: 600; }
 .kpi .alt { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
 /* -------------------------------------------------------------- dingiller */
-.dingil-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 9px; }
+.dingil-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 7px; }
 .dingil {
-  position: relative; text-align: left; padding: 9px 10px;
+  position: relative; text-align: left; padding: 7px 8px;
   background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
   overflow: hidden;
 }
 .dingil:hover { border-color: var(--accent); }
 .dingil.secili { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-.dingil .ad { font-size: 12px; font-weight: 600; letter-spacing: .3px; }
-.dingil .sinif { font-size: 11px; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
-.dingil .conf { font-size: 10px; color: var(--muted); margin-top: 5px; }
+.dingil .ad { font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+.dingil .sinif { font-size: 10px; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.dingil .conf { font-size: 9px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 .dingil .serit { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
 .dingil .yanlis {
   position: absolute; top: 7px; right: 8px; font-size: 9px; color: var(--bad);
@@ -176,7 +183,7 @@ tbody tr:last-child td { border-bottom: none; }
 .sekme-grup button { font-size: 11px; padding: 5px 9px; }
 
 /* ------------------------------------------------- kontrol grupları (üst bar) */
-.baslik-blok { min-width: 260px; }
+.baslik-blok { min-width: 180px; }
 .kontrol-grup { display: flex; flex-direction: column; gap: 3px; }
 .kontrol-grup > label {
   font-size: 9.5px; color: var(--muted); text-transform: uppercase;
@@ -264,7 +271,7 @@ tbody tr:last-child td { border-bottom: none; }
 /* Harita: tek ekrana sığsın diye yükseklik sınırlı; içerik ortalanır (letterbox) */
 .harita-svg {
   display: block; width: 100%;
-  max-height: min(46vh, 460px);
+  max-height: min(62vh, 620px);
   background: var(--deniz);
   touch-action: none;
 }
@@ -283,3 +290,37 @@ tbody tr:last-child td { border-bottom: none; }
 /* İzleme sekmesi: harita solda, alarm/efsane sağda — yatay alanı değerlendirir */
 .izgara-harita { display: grid; grid-template-columns: 1.75fr 1fr; gap: 16px; align-items: start; }
 @media (max-width: 1180px) { .izgara-harita { grid-template-columns: 1fr; } }
+
+/* Dingiller sekmesi: ızgara solda, sensör + model çıktısı sağda alt alta */
+.izgara-dingil { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 1280px) { .izgara-dingil { grid-template-columns: 1fr; } }
+/* Çok uzayınca panel içinde kaydırılsın, sağdaki paneller ekranda kalsın */
+.izgara-dingil > .panel:first-child { max-height: 78vh; overflow-y: auto; }
+
+/* ------------------------------------------------- sensör grafiği imleç ipucu */
+.grafik-sarmal { position: relative; }
+.grafik-ipucu {
+  position: absolute; top: 8px; z-index: 5; pointer-events: none;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 8px;
+  padding: 8px 10px; min-width: 168px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.45);
+}
+.grafik-ipucu .ipucu-baslik {
+  font-size: 11px; color: var(--muted); margin-bottom: 6px;
+  border-bottom: 1px solid var(--line); padding-bottom: 5px; font-weight: 600;
+}
+.ipucu-satir { display: grid; grid-template-columns: 9px 1fr auto; gap: 7px; align-items: center; font-size: 11px; }
+.ipucu-satir + .ipucu-satir { margin-top: 3px; }
+.ipucu-satir i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.ipucu-satir .ad { color: var(--muted); }
+.ipucu-satir .deger { color: var(--text); font-weight: 600; }
+
+/* --------------------------------------------------------- test çalışma durumu */
+.test-calisiyor {
+  border: 1px solid var(--accent); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
+  background: rgba(78,168,255,.07);
+}
+.test-calisiyor .satir { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 7px; }
+.test-calisiyor .ilerleme { min-width: 0; flex: none; width: 100%; height: 5px; }
+.test-calisiyor .ilerleme > div { transition: width .4s linear; }
+.test-calisiyor .alt { font-size: 11px; color: var(--muted); margin-top: 7px; line-height: 1.45; }

@@ -88,11 +88,25 @@ export function useAkis() {
     try {
       const t = await (await fetch("/api/testler")).json();
       setTestler(t);
-    } catch { /* yok say */ }
+      return t as TestOzeti;
+    } catch { return null; }
   }, []);
+
+  /** Testleri sunucuda yeniden çalıştırır ve bitene kadar durumu yoklar.
+   *  pytest ~15 sn sürdüğü için arayüz bu sürede geçen süreyi canlı gösterir. */
+  const testleriCalistir = useCallback(async () => {
+    try {
+      await fetch("/api/testler/calistir", { method: "POST" });
+      const yokla = async () => {
+        const t = await testleriYenile();
+        if (t?.calisiyor) setTimeout(yokla, 400);
+      };
+      setTimeout(yokla, 300);
+    } catch { /* sunucu kapalıysa sessiz geç */ }
+  }, [testleriYenile]);
 
   const gecmisAl = useCallback((axle: string) => gecmisRef.current.get(axle) ?? [], []);
 
   return { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
-           oynatiliyor, korMod, histerezis, testleriYenile };
+           oynatiliyor, korMod, histerezis, testleriYenile, testleriCalistir };
 }

@@ -16,7 +16,7 @@ import { useAkis } from "@/lib/useAkis";
 
 export default function Sayfa() {
   const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
-          oynatiliyor, korMod, histerezis, testleriYenile } = useAkis();
+          oynatiliyor, korMod, histerezis, testleriCalistir } = useAkis();
   const [secili, setSecili] = useState<string | null>(null);
   const [sekme, setSekme] = useState<Sekme>("izleme");
 
@@ -53,12 +53,14 @@ export default function Sayfa() {
 
       {sekme === "izleme" && (
         <div className="sekme-icerik">
-          {/* Harita solda, alarm günlüğü sağda — böylece yatay alan değerlendirilir ve
-              izleme ekranı tek ekran boyuna sığar. */}
-          <div className="izgara-harita">
-            <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
+          {/* Harita tam genişlikte (yatayda mümkün olduğunca büyük); alarm günlüğü ve renk
+              anahtarı haritanın ALTINDA yan yana. */}
+          <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
+          <div className="izgara">
             <div className="sutun">
               <OlayGunlugu olaylar={olaylar} histerezis={histerezis} />
+            </div>
+            <div className="sutun">
               <div className="panel">
                 <header><h2>Sınıf Renk Anahtarı</h2></header>
                 <div className="efsane">
@@ -83,12 +85,12 @@ export default function Sayfa() {
 
       {sekme === "dingiller" && (
         <div className="sekme-icerik">
-          <DingilIzgara axles={tick?.axles ?? []} secili={secili} onSec={setSecili} korMod={korMod} />
-          <div className="izgara">
+          {/* Dingil ızgarası dikeyde uzun olduğu için sola alındı; boş kalan sağ yarıya
+              sensör akışı ve model çıktısı alt alta yerleştirildi. */}
+          <div className="izgara-dingil">
+            <DingilIzgara axles={tick?.axles ?? []} secili={secili} onSec={setSecili} korMod={korMod} />
             <div className="sutun">
               <SensorGrafik axle={secili} gecmis={secili ? gecmisAl(secili) : []} />
-            </div>
-            <div className="sutun">
               <OlasilikCubuk axle={seciliAxle} meta={meta} />
             </div>
           </div>
@@ -110,7 +112,7 @@ export default function Sayfa() {
 
       {sekme === "testler" && (
         <div className="sekme-icerik">
-          <TestPaneli testler={testler} yenile={testleriYenile} />
+          <TestPaneli testler={testler} calistir={testleriCalistir} />
         </div>
       )}
     </main>

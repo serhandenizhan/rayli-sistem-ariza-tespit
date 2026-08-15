@@ -57,6 +57,10 @@ export default function MetroHarita({
   const [don, setDon] = useState<Donusum>({ k: 1, x: 0, y: 0 });
 
   const [bilgiAcik, setBilgiAcik] = useState(false);
+  // SVG'nin ekrana çizilirkenki ölçeği (letterbox nedeniyle 1'den küçük olabilir).
+  // Yazı boyutlarını GERÇEK piksel cinsinden sabitlemek için gerekli: viewBox birimi
+  // doğrudan piksel değildir, bu ölçekle çarpılır.
+  const [ekranOlcek, setEkranOlcek] = useState(1);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const surukleRef = useRef<{ aktif: boolean; x: number; y: number; kaydi: boolean }>(
@@ -126,6 +130,22 @@ export default function MetroHarita({
       return { ad: ilce.ad, d, cx: X(clon), cy: Y(clat), buyukluk: enCok };
     });
   }, [ag, gorunum]);
+
+  // ------------------------------------------- çizim ölçeğini ölç (yazı boyutu için)
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || !gorunum) return;
+    const guncelle = () => {
+      const r = el.getBoundingClientRect();
+      if (r.width && r.height) {
+        setEkranOlcek(Math.min(r.width / gorunum.W, r.height / gorunum.H) || 1);
+      }
+    };
+    guncelle();
+    const gozlemci = new ResizeObserver(guncelle);
+    gozlemci.observe(el);
+    return () => gozlemci.disconnect();
+  }, [gorunum]);
 
   // --------------------------------------------------------- fare tekerleği (zoom)
   useEffect(() => {
@@ -200,8 +220,12 @@ export default function MetroHarita({
     trenler.set(a.train_id, g);
   }
 
-  // Ölçekten bağımsız görünsün diye çizgi/yazı kalınlıkları k'ye bölünür
+  // Ölçekten bağımsız görünsün diye çizgi kalınlıkları k'ye bölünür
   const kal = (v: number) => v / k;
+  // Yazılar GERÇEK piksel cinsinden sabit kalsın: hem yakınlaştırma (k) hem de SVG'nin
+  // ekrana çizilme ölçeği (ekranOlcek) geri alınır. Aksi hâlde letterbox yüzünden
+  // etiketler okunamayacak kadar küçülüyordu (9 birim ≈ 5.5 piksel).
+  const px = (hedefPiksel: number) => hedefPiksel / (ekranOlcek * k);
 
   return (
     <div className="panel">
@@ -251,8 +275,10 @@ export default function MetroHarita({
             {/* --- ilçe adları (ölçekten bağımsız punto) --- */}
             {ilceAdlari && cografyaYollari.filter((i) => i.buyukluk > 12 || k > 3).map((i, idx) => (
               <text key={`t-${idx}`} x={i.cx} y={i.cy}
-                    fontSize={kal(9)} fill="var(--ilce-yazi)" textAnchor="middle"
-                    style={{ pointerEvents: "none", letterSpacing: kal(0.2) }}>
+                    fontSize={px(Math.min(12 + (k - 1) * 1.5, 17))}
+                    fill="var(--ilce-yazi)" textAnchor="middle"
+                    stroke="var(--deniz)" strokeWidth={px(2.5)} paintOrder="stroke"
+                    style={{ pointerEvents: "none", fontWeight: 600 }}>
                 {i.ad}
               </text>
             ))}
@@ -295,7 +321,9 @@ export default function MetroHarita({
               <g key={`ia-${h.kod}`} opacity={vurgu && vurgu !== h.kod ? 0.15 : 0.9}>
                 {h.istasyonlar.map((ist) => (
                   <text key={ist.ad} x={X(ist.lon) + kal(4)} y={Y(ist.lat) - kal(3)}
-                        fontSize={kal(7)} fill="var(--text)" style={{ pointerEvents: "none" }}>
+                        fontSize={px(10)} fill="var(--text)"
+                        stroke="var(--deniz)" strokeWidth={px(2)} paintOrder="stroke"
+                        style={{ pointerEvents: "none" }}>
                     {ist.ad}
                   </text>
                 ))}
