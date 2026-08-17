@@ -462,8 +462,15 @@ class AkisSimulatoru:
         return c
 
     def _metrikler(self):
-        """Canlı doğrulama metrikleri (cevap anahtarına karşı, çevrimiçi hesaplanır)."""
-        if self.kor_mod or self.degerlendirilen == 0:
+        """Canlı doğrulama metrikleri (cevap anahtarına karşı, çevrimiçi hesaplanır).
+
+        Kör modda akış SIRASINDA hiçbir metrik gönderilmez (gerçek etiket dashboard'a hiç
+        sızmaz) — ama doğruluk zaten arka planda perde arkasında biriktirilir (bkz. 358-366.
+        satırlar civarı). Akış BİTTİĞİNDE (`bitti`), kör mod açık olsa da, kullanıcının "sonunda
+        sonucu göster" isteği doğrultusunda toplu (aggregate) metrikler bir kerelik açığa çıkar;
+        akış sırasında hiçbir tekil tahmin/etiket ifşa edilmemiş olur."""
+        akis_bitti = (not self.ticks) or (self.tick_index + 1 >= len(self.ticks))
+        if (self.kor_mod and not akis_bitti) or self.degerlendirilen == 0:
             return {"kor_mod": self.kor_mod, "degerlendirilen": self.degerlendirilen}
 
         cm = self.confusion
@@ -480,6 +487,9 @@ class AkisSimulatoru:
                 f1s.append(f1)
         return {
             "kor_mod": False,
+            # Kör modda akış bitince bir kerelik açığa çıkan sonuç: arayüz bunu "akış sırasında
+            # gizliydi, şimdi sona erdiği için gösteriliyor" diye ayrı bir bantla işaretleyebilsin.
+            "kor_mod_sonu_acildi": bool(self.kor_mod and akis_bitti),
             "degerlendirilen": self.degerlendirilen,
             "dogru": self.dogru,
             "accuracy": round(self.dogru / self.degerlendirilen, 4),

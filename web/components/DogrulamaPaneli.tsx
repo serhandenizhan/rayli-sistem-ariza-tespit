@@ -15,7 +15,8 @@ export default function DogrulamaPaneli({ metrikler, meta }: { metrikler?: Metri
         <header><h2>Canlı Doğrulama</h2></header>
         <div className="aciklama-kutu">
           <b>Kör mod açık.</b> Cevap anahtarı sunucudan hiç gönderilmiyor; ekranda yalnızca modelin
-          tahminleri var. Doğrulamayı kapatmak/açmak için sunucuyu <code>--kor-mod</code> olmadan başlatın.
+          tahminleri var. Akış tamamlanınca toplam doğruluk/sonuçlar burada bir kerelik açığa çıkar.
+          Doğrulamayı hiç kapatmak/açmak için sunucuyu <code>--kor-mod</code> olmadan başlatın.
         </div>
       </div>
     );
@@ -30,6 +31,13 @@ export default function DogrulamaPaneli({ metrikler, meta }: { metrikler?: Metri
         <h2>Canlı Doğrulama (cevap anahtarına karşı)</h2>
         <span className="ipucu">{metrikler?.degerlendirilen ?? 0} sekans</span>
       </header>
+
+      {metrikler?.kor_mod_sonu_acildi && (
+        <div className="aciklama-kutu" style={{ marginBottom: 12, borderColor: "var(--ok)" }}>
+          <b>Kör mod: akış tamamlandı.</b> Cevap anahtarı akış boyunca hiç gönderilmedi; sonuçlar
+          yalnızca şimdi, akış bittiği için bir kerelik açığa çıkarıldı.
+        </div>
+      )}
 
       <div className="aciklama-kutu" style={{ marginBottom: 12 }}>
         Akan pakette etiket <b>yoktur</b>; model tahmini ürettikten sonra sunucu tarafında ayrı tutulan

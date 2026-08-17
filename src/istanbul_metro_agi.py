@@ -64,7 +64,7 @@ HAT_RENK = {
     "M5": "#7b3f98", "M6": "#a9915c", "M7": "#e94f8b", "M8": "#00857d", "M9": "#f0b323",
     "M11": "#8c6239", "T1": "#005baa", "T2": "#8b1f2f", "T3": "#5f2d8c", "T4": "#f47b20",
     "T5": "#00693c", "F1": "#7a7a7a", "F2": "#7a7a7a", "F4": "#7a7a7a",
-    "TF1": "#9a9a9a", "TF2": "#9a9a9a", "MARMARAY": "#0b6ab0",
+    "MARMARAY": "#0b6ab0",
 }
 
 # İBB anlık görüntüsünde istasyonları "İnşaat Aşamasında" işaretli olmasına rağmen FİİLEN
@@ -80,10 +80,13 @@ ISLETMEDEKI_INSAAT_HATLARI = {"F4"}
 # (Gayrettepe–İstanbul Havalimanı, AYGM/Ulaştırma Bakanlığı) kapsar.
 HARIC_MUDURLUKLER = {"Ulaştırma Bakanlığı"}
 
+# Teleferikler (TF1, TF2) ağ modeline hiç alınmaz — kabinli sistemlerde dingil/boji yoktur,
+# bu projenin sensör modeli (titreşim/rulman/fren/motor) onlara uymaz ve haritada trensiz bir
+# hat olarak durmalarının bir faydası yok.
+HARIC_HAT_TURLERI = {"Teleferik"}
+
 # Simülasyonda tren işletilen hatlar (her biri için ayrı tren seti kurulur).
 # Metro İstanbul işletmesindeki TÜM yolcu hatları: metro + tramvay + füniküler.
-# Teleferikler (TF1, TF2) hariçtir — kabinli sistemlerde dingil/boji yoktur, bu projenin
-# sensör modeli (titreşim/rulman/fren/motor) onlara uymaz.
 SIMULASYON_HATLARI = [
     "M1A", "M1B", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9",
     "T1", "T3", "T4", "T5",
@@ -243,6 +246,13 @@ def ag_kur():
         baskin = max(set(mudurlukler), key=mudurlukler.count)
         if baskin in HARIC_MUDURLUKLER:
             print(f"  (hariç) {kod}: işletmeci '{baskin}' — Metro İstanbul dışı, ağa alınmadı")
+            kod_istasyon.pop(kod, None)
+            kod_meta.pop(kod, None)
+
+    # Teleferikleri (kabinli sistem, dingil/boji yok) ağ modeline hiç alma.
+    for kod, meta in list(kod_meta.items()):
+        if meta.get("tur") in HARIC_HAT_TURLERI:
+            print(f"  (hariç) {kod}: tür '{meta.get('tur')}' — sensör modeli uymuyor, ağa alınmadı")
             kod_istasyon.pop(kod, None)
             kod_meta.pop(kod, None)
 

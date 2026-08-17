@@ -67,6 +67,7 @@ export interface Olay {
 
 export interface Metrikler {
   kor_mod: boolean;
+  kor_mod_sonu_acildi?: boolean;
   degerlendirilen: number;
   dogru?: number;
   accuracy?: number;

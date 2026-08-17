@@ -23,10 +23,9 @@ def test_simulasyon_hatlari_agda_var(metro_agi):
 
 
 def test_isletmedeki_tum_hatlarda_tren_var(metro_agi):
-    """İşletmedeki her yolcu hattında (teleferikler hariç) tren çalışmalı — metro, tramvay,
-    füniküler ve banliyö hatlarının hiçbiri simülasyon dışında kalmamalı."""
-    teleferikler = {kod for kod, h in metro_agi["hatlar"].items() if h["tur"] == "Teleferik"}
-    kapsam_disi = set(metro_agi["hatlar"]) - set(ag.SIMULASYON_HATLARI) - teleferikler
+    """İşletmedeki her yolcu hattında tren çalışmalı — metro, tramvay, füniküler ve banliyö
+    hatlarının hiçbiri simülasyon dışında kalmamalı (teleferikler ağa hiç alınmıyor)."""
+    kapsam_disi = set(metro_agi["hatlar"]) - set(ag.SIMULASYON_HATLARI)
     assert not kapsam_disi, f"tren işletilmeyen hat kaldı: {sorted(kapsam_disi)}"
 
 
@@ -49,9 +48,12 @@ def test_metro_istanbul_disi_hatlar_agda_yok(metro_agi):
     assert "Ulaştırma Bakanlığı" in ag.HARIC_MUDURLUKLER
 
 
-def test_teleferikler_simulasyon_disinda():
-    """Teleferiklerde dingil/boji yoktur — bu projenin sensör modeli onlara uymaz,
-    simülasyona dahil edilmemeliler."""
+def test_teleferikler_agda_yok(metro_agi):
+    """Teleferiklerde dingil/boji yoktur — bu projenin sensör modeli onlara uymaz, bu yüzden
+    ağ modeline (dolayısıyla haritaya ve simülasyona) hiç alınmamalılar."""
+    assert "TF1" not in metro_agi["hatlar"]
+    assert "TF2" not in metro_agi["hatlar"]
+    assert "Teleferik" in ag.HARIC_HAT_TURLERI
     assert "TF1" not in ag.SIMULASYON_HATLARI
     assert "TF2" not in ag.SIMULASYON_HATLARI
 

@@ -135,6 +135,31 @@ def test_kor_modda_da_sunucu_ici_skor_hesaplanir():
     assert s.dogru > 0
 
 
+def test_kor_modda_akis_bitince_sonuclar_acilir():
+    """Kör modda akış SÜRERKEN metrikler gizli kalmalı; akış TAMAMLANDIĞINDA (son tick),
+    kullanıcının sonunda sonucu görebilmesi için toplu doğruluk/karmaşıklık matrisi bir
+    kerelik açığa çıkmalı — ama tekil dingil paketlerinde 'gercek' etiketi hâlâ sızmamalı."""
+    try:
+        s = sunucu.AkisSimulatoru(kor_mod=True, baslangic_hizi=1000)
+    except SystemExit as e:
+        pytest.skip(f"Simülatör kurulamadı: {e}")
+    son = None
+    while True:
+        p = s.bir_tick_isle()
+        if p is None:
+            break
+        son = p
+    assert son["bitti"] is True
+    assert son["metrikler"]["kor_mod"] is False
+    assert son["metrikler"]["kor_mod_sonu_acildi"] is True
+    assert son["metrikler"]["accuracy"] is not None
+    assert "confusion" in son["metrikler"]
+    for a in son["axles"]:
+        assert "gercek" not in a
+        assert "gercek_severity" not in a
+        assert "dogru_mu" not in a
+
+
 def test_canli_dogruluk_makul(sim):
     """Canlı akış doğruluğu, offline test skoruna yakın (>= %90) olmalı —
     pencereleme/ölçekleme hattının doğru kurulduğunun uçtan uca kanıtı."""
