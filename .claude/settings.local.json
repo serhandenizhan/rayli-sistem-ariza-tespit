@@ -114,7 +114,24 @@
       "Bash(curl -s -o /dev/null -w \"http=%{http_code}\\\\n\" localhost:3000)",
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\(json.dumps\\(d.get\\('rewrites'\\),indent=2\\)\\)\")",
       "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\('proxy ÇALIŞIYOR, dingil:',len\\(d['axles']\\),'| anomali:',d['anomali_modeli_var']\\)\")",
-      "Bash(curl -sf localhost:8000/api/meta -o /dev/null)"
+      "Bash(curl -sf localhost:8000/api/meta -o /dev/null)",
+      "Bash(git commit -q -m 'Docker gerçekten test edildi: proxy hedefi build-time'\\\\''da yanlış gömülüyordu, düzeltildi *)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\({k:v for k,v in d.items\\(\\) if k!='sinif_bazinda'}\\)\")",
+      "Bash(node build.js)",
+      "Bash(npm ls *)",
+      "Bash(node -e \"console.log\\(require.resolve\\('docx'\\)\\)\")",
+      "Bash(npm install *)",
+      "Bash(python3 __TRACKED_VAR__/scripts/office/soffice.py --headless --convert-to pdf rayli_ariza_tespiti_proje_raporu.docx)",
+      "Bash(mdfind \"kMDItemCFBundleIdentifier == 'org.libreoffice.script'\")",
+      "Bash(pandoc --version)",
+      "Bash(python3 '/Users/serhan/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/3f97918e-5a7e-44b1-8c2b-4db3d70fc6a6/d7b62916-ffaf-4b10-9055-8fca59b08c79/skills/docx/scripts/office/validate.py' rayli_ariza_tespiti_proje_raporu.docx)",
+      "Bash(python3.11 '/Users/serhan/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/3f97918e-5a7e-44b1-8c2b-4db3d70fc6a6/d7b62916-ffaf-4b10-9055-8fca59b08c79/skills/docx/scripts/office/validate.py' rayli_ariza_tespiti_proje_raporu.docx)",
+      "Bash(python3.11 -m pip install --quiet defusedxml lxml)",
+      "Bash(python3.11 __TRACKED_VAR__/scripts/office/validate.py rayli_ariza_tespiti_proje_raporu.docx)",
+      "Bash(python3.11 -m venv .venv_docx)",
+      "Bash(.venv_docx/bin/pip install *)",
+      "Bash(.venv_docx/bin/python '/Users/serhan/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/3f97918e-5a7e-44b1-8c2b-4db3d70fc6a6/d7b62916-ffaf-4b10-9055-8fca59b08c79/skills/docx/scripts/office/validate.py' rayli_ariza_tespiti_proje_raporu.docx)",
+      "Bash(git commit -q -m 'Son doğrulama: 86 test geçti, Docker uçtan uca test edildi *)"
     ]
   }
 }
