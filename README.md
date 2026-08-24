@@ -1,9 +1,12 @@
 # İstanbul Raylı Sistem — Arıza Tespiti ve Canlı İzleme
 
-Raylı sistemlerde (tren/vagon/dingil) çok sensörlü verilerden arıza tespiti ve sınıflandırması
-için uçtan uca bir proje. **Gerçek İstanbul metro ağı** (İBB Açık Veri Portalı) üzerinde sentetik
-sensör verisi üretiminden, çok görevli 1D-CNN + LSTM modelinin eğitilmesine, canlı akış
-simülasyonuna ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımları içerir.
+Raylı sistemlerde arıza tespiti için tek entegre platform, iki bağımsız tespit yolunu ortak bir
+Next.js dashboard'da birleştirir: **sensör tabanlı otomatik tespit** (bu README, `src/`) ve
+**serbest metin bildirimi sınıflandırma** (`nlp/`, kendi [README](nlp/README.md)'i var).
+
+Sensör tarafı: **Gerçek İstanbul metro ağı** (İBB Açık Veri Portalı) üzerinde sentetik sensör
+verisi üretiminden, çok görevli 1D-CNN + LSTM modelinin eğitilmesine, canlı akış simülasyonuna
+ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımları içerir.
 
 Öne çıkanlar:
 
@@ -52,7 +55,9 @@ rayli_ariza_tespiti/
 │   ├── rayli_canli_akis_sunucu.py  # canlı akış simülasyonu + SSE API (FastAPI)
 │   └── rayli_kafka.py          # Kafka üretici/tüketici adaptörü (opsiyonel kaynak)
 ├── testler/                    # pytest birim testleri (55 test)
-├── web/                        # Next.js (React) canlı izleme dashboard'u + ağ haritası
+├── nlp/                        # metin bildirimi sınıflandırma (ayrı FastAPI servisi, :8001)
+│   └── README.md               # BERTurk+LoRA, taksonomi, kendi kurulum/çalıştırma talimatı
+├── web/                        # Next.js (React) canlı izleme dashboard'u + ağ haritası + metin bildirimleri sekmesi
 ├── calistir.sh                 # uçtan uca çalıştırma: kurulum -> eğitim -> akış -> arayüz
 ├── testleri_calistir.sh        # testleri çalıştırır, results/test_ozeti.json üretir
 ├── model/
@@ -291,10 +296,11 @@ tipiyle karşılaşıldığında ortaya çıkar.
 docker compose up --build
 ```
 
-Yalnızca iki servis: **API** (FastAPI/PyTorch) ve **web** (Next.js). Kafka/Redis/Celery
-bilinçli olarak yok — bu projede tek bir simüle akış var, eş zamanlı yük veya bağımsız
-ölçeklenme ihtiyacı yok; o ayrım gerçek bir faydaya değil teorik bir beklentiye hizmet ederdi.
-Kafka'ya geçmek istenirse `src/rayli_kafka.py` zaten opsiyonel bir adaptör olarak duruyor.
+Üç servis: **api** (sensör, FastAPI/PyTorch), **api-nlp** (metin sınıflandırma,
+FastAPI/BERTurk+LoRA — ağır bağımlılıkları izole etmek için ayrı imaj) ve **web** (Next.js).
+Kafka/Redis/Celery bilinçli olarak yok — bu projede tek bir simüle akış var, eş zamanlı yük veya
+bağımsız ölçeklenme ihtiyacı yok; o ayrım gerçek bir faydaya değil teorik bir beklentiye hizmet
+ederdi. Kafka'ya geçmek istenirse `src/rayli_kafka.py` zaten opsiyonel bir adaptör olarak duruyor.
 
 ```bash
 HIZ=10 KOR_MOD=1 docker compose up --build   # hız/kör mod ortam değişkeniyle ayarlanabilir

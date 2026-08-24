@@ -22,3 +22,12 @@ data/rayli_sistem_tum_veri.csv
 # Çalışma anında oluşan kayıt veritabanı (SQLite)
 data/rayli_kayit.db
 web/tsconfig.tsbuildinfo
+
+# NLP metin sınıflandırma modülü (nlp/) — kendi sanal ortamı, gizli anahtarları ve
+# çalışırken büyüyen dosyaları. model/govde, data/seed|raw|processed BİLİNÇLİ OLARAK
+# hariç değil (küçük, adımların asıl çıktısı — bkz. nlp/CLAUDE.md "Genel İlkeler" #6).
+nlp/venv/
+nlp/.env
+nlp/data/logs.db
+nlp/model/canli_kayip.json
+nlp/.pytest_cache/

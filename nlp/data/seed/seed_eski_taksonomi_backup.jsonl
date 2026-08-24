@@ -1,0 +1,105 @@
+{"metin": "Mecidiyeköy istasyonunda 3 numaralı vagondaki kapı kapanmıyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy yönlü trende 2 numaralı vagon klima çalışmıyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Vagon kapısı açılmıyor 2. vagon", "kategori": "arac_tren", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Fren basıncı düşük 4. vagon", "kategori": "arac_tren", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Makinist kabini anons mikrofonu çalişmiyor", "kategori": "arac_tren", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "vagon ic aydinlatma calismiyo 3 nolu vagon", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "makinist kabini fren manivelasi tikaniyo", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "vagon kapi acilmiyo 1 numarali vagonda", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Vagon 3 kapı arızalı", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Vagon 5 klima bozuk", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Makinist kabini anons bozuk", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Mecidiyeköy istasyonunda 2 numaralı yürüyen merdiven aniden durdu ve alarm verdi.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonu B çıkışı asansörü kapıları açılıyor kapanmıyor, yolcular içeride kaldı.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Şişli-Mecidiyeköy hatta 4 numaralı peron kapısı (PSD) kilitlemiyor, sefer güvenliği riske giriyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Yürüyen merdiven durdu 3. peron", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Turnike kolu kırıldı giriş katı", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Asansör kapısı takıldı B1 kat", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "asansor calismiyor kartal istasyon", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "peron kapisi acilmiyor yenisahra", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "turnike donmesi var haciosman", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Turnike 5 mekanik arıza", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "PSD kapı kilitlenmedi", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonunda peron aydınlatması tamamen söndü.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Mecidiyeköy istasyonunda ana dağıtım panosunda sigorta atması meydana geldi.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Şişli-Mecidiyeköy istasyonunda acil aydınlatma üniteleri test sırasında yanmadı.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Katener hattı voltaj düşmesiyle trenler yavaşladı.", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Jeneratör test çalışması devreye girmedi peron.", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Üçüncü ray voltaj düşüşü alarm verdi istasyon.", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "istasyon aydinlatmasi kesik electrik panosu arizali", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "ups bataryalari sarj tutmuyor yedek enerji yok", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "trafoda anormal ses ve yukselen sicaklik algilandi", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Peron aydınlatması söndü.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Katener voltajı düşük.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Jeneratör çalışmıyor.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy bilet otomatında İstanbulkart bakiye hatası veriyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Şişli-Mecidiyeköy PID ekranlarında sefer bilgileri güncellenmiyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Üsküdar BSO-05 otomatı banknot kabul etmiyor, sistem kilitli.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "İstanbulkart okuyucu yanıt vermiyor, giriş turnikesi.", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Ağ kesintisi, SCADA arayüzü erişilemiyor merkezi.", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Mobil uygulama dondu, bilet alınamıyor.", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "bilet otomati kartin okumuyor hata kodu 404", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "pid ekranlari dondu sefer bilgisi gelmiyor", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "scada baglantisi kopmus veri yok merkezde", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "BSO-02 sistem hatası", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Turnike 3 okuma hatası", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Sunucu bağlantı hatası", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonunda peron güvenlik kamerası görüntüsü bozuluyor.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Şişli-Mecidiyeköy'de yangın algılama sensörü test sırasında uyarı verdi.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Acil durum butonu basıldığında merkeze sinyal gitmiyor.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Merkez CCTV kayıt cihazı dondu.", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "İstasyon yangın boru basıncı düşük.", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Acil çıkış kilidi peron kapısı takılı.", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "guvenlik kamerasi goruntusu gelmiyo merkeze", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "acil buton calismiyo kartal istasyon", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "turnikeden atlayan var cikis kapisi", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Yangın sensörü arızalı", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "CCTV kamera bozuk", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonunda peron kenarında yolcuya bıçak çekip tehdit eden şüpheli güvenlik tarafından tutuklandı.", "kategori": "asayis_suc", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Yolcu perona atladı intihar teşebbüsü engellendi.", "kategori": "asayis_suc", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "aktarma katinda taciz eden yolcu polis cagirildi", "kategori": "asayis_suc", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Vagonda sigara içiliyor.", "kategori": "asayis_suc", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Peronda hırsızlık girişimi.", "kategori": "asayis_suc", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "bilet bolgesinde kavgaya karisan iki kisi alikoyuldu", "kategori": "asayis_suc", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Vagon içinde küfür hakaret eden yolcu indirildi.", "kategori": "asayis_suc", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Mecidiyeköy istasyonunda vagon içinde sigara içen yolcu uyarılmasına rağmen küfür edip güvenlik görevlisine sataştı.", "kategori": "asayis_suc", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Ataşehir transfer koridorunda cebeciği çalmaya çalışan kişi yakalanıp polis ekiplerine teslim edildi.", "kategori": "asayis_suc", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Yasak madde kullanımı şüphesiyle iki kişi tutuklandı.", "kategori": "asayis_suc", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "peronda dilencilik yapan kisi guvenlik uyardı ihbar edildi", "kategori": "asayis_suc", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Kimlik ibraz etmeyen şüpheli.", "kategori": "asayis_suc", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonu B çıkış koridorunda tavan panellerinden su damlaması devam ediyor.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Ayrılıkçeşme tünel Segment aralarından yüksek basınçlı su sızıntısı raporlandı.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Gayrettepe M2 peronu duvar fayanslarında çatlaklar ve dökülmeler tespit edildi.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Taksim M2 viyadukt ray altı betonarme kırılması onarım bekliyor.", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Yenikapı Marmaray transfer tüneli drenaj pompa havuzu taşması meydana geldi.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Şişhane çıkış merdiveni son basamak betonu çatlak yüzünden kapatıldı.", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "kadikoy metro a vm ust gecidi korkuluk baglantisi kopuk", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "mecidiyekoy m7 tunel duvarinda nemlenme ve alg olusumu var", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "sisli istasyon peron zemin dilatasyon capraz catlasi buyuyor", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Peron duvarı fayans dökülmesi.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Tünel segment sızıntısı.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Merdiven basamak kırığı.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonunda peron yoğunluğu nedeniyle seferler gecikmiştir.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Yolcu bilgilendirme anonsu yapılmamış, yolcular yanlış perona yönelmiştir.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Üsküdar yönlü sefer iptal edildi, yolcular bir sonraki trene yönlendirildi.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Mecidiyeköy peronu dolu, seferler seyreltildi.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Anons yok, yolcular şaşırdı Şişli.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Personel eksigi cikis yonlendirmesi yapilamiyor.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Kart okumuyor ucret odendi bilet alamadi.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Kapi acilmiyor yolcu saglam cikis.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Sefer iptal Levent.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Peron kalabalik Gayrettepe.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Yolcu dusmesi gecikme.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Tarife hatasi biletmatik.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Kadıköy istasyonu peronunda çöp konteyneri taşmış, etraf dağınık.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Ayrılıkçeşme B2 giriş tuvaletlerinde temizlik eksikliği ve kötü koku şikayeti alındı.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Üsküdar istasyonu mezzanin katında dökülen kahve lekesi temizlenmedi, kayganlık riski var.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:seed"}
+{"metin": "Çöp konteyneri taşmış peron", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Tuvaletler kirli koku veriyor", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "Buzlanma var çıkış merdivenleri", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:seed"}
+{"metin": "asansor kabinici cok kirli yazici tozu dagli", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "peronda sakiz lekeleri cikarilamamis kaygan", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "fare goruldu bilet holu kose basinda", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "openrouter:seed"}
+{"metin": "Tuvalet banyo kağıtı yok", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Peronda buzlanma tuzlanmadı", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "openrouter:seed"}
+{"metin": "Grafiti duvar peron duvarı", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "openrouter:seed"}

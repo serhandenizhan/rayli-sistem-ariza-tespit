@@ -1,0 +1,206 @@
+{
+  "yontem": "5-fold out-of-fold",
+  "n": 1340,
+  "hata": 92,
+  "oof_dogruluk": 0.9313432835820895,
+  "fold_epochs": 6,
+  "ort_guven_dogru": 0.973105192088928,
+  "ort_guven_yanlis": 0.8108307703033738,
+  "esik_taramasi": [
+    {
+      "esik": 0.5,
+      "manuel": 6,
+      "trafik": 0.004477611940298508,
+      "yakalanan": 4,
+      "bosuna": 2,
+      "precision": 0.6666666666666666,
+      "recall": 0.043478260869565216
+    },
+    {
+      "esik": 0.55,
+      "manuel": 15,
+      "trafik": 0.011194029850746268,
+      "yakalanan": 7,
+      "bosuna": 8,
+      "precision": 0.4666666666666667,
+      "recall": 0.07608695652173914
+    },
+    {
+      "esik": 0.6,
+      "manuel": 31,
+      "trafik": 0.023134328358208955,
+      "yakalanan": 18,
+      "bosuna": 13,
+      "precision": 0.5806451612903226,
+      "recall": 0.1956521739130435
+    },
+    {
+      "esik": 0.65,
+      "manuel": 38,
+      "trafik": 0.028358208955223882,
+      "yakalanan": 21,
+      "bosuna": 17,
+      "precision": 0.5526315789473685,
+      "recall": 0.22826086956521738
+    },
+    {
+      "esik": 0.7,
+      "manuel": 51,
+      "trafik": 0.03805970149253731,
+      "yakalanan": 27,
+      "bosuna": 24,
+      "precision": 0.5294117647058824,
+      "recall": 0.29347826086956524
+    },
+    {
+      "esik": 0.75,
+      "manuel": 69,
+      "trafik": 0.05149253731343283,
+      "yakalanan": 33,
+      "bosuna": 36,
+      "precision": 0.4782608695652174,
+      "recall": 0.358695652173913
+    },
+    {
+      "esik": 0.8,
+      "manuel": 84,
+      "trafik": 0.0626865671641791,
+      "yakalanan": 36,
+      "bosuna": 48,
+      "precision": 0.42857142857142855,
+      "recall": 0.391304347826087
+    },
+    {
+      "esik": 0.85,
+      "manuel": 118,
+      "trafik": 0.0880597014925373,
+      "yakalanan": 45,
+      "bosuna": 73,
+      "precision": 0.3813559322033898,
+      "recall": 0.4891304347826087
+    },
+    {
+      "esik": 0.9,
+      "manuel": 145,
+      "trafik": 0.10820895522388059,
+      "yakalanan": 47,
+      "bosuna": 98,
+      "precision": 0.32413793103448274,
+      "recall": 0.5108695652173914
+    },
+    {
+      "esik": 0.95,
+      "manuel": 211,
+      "trafik": 0.15746268656716417,
+      "yakalanan": 63,
+      "bosuna": 148,
+      "precision": 0.2985781990521327,
+      "recall": 0.6847826086956522
+    }
+  ],
+  "marj_taramasi": [
+    {
+      "marj": 0.1,
+      "cift": 9,
+      "kurtarilan": 5,
+      "bosuna": 3,
+      "oran": 1.6666666666666667
+    },
+    {
+      "marj": 0.2,
+      "cift": 24,
+      "kurtarilan": 13,
+      "bosuna": 9,
+      "oran": 1.4444444444444444
+    },
+    {
+      "marj": 0.3,
+      "cift": 32,
+      "kurtarilan": 14,
+      "bosuna": 15,
+      "oran": 0.9333333333333333
+    },
+    {
+      "marj": 0.4,
+      "cift": 44,
+      "kurtarilan": 21,
+      "bosuna": 19,
+      "oran": 1.105263157894737
+    },
+    {
+      "marj": 0.5,
+      "cift": 61,
+      "kurtarilan": 25,
+      "bosuna": 31,
+      "oran": 0.8064516129032258
+    },
+    {
+      "marj": 0.6,
+      "cift": 77,
+      "kurtarilan": 28,
+      "bosuna": 41,
+      "oran": 0.6829268292682927
+    },
+    {
+      "marj": 0.7,
+      "cift": 108,
+      "kurtarilan": 35,
+      "bosuna": 65,
+      "oran": 0.5384615384615384
+    }
+  ],
+  "reliability": [
+    {
+      "bant": "0.00-0.50",
+      "n": 6,
+      "ort_guven": 0.44942980508009595,
+      "dogruluk": 0.3333333333333333,
+      "sapma": -0.11609647174676263
+    },
+    {
+      "bant": "0.50-0.60",
+      "n": 25,
+      "ort_guven": 0.5584049940109252,
+      "dogruluk": 0.44,
+      "sapma": -0.11840499401092525
+    },
+    {
+      "bant": "0.60-0.70",
+      "n": 20,
+      "ort_guven": 0.6591902434825897,
+      "dogruluk": 0.55,
+      "sapma": -0.10919024348258966
+    },
+    {
+      "bant": "0.70-0.80",
+      "n": 33,
+      "ort_guven": 0.7491145711956602,
+      "dogruluk": 0.7272727272727273,
+      "sapma": -0.02184184392293287
+    },
+    {
+      "bant": "0.80-0.90",
+      "n": 61,
+      "ort_guven": 0.8463817053153867,
+      "dogruluk": 0.819672131147541,
+      "sapma": -0.026709574167845695
+    },
+    {
+      "bant": "0.90-0.95",
+      "n": 66,
+      "ort_guven": 0.9263599406589161,
+      "dogruluk": 0.7575757575757576,
+      "sapma": -0.16878418308315857
+    },
+    {
+      "bant": "0.95-1.01",
+      "n": 1129,
+      "ort_guven": 0.9935353242580187,
+      "dogruluk": 0.9743135518157662,
+      "sapma": -0.019221772442252538
+    }
+  ],
+  "ece": 0.030620679548427204,
+  "aktif_confidence_threshold": 0.75,
+  "aktif_margin_threshold": 0.3
+}

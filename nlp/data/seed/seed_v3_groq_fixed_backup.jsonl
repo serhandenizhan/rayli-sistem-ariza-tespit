@@ -1,0 +1,96 @@
+{"metin": "Trenin vagon kapılarındaki bir arızadan dolayı kapılar açılmıyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Klima çalışmıyor.", "kategori": "arac_tren", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "asansor calismiyo", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Tekerlek hasarı var.", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Makinist kabini ekipmanlarındaki bir sorun nedeniyle makinist görüş alanında проблема var.", "kategori": "arac_tren", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Vagon içi aydınlatma नह çalışıyor.", "kategori": "arac_tren", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Vagon kapılarındaki bir problem nedeniyle kapılar açılmıyor.", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Koltuk hasarlı.", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Trenin fren sistemindeki bir arızadan dolayı tren yavaşlıyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Vagon içi anons cihazı çalışmıyor.", "kategori": "arac_tren", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "çer motor arızalı", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Tren motoru arızalı.", "kategori": "arac_tren", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda bulunan 3 numaralı yürüyen merdiven çalışmıyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Asansör çalışmıyor", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "turnike 5 bozuk", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Peron kapısı arızalı", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Şişli istasyonunun B2 girişindeki otomatik kapı açılmıyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Kadıköy'de yürüyen merdiven durdu", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "asansor calismiyo YM-03", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Turnike 2 bozuk", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda bulunan PSD-08 peron kapısı açılmıyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Peron kapısı kilitli kaldı", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "BSO-02 asansorun kapagi acilmıyo", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Otomatik kapı arızalı", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "İstanbulkart şarj istasyonunda elektrik kesildi.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Jeneratör çalışmıyor", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "asansor calismiyo 3. perondaki", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Trafo arızalı", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Kadıköy istasyonunda third rail enerji vermiyor.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "UPS battı YM-03", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "peronda sogutma sistemi calismiyo", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Katener hattı problemli", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda elektrik panosunda kısa devre oluştu.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Istasyon aydınlatması çalışmıyor", "kategori": "elektrik_enerji", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "sigorta atti BSO-02", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Kablo kopuk", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "İstanbulkart okuyucu yazılımı hatası veriyor", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "PID ekranı donuyor", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "bilet satıs otomatı calısmıyo", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Turnike 3 bozuk", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Sunucu ve ağ bağlantılarında sıkıntılar yaşanıyor Mecidiyeköy istasyonunda", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Yazılım güncellemesi yapılıyor", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "istanbul kart okuma sorunu var", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Bilet satış otomatı arızalı", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Kadıköy istasyonunda yolcu bilgilendirme ekranlarında donma sorunları yaşanıyor", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "SCADA arayüzü çalışmıyor", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "veritabanı baglantısı kopuyor", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "PID ekranı çalışmıyor", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda yangın algılama sistemi arızalandı", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Turnike 3 bozuk", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "acil durum butonu calismiyo", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Şişli istasyonunda CCTV kameralarının görüntüsü net değil", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Kadıköy istasyonunda şüpheli paket bulundu", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "peron kapısı açılmıyor", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "YM-05 yangın söndürme sistemi çalışmıyor", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "asansorun inside acil durum butonu çalisiyor pero outside buton calismiyo", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Taksim istasyonunda yetkisiz giriş oldu", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "3. peronda turnikeden atlama var", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Topkapı istasyonunda anons sistemi arızası var", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Güvenlik butonu", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda tavan suyundandue topraktan kaynaklı su sızıntısı vardır", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Zemin hasarlı Şişli", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Asansor calismiyo 3. peronda", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Tünel çatlakları", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Kadıköy'de drenaj sistemi arızalıdır, su birikintileri oluşmuştur", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Merdiven basamağı kırıldı", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Peron kapısı bozuk BSO-02", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Duvar hasarı", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Fayans dökülmeleri Mecidiyeköy istasyonundadır, güvenlik riski oluşmuştur", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Tünelde su sızması var", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Korkuluk hasarlı Turnike-05", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Kanalizasyon tıkanıklığı", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Şişli istasyonunda sefer gecikmesi oluştu.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Turnike 3 bozuk", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Asansor calismiyo", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Peron yoğunluğu oluştu.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Kadıköy istasyonunda anons yapılmıyor.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Sefer iptali oldu.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Personel eksikliği var.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda kayak eşyası bulundu.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Yolcu yönlendirme levhası bozuk.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Tarife sorunu oluştu.', 'stil':'devrik", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Seferlerin seyreltilmesi gerekiyor.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Perondaki tabela bozuk.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Mecidiyeköy istasyonunda tuvaletlerin temizliği yapılmadığını görüyoruz.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Zemin çok kaygan", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Peronda cok kir var", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Turnike kirli", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Kadıköy istasyonunda yürüyen merdivenlerde döküntü var ve temizlik benötiliyor.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Tren içi veryansın kirlilik var", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Asansor calismiyo ve cocuk bezi dolup taşıyor", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Peron kapısı üstü kirli", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "groq:seed"}
+{"metin": "Şişli metro istasyonunda peronlarda buzlanma olduğu görülüyor, dikkat edilmeli.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "groq:seed"}
+{"metin": "Haşere var bilet holunde", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "groq:seed"}
+{"metin": "Grafiti var duvarda", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "groq:seed"}
+{"metin": "Kaygan zemin uyarısı", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "groq:seed"}

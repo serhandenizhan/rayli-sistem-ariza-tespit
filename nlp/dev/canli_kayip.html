@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Canlı Eğitim İzleme</title>
+<style>
+  :root {
+    --zemin: #0a0c11;
+    --yuzey: rgba(255,255,255,0.04);
+    --cizgi: rgba(255,255,255,0.10);
+    --metin: #e5e7eb;
+    --metin-soluk: #8b93a1;
+    --train: #3b82f6;
+    --val: #f59e0b;
+    --iyi: #22c55e;
+    --kotu: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem; background: var(--zemin); color: var(--metin);
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  }
+  h1 { font-size: 1.15rem; font-weight: 600; margin: 0 0 .25rem; }
+  .alt-baslik { color: var(--metin-soluk); font-size: .85rem; margin: 0 0 1.5rem; }
+  .durum-satiri {
+    display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .kart {
+    background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 10px;
+    padding: .8rem 1.1rem; min-width: 130px;
+  }
+  .kart .etiket { font-size: .72rem; color: var(--metin-soluk); text-transform: uppercase; letter-spacing: .04em; }
+  .kart .deger { font-size: 1.3rem; font-weight: 600; margin-top: .15rem; font-variant-numeric: tabular-nums; }
+  .kart.aktif .deger { color: var(--iyi); }
+  .kart.dikkat .deger { color: var(--kotu); }
+  #grafik-kutu {
+    background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: 12px;
+    padding: 1rem; margin-bottom: 1rem;
+  }
+  #grafik-kutu h2 { font-size: .85rem; font-weight: 600; margin: 0 0 .5rem; color: var(--metin-soluk); }
+  svg { width: 100%; height: auto; display: block; }
+  .lejant { display: flex; gap: 1.2rem; font-size: .78rem; color: var(--metin-soluk); margin-top: .4rem; }
+  .lejant span { display: inline-flex; align-items: center; gap: .35rem; }
+  .nokta { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .bekleniyor { color: var(--metin-soluk); font-size: .9rem; padding: 3rem; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>Canlı Eğitim İzleme</h1>
+  <p class="alt-baslik">model/canli_kayip.json her 1.2 saniyede bir okunuyor</p>
+
+  <div class="durum-satiri" id="durum-satiri"></div>
+
+  <div id="grafik-kutu">
+    <h2>Kayıp (Loss)</h2>
+    <div id="grafik-alani"><p class="bekleniyor">veri bekleniyor…</p></div>
+    <div class="lejant">
+      <span><span class="nokta" style="background:var(--train)"></span> train (batch)</span>
+      <span><span class="nokta" style="background:var(--val)"></span> validation (epoch)</span>
+    </div>
+  </div>
+
+  <div id="grafik-kutu">
+    <h2>Üç Görevin Doğrulama Macro-F1'i</h2>
+    <div id="f1-alani"><p class="bekleniyor">veri bekleniyor…</p></div>
+    <div class="lejant">
+      <span><span class="nokta" style="background:#0891b2"></span> kategori</span>
+      <span><span class="nokta" style="background:#7c3aed"></span> intent</span>
+      <span><span class="nokta" style="background:#dc2626"></span> öncelik</span>
+    </div>
+  </div>
+
+<script>
+const GENISLIK = 860, YUKSEKLIK = 220, KENAR = {sol: 46, sag: 12, ust: 10, alt: 24};
+
+function cizgiYolu(noktalar, xOlcek, yOlcek) {
+  return noktalar.map((n, i) =>
+    `${i === 0 ? "M" : "L"} ${xOlcek(n.x).toFixed(1)} ${yOlcek(n.y).toFixed(1)}`
+  ).join(" ");
+}
+
+function svgCiz(seriler, birim) {
+  const tumX = seriler.flatMap(s => s.noktalar.map(n => n.x));
+  const tumY = seriler.flatMap(s => s.noktalar.map(n => n.y));
+  if (!tumX.length) return "<p class='bekleniyor'>veri bekleniyor…</p>";
+
+  const xMin = 0, xMax = Math.max(1, ...tumX);
+  const yMin = 0, yMax = Math.max(0.1, ...tumY) * 1.08;
+
+  const ic = { g: GENISLIK - KENAR.sol - KENAR.sag, y: YUKSEKLIK - KENAR.ust - KENAR.alt };
+  const xOlcek = x => KENAR.sol + (x - xMin) / (xMax - xMin || 1) * ic.g;
+  const yOlcek = y => KENAR.ust + ic.y - (y - yMin) / (yMax - yMin || 1) * ic.y;
+
+  const izgaralar = [0, 0.25, 0.5, 0.75, 1].map(t => {
+    const y = yMin + t * (yMax - yMin);
+    return `<line x1="${KENAR.sol}" x2="${GENISLIK - KENAR.sag}" y1="${yOlcek(y)}" y2="${yOlcek(y)}"
+                  stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <text x="4" y="${yOlcek(y) + 4}" fill="#8b93a1" font-size="10">${y.toFixed(2)}</text>`;
+  }).join("");
+
+  const yollar = seriler.map(s => {
+    if (s.noktalar.length < 2) {
+      return s.noktalar.map(n =>
+        `<circle cx="${xOlcek(n.x)}" cy="${yOlcek(n.y)}" r="3.5" fill="${s.renk}"/>`).join("");
+    }
+    const cizgi = `<path d="${cizgiYolu(s.noktalar, xOlcek, yOlcek)}"
+                        fill="none" stroke="${s.renk}" stroke-width="2"
+                        stroke-linejoin="round" stroke-linecap="round"/>`;
+    const noktaMi = s.noktalar.length < 40;
+    const noktalar = noktaMi ? s.noktalar.map(n =>
+      `<circle cx="${xOlcek(n.x)}" cy="${yOlcek(n.y)}" r="3" fill="${s.renk}"/>`).join("") : "";
+    return cizgi + noktalar;
+  }).join("");
+
+  return `<svg viewBox="0 0 ${GENISLIK} ${YUKSEKLIK}">${izgaralar}${yollar}</svg>`;
+}
+
+function kartYaz(etiket, deger, sinif) {
+  return `<div class="kart ${sinif || ""}"><div class="etiket">${etiket}</div><div class="deger">${deger}</div></div>`;
+}
+
+async function guncelle() {
+  let veri;
+  try {
+    const r = await fetch("/model/canli_kayip.json?" + Date.now(), {cache: "no-store"});
+    if (!r.ok) return;
+    veri = await r.json();
+  } catch { return; }
+
+  const adimBasina = veri.adim_epoch_basina || 1;
+  const globalAdim = e => (e.epoch - 1) * adimBasina + e.adim;
+
+  const trainNoktalar = (veri.batch_gecmisi || []).map(b => ({x: globalAdim(b), y: b.kayip}));
+  const valNoktalar = (veri.epoch_gecmisi || []).map(e => ({x: e.epoch * adimBasina, y: e.val_kayip}));
+
+  document.getElementById("grafik-alani").innerHTML = svgCiz([
+    {noktalar: trainNoktalar, renk: "var(--train)".replace("var(--train)", "#3b82f6")},
+    {noktalar: valNoktalar, renk: "#f59e0b"},
+  ]);
+
+  const f1Kategori = (veri.epoch_gecmisi || []).map(e => ({x: e.epoch, y: e.kategori_f1}));
+  const f1Intent = (veri.epoch_gecmisi || []).map(e => ({x: e.epoch, y: e.intent_f1}));
+  const f1Oncelik = (veri.epoch_gecmisi || []).map(e => ({x: e.epoch, y: e.oncelik_f1}));
+  document.getElementById("f1-alani").innerHTML = svgCiz([
+    {noktalar: f1Kategori, renk: "#0891b2"},
+    {noktalar: f1Intent, renk: "#7c3aed"},
+    {noktalar: f1Oncelik, renk: "#dc2626"},
+  ]);
+
+  const durum = veri.durum === "tamamlandi" ? "Tamamlandı" : "Eğitiliyor…";
+  const sabirDolu = (veri.sabir_sayaci || 0) >= (veri.early_stopping_patience || 3);
+  document.getElementById("durum-satiri").innerHTML = [
+    kartYaz("Durum", durum, veri.durum === "tamamlandi" ? "aktif" : ""),
+    kartYaz("Epoch", `${veri.guncel_epoch || 0} / ${veri.toplam_epoch || "?"}`),
+    kartYaz("En iyi ort. F1", (veri.en_iyi_f1 ?? 0).toFixed(4) + ` (epoch ${veri.en_iyi_epoch || "-"})`, "aktif"),
+    kartYaz("En iyi val kayıp", (veri.en_iyi_val_kayip ?? 0).toFixed(4)),
+    kartYaz("Early stop sayaç", `${veri.sabir_sayaci || 0} / ${veri.early_stopping_patience || 3}`,
+            sabirDolu ? "dikkat" : ""),
+  ].join("");
+}
+
+guncelle();
+setInterval(guncelle, 1200);
+</script>
+</body>
+</html>

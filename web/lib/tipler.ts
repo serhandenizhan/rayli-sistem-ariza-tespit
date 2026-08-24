@@ -295,3 +295,53 @@ export const ONCELIK_ETIKET: Record<string, string> = {
 export const ONCELIK_RENK: Record<string, string> = {
   kritik: "var(--bad)", yuksek: "var(--c-bearing)", orta: "var(--warn)", dusuk: "var(--muted)",
 };
+
+// ------------------------------------------------ NLP metin bildirimi (nlp/backend/main.py)
+// Serbest metin arıza bildirimlerini BERTurk+LoRA ile sınıflandıran ayrı servisin
+// (/api/nlp/*) sözleşmesi — sensör tarafından tamamen bağımsız bir kaynak.
+
+export interface NlpSimilarOrnek { text: string; category: string; similarity: number; }
+export interface NlpSimilarDagilim {
+  category: string; label: string; color: string; count: number; ratio: number;
+}
+export interface NlpSimilarSonuc {
+  threshold: number; total_found: number; shown: number;
+  distribution: NlpSimilarDagilim[]; examples: NlpSimilarOrnek[];
+}
+
+export interface NlpPredictYanit {
+  category: string; label: string; color: string; confidence: number;
+  probabilities: Record<string, number>;
+  line: string | null; station: string | null; location: string | null;
+  equipment: string | null; symptom: string | null; root_cause: string | null;
+  missing_information: string[];
+  intent: string; intent_label: string; intent_confidence: number;
+  priority: string; priority_label: string; priority_color: string;
+  priority_confidence: number; priority_rule: string | null;
+  routing_unit: string;
+  evidence: string[];
+  possible_duplicate: boolean; duplicate_of: Record<string, unknown> | null;
+  low_confidence: boolean; manual_review: boolean; manual_review_message: string | null;
+  secondary_category: string | null; secondary_label: string | null;
+  secondary_confidence: number | null; secondary_message: string | null;
+  margin: number; response_time_ms: number;
+  log_id: number; similar: NlpSimilarSonuc;
+}
+
+export interface NlpKategoriInfo {
+  category: string; label: string; color: string; scope: string; excludes: string;
+}
+
+export interface NlpKategoriSayim {
+  category: string; label: string; color: string;
+  count: number; live_count: number; ratio: number;
+}
+
+export interface NlpOrnek { text: string; style: string; }
+
+export interface NlpSonKayit {
+  id: number; text: string; category: string; label: string; color: string;
+  confidence: number | null; source: "gecmis" | "canli"; verified: boolean | null;
+  station: string | null; equipment: string | null;
+  intent: string | null; priority: string | null; timestamp: string;
+}

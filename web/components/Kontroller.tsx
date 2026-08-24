@@ -7,12 +7,13 @@ const HISTEREZIS_SECENEK = [1, 2, 3, 5, 8];
 // Normalize entropi eşiği: düşük = katı (çok tahmini belirsiz say), yüksek = gevşek
 const BELIRSIZLIK_SECENEK = [0.2, 0.35, 0.5, 1.0];
 
-export type Sekme = "izleme" | "dingiller" | "dogrulama" | "gecmis" | "testler";
+export type Sekme = "izleme" | "dingiller" | "dogrulama" | "bildirimler" | "gecmis" | "testler";
 
 export const SEKMELER: { id: Sekme; ad: string; ikon: string }[] = [
   { id: "izleme", ad: "Canlı İzleme", ikon: "🗺" },
   { id: "dingiller", ad: "Dingiller", ikon: "🔧" },
   { id: "dogrulama", ad: "Doğrulama", ikon: "🎯" },
+  { id: "bildirimler", ad: "Metin Bildirimleri", ikon: "📝" },
   { id: "gecmis", ad: "Geçmiş", ikon: "🗄" },
   { id: "testler", ad: "Testler", ikon: "🧪" },
 ];

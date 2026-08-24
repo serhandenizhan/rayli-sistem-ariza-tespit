@@ -1,13 +1,18 @@
-# Hafif docker-compose: yalnızca iki servis — API (FastAPI/PyTorch) ve web (Next.js).
+# Hafif docker-compose: üç servis — sensör API'si (FastAPI/PyTorch), NLP metin sınıflandırma
+# API'si (FastAPI/BERTurk+LoRA) ve web (Next.js). İkinci API, rayli_ariza_tespiti ile
+# ariza-tespit-siniflandirici projelerinin tek platformda birleşmesiyle eklendi.
 #
 # Bilinçli olarak Kafka/Redis/Celery YOK: bu projede tek bir simüle akış var, eş zamanlı
 # yük veya bağımsız ölçeklenme ihtiyacı yok — mikroservis ayrımı burada gerçek bir faydaya
 # değil, teorik bir "böyle olmalı" beklentisine hizmet ederdi. Kafka'ya geçmek istenirse
 # src/rayli_kafka.py zaten opsiyonel bir adaptör olarak duruyor (docker-compose'un dışında).
+# api-nlp'nin AYRI bir servis olması da aynı ilkeyle çelişmiyor: burada gerçek bir ihtiyaç var
+# (bkz. Dockerfile.nlp) — bağımlılık/kaynak izolasyonu, teorik ölçeklenme değil.
 #
 # Kullanım:
 #   docker compose up --build
-#   Dashboard: http://localhost:3000   API: http://localhost:8000/api/meta
+#   Dashboard: http://localhost:3000   Sensör API: http://localhost:8000/api/meta
+#   NLP API: http://localhost:8001/health
 #
 # Ayarlar (opsiyonel, ortam değişkeni ile):
 #   HIZ=10 KOR_MOD=1 docker compose up --build
@@ -36,18 +41,40 @@ services:
       retries: 10
       start_period: 20s
 
+  api-nlp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nlp
+    ports:
+      - "8001:8001"
+    volumes:
+      # nlp/data/logs.db kalıcı olsun; imaja gömülü eğitim verisini (nlp/data/seed,raw,processed)
+      # gizlememek için sensör tarafındaki desenin aynısı: ayrı bir yol.
+      - nlp-kayit:/app/nlp/data_kalici
+    environment:
+      NLP_LOG_DB: /app/nlp/data_kalici/logs.db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
+
   web:
     build:
       context: .
       dockerfile: docker/Dockerfile.web
-      # AKIS_API_URL burada DEĞİL, Dockerfile.web içinde build-time ENV olarak verilir —
-      # Next.js rewrites() sonucunu derleme anında routes-manifest.json'a gömer, runtime
-      # ortam değişkeninin bu noktadan sonra hiçbir etkisi olmaz.
+      # AKIS_API_URL/NLP_API_URL burada DEĞİL, Dockerfile.web içinde build-time ENV olarak
+      # verilir — Next.js rewrites() sonucunu derleme anında routes-manifest.json'a gömer,
+      # runtime ortam değişkeninin bu noktadan sonra hiçbir etkisi olmaz.
     ports:
       - "3000:3000"
     depends_on:
       api:
         condition: service_healthy
+      api-nlp:
+        condition: service_healthy
 
 volumes:
   rayli-kayit:
+  nlp-kayit:

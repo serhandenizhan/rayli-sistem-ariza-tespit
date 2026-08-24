@@ -1,0 +1,80 @@
+{"metin": "M2 hattı 14 numaralı tren setinde Vagon 3 cer konvertörü yüksek sıcaklık uyarısı verdi, araç depo sahasına çekildi.", "kategori": "arac_tren", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Kadıköy yönüne seyreden M4 dizisinin 2. vagonunda HVAC klima ünitesi soğutma yapmıyor, iç sıcaklık yüksek.", "kategori": "arac_tren", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Kapanmıyor 4. vagon A1 kapısı mekanik sıkışma var Kirazlı yönü sette.", "kategori": "arac_tren", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Söndü makinist kabinindeki TCMS ekranı araç hareket halindeyken.", "kategori": "arac_tren", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Atıyor trenin ikinci vagon ana şalteri sürekli seyir esnasında.", "kategori": "arac_tren", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "M1A hattındaki 08 nolu trenin ucuncu vagonunda ic aydinlatmalar gitti anons mikrofani cizirti yapiyo.", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "M2 treni 5. vagon bogi bolgesinden asiri surtunme ve teker vuruntu sesi geliyo fren birakmiyo olabilir.", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Vagon 2 yolcu kapısı açık kaldı.", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Set 14 makinist kornası ötmüyor.", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "3. vagon imdat kolu takılı kaldı.", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Yenikapı istasyonu M2 peron katı asansörünün dış kapı mekanizması sıkıştığı için kapılar yarı açık vaziyette takılı kalmıştır.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Gayrettepe istasyonu 1 numaralı peronda yer alan 4 numaralı PSD kapısının tahrik kayışı koptuğu için kapı manuel moda alınmıştır.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Taksim istasyonu Gezi Parkı çıkışındaki 3 numaralı turnikenin iç amortisörü kırıldığı için geçiş kolu dönmüyor ve kilitli kalıyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Aşırı gürültülü çalışıyor Kirazlı yönü çıkışındaki YM-03 kodlu yürüyen merdiven, basamak zinciri kasaya takılıyor.", "kategori": "istasyon_mekanik", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kırılmış dönme kolu Mecidiyeköy ana bilet holü 5 numaralı turnikenin, fiziki geçişe engel duruyor.", "kategori": "istasyon_mekanik", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kapanmıyor M4 Bostancı 2. perondaki PSD-08 kapısı, alt kılavuz pabuçları kasaya sıkışmış.", "kategori": "istasyon_mekanik", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Unkapani cikisi otomatik kayar kapi kanadi raydan cikti tam kapanmiyor elle itmek gerekiyor.", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Kadikoy M4 peronuna inen yuruyen merdivenin sag el bandi kopmak uzere sarmal kisim takilma yapiyo.", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Levent 2. turnike kapağı kilitlenmiyor.", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Ünalan asansörü halat tamburu sürtüyor.", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "M2 Yenikapı istasyonu TR-2 trafo merkezinde orta gerilim kesicisinin açması sonucu istasyon genel aydınlatmaları UPS moduna geçmiştir.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Levent-Hisarüstü M6 hattı 3. ray ana enerji besleme kablosunda meydana gelen izolasyon hatası sebebiyle hatta enerji verilememektedir.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M5 Üsküdar istasyonu teknik mahal acil durum aydınlatma panosunda faz sırası hatası bildirilmektedir.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Atıyor sürekli M4 Bostancı peron katındaki tali dağıtım panosunun şalteri, lambalar karardı.", "kategori": "elektrik_enerji", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Devre dışı kaldı Şişhane jeneratör transfer panosu, şebeke kesintisinde devreye girmedi.", "kategori": "elektrik_enerji", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kirazli trafo merkezinde ana kesici trip verdi katener enerjisi kesik su an.", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Aksaray istasyon ups akuleri su koybatti voltaj dusuk geliyor pano flas yapiyo.", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Kabataş peron aydınlatma sigortası attı.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Ünalan TR1 trafosu devre dışı.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Otogar katener hattında voltaj düştü.", "kategori": "elektrik_enerji", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Gayrettepe istasyonu BSO-03 cihazında ödeme sonrasında 'Sunucu Zaman Aşımı - Hata 504' uyarısı alınmakta ve İstanbulkart dolum işlemi tamamlanamamaktadır.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M4 kumanda merkezindeki SCADA arayüzünde Kadıköy peron fanlarının telemetri verileri anlık güncellenmiyor, grafik ekran donuyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M1A Aksaray istasyonundaki Turnike-05, QR kod doğrulama servisine erişemediği için geçiş izni vermemektedir.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Yenikapı M2 peronundaki yolcu bilgilendirme ekranı '02 dk' verisinde dondu kaldı, tren yaklaşım süreleri güncellenmiyor.", "kategori": "yazilim_sistem", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Sürekli veritabanı bağlantı hatası düşüyor Levent mezonin katındaki 4 numaralı turnike okuyucusunun loglarına.", "kategori": "yazilim_sistem", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kredi kartı provizyonu alamıyor Mecidiyeköy BSO-02 otomattaki biletleme yazılımı, işlem sürekli zaman aşımına uğruyor.", "kategori": "yazilim_sistem", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Uskudar istasyonu turnike bolgesi switch baglantisi koptu kart okuyucular off-line moda gecti sunucuya baglanamiyor.", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Kirazli bilet satis otomatinda otomasyon uygulamasi cokmus ekranda exe hatasi var kart yukleme yapilamiyor.", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "M5 Üsküdar PID ekranında veritabanı hatası var.", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Taksim turnike 2 kart okuyucu yazılımı dondu.", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kadıköy istasyonu peron katındaki acil durum butonuna sebepsiz yere basılmış olup sistem panosunda ihbar devrede kalmıştır.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Yenikapı M2 aktarma katında sahipsiz bir sırt çantası tespit edilmiş, peron amiri tarafından alan güvenlik çemberine alınmıştır.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Yetkisiz giriş alarmı verdi tünel erişim kapısı Gayrettepe katında, güvenlik personeli yönlendirildi.", "kategori": "guvenlik_emniyet", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Şüpheli paket var Turnike 3 arkasında Levent istasyonu, devriye ekip bakıyor.", "kategori": "guvenlik_emniyet", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Taksim peron 1 deki cctv kamera goruntusu donuyo surekli, izleme merkezinden takip yapilamiyor.", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Mecidiyekoy turnikelerden atlayip kacarak giren grup var, guvenlik mudahale ediyo.", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Kirazli sinyal odasi duman dedektoru alarm verdi ama yangin yok yanlis ihbar.", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Bostancı acil çıkış kapısı açık kaldı.", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Ünalan teknik mahale izinsiz giriş.", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Otomatik tahliye anonsu devreye girdi.", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Gayrettepe istasyonu M2 hattı tünel portalı yakınında dilatasyon derzinden hat yatağına yoğun su sızıntısı gözlenmektedir.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M4 Kadıköy istasyonu peron katı merdiven inişindeki duvar seramiklerinde kabarma ve düşme riski bulunmaktadır.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M3 Kirazlı hattı tünel içi beton tabanında drenaj kanalının tıkanması nedeniyle göllenme oluşmuştur.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Ayrılık Çeşmesi turnike katı tavan panellerinden parça düştü gidiş yönüne.", "kategori": "altyapi_insaat", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Sızdırıyor hat 2 tünel duvarı Levent Sanayi arası.", "kategori": "altyapi_insaat", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Uskudar istasyonu peron 2 tavanindan raylara su damliyor catlak var galiba.", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "taksim m2 cikisindaki sabit merdiven korkulugu yerinden cikmis sallaniyo.", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Bostancı peron tavanı kaplaması düştü.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Vezneciler turnike bölgesi duvarda çatlak.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Şişhane tünel drenaj kanalı tıkalı.", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "M2 Yenikapı-Hacıosman hattında yaşanan rötarlar nedeniyle peronlarda aşırı yolcu birikmesi yaşanmakta olup sefer aralıkları yeniden düzenlenmiştir.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Üsküdar istasyonu danışma noktasında görevli personel bulunmadığından kayıp eşya teslimi yapılamamakta ve yolcu mağduriyeti oluşmaktadır.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Bostancı istasyonunda tarife güncellemesi sonrası yönlendirme yetersiz kalmış, turnike bölgesinde ciddi yoğunluk meydana gelmiştir.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Yetersiz yönlendirme personeli var Gayrettepe aktarma koridorunda yolcu akışı tamamen durdu.", "kategori": "yolcu_operasyon", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Sahipsiz bagaj nedeniyle Vezneciler istasyonu pas geçiliyor perona yolcu alımı durduruldu.", "kategori": "yolcu_operasyon", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kirazli peronunda tren gelis anonsu yanlis yapiliyo yolcular ters yondaki trene biniyo.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "M4 kadikoy peronunda acil durum anonsu takili kaldi yolcular panikle tahliye olmaya calisiyo.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Yenikapi aktarma merkezinde personel yetersiz peron girisinde yolcu yigilmasi olusyo.", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Levent peronu aşırı yoğunluktan kilitlendi.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Mecidiyeköy sefer iptali nedeniyle yoğun.", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "M2 Sanayi Mahallesi istasyonu peron 1 ray hattı civarında fare görüldüğü yönünde yolcu ihbarı üzerine haşere ilaçlama talebi oluşturulmuştur.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M1A Otogar istasyonu dış çevre merdivenlerinde oluşan buzlanma riski sebebiyle acil tuzlama çalışması yapılması gerekmektedir.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "M4 Kadıköy istasyonu mezonin katındaki yönlendirme panolarına sprey boyayla grafiti yapıldığı tespit edilmiştir.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "gemini:gold"}
+{"metin": "Çöp birikmiş turnike bölgesinde çok kötü kokuyor Yenikapı M2 katı.", "kategori": "temizlik_cevre", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "Kahve dökülmüş peron ortasına zemin çok kaygan Taksim peron 1.", "kategori": "temizlik_cevre", "stil": "devrik_kisa", "kaynak": "gemini:gold"}
+{"metin": "uskudar istasyonu yolcu WC cok pis koku yapiyor temizlenmesi lazim.", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "kirazli peronda yerlerde ambalaj copleri birikmis hic temizlenmemis.", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Gayrettepe cikisinda zemin camur icinde yolcular kayip dusuyor.", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "gemini:gold"}
+{"metin": "Levent peron 2 zemin kaygan.", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "gemini:gold"}
+{"metin": "Yenikapı mezonin WC temizliği gerekiyor.", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "gemini:gold"}

@@ -1,0 +1,9 @@
+{
+  "taban_model": "dbmdz/bert-base-turkish-cased",
+  "lora": true,
+  "gorevler": {
+    "kategori": 11,
+    "intent": 5,
+    "oncelik": 4
+  }
+}

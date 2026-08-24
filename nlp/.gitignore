@@ -1,0 +1,13 @@
+venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+.claude/settings.local.json
+
+# frontend — yeniden uretilebilir ara urunler (package-lock.json'dan geri gelir).
+# NOT: frontend/src ve package*.json COMMIT EDILIR, onlar asil teslimat.
+frontend/node_modules/
+frontend/dist/
+data/logs.db
+model/canli_kayip.json

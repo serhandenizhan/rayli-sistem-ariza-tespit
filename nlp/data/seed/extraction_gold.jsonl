@@ -1,0 +1,40 @@
+{"metin": "Ayrılıkçeşmesi yönlü sette fren basıncı düşüşü alarmı üzerine makinist duraklama yaptı.", "line": null, "station": "Ayrılıkçeşmesi", "equipment": "fren", "symptom": "basınç/gerilim düşüşü"}
+{"metin": "Kadıköy istasyonunda 3 numaralı vagonda kapı kapanmıyor, güvenlik devresi uyarı veriyor.", "line": null, "station": "Kadıköy", "equipment": "vagon kapısı", "symptom": "kapanmıyor"}
+{"metin": "Tekerlekten anormal titreme raporu Zeytinburnu", "line": null, "station": "Zeytinburnu", "equipment": "tekerlek", "symptom": "titreşim"}
+{"metin": "Koltuk yırtık 5. vagon", "line": null, "station": null, "equipment": "koltuk", "symptom": "yırtık"}
+{"metin": "makinist kabini camasi kirdi atasehir", "line": null, "station": "Ataşehir", "equipment": "makinist kabini camı", "symptom": "kırık"}
+{"metin": "Yürüyen merdiven durdu Üsküdar B çıkışı", "line": null, "station": "Üsküdar", "equipment": "yürüyen merdiven", "symptom": "durdu"}
+{"metin": "Levent'te peron kapısı PSD-12 kapanışta takılı kalıp 'engel algılama' uyarısı veriyor.", "line": null, "station": "Levent", "equipment": "peron kapısı", "symptom": "takılı"}
+{"metin": "Şişhane istasyonunda BSO-05 bariyer kapağı yere düşmüş, geçişten çıkış sağlanamıyor.", "line": null, "station": "Şişhane", "equipment": "bariyer", "symptom": "yere düşmüş"}
+{"metin": "asansor kapisi acilmiyor 3 numarali", "line": null, "station": null, "equipment": "asansör kapısı", "symptom": "açılmıyor"}
+{"metin": "Turnike kolu kırık Mecidiyeköy hol", "line": null, "station": "Mecidiyeköy", "equipment": "turnike kolu", "symptom": "kırık"}
+{"metin": "Kadıköy istasyonunda peron aydınlatması tamamen söndü, acil ışıklar devreye girdi.", "line": null, "station": "Kadıköy", "equipment": "peron aydınlatması", "symptom": "sönük"}
+{"metin": "Göztepe'de katener sapan iskelesi çatlak, hat gerilimi kesildi güvenlik için.", "line": null, "station": "Göztepe", "equipment": "katener", "symptom": "çatlak"}
+{"metin": "Üsküdar şubesinde T3 trensformatörü aşırı ısı uyarısı verdi, soğutma fanları tam devirde çalışıyor.", "line": null, "station": "Üsküdar", "equipment": "trafo", "symptom": "aşırı ısı"}
+{"metin": "Peron kenarı acil durdurma kutusu enerjisiz, led yanmıyor.", "line": null, "station": null, "equipment": "acil durdurma butonu", "symptom": "enerjisiz"}
+{"metin": "Ana dağıtım panosunda sigorta atması, B blok aydınlatması yok.", "line": null, "station": null, "equipment": "elektrik panosu", "symptom": "sigorta atması"}
+{"metin": "İstanbulkart okuyucu yazılım hatası", "line": null, "station": null, "equipment": "İstanbulkart okuyucu", "symptom": "hata"}
+{"metin": "Kadıköy istasyonunda bilet satış otomatı iki numaralı cihaz banknot kabul etmiyor hata veriyor.", "line": null, "station": "Kadıköy", "equipment": "bilet satış otomatı", "symptom": "işlem yapmıyor"}
+{"metin": "BSO-05 İstanbulkart yazılımı hata veriyor açılmıyor", "line": null, "station": null, "equipment": "İstanbulkart okuyucu", "symptom": "hata"}
+{"metin": "bilet otomatinda nakit iade yapmiyor hata kodu 404", "line": null, "station": null, "equipment": "bilet satış otomatı", "symptom": "işlem yapmıyor"}
+{"metin": "pid ekranlari dondu sefer bilgisi gelmiyo sisten hatasi", "line": null, "station": null, "equipment": "PID ekranı", "symptom": "dondu"}
+{"metin": "Yangın söndürme tüpü manometresi sıfır gösteriyor, değiştirim gerekiyor.", "line": null, "station": null, "equipment": "yangın söndürme tüpü", "symptom": "manometre sıfır"}
+{"metin": "Kadıköy istasyonunda şüpheli paket tespit edildi, müdahale ekipleri yönlendirildi.", "line": null, "station": "Kadıköy", "equipment": null, "symptom": "şüpheli paket"}
+{"metin": "Kamera 07 kör nokta oluştu, görüntü gelmiyor.", "line": null, "station": null, "equipment": "kamera", "symptom": "görüntü yok"}
+{"metin": "Mecidiyeköyde yetkisiz kişi tünel içine girdi, seferler durduruldu.", "line": null, "station": "Mecidiyeköy", "equipment": null, "symptom": "yetkisiz giriş"}
+{"metin": "yangin merdiveni kapi kilidi bozuk acil cikis engellenmis", "line": null, "station": null, "equipment": "kapı kilidi", "symptom": "bozuk"}
+{"metin": "asansor holu tavan panel duser tehlikesi var", "line": null, "station": null, "equipment": "tavan", "symptom": "düşme tehlikesi"}
+{"metin": "Kadıköy istasyonu B çıkışı tünel bağlantısında tavan sarkıtı su damlıyor.", "line": null, "station": "Kadıköy", "equipment": "tavan", "symptom": "sızıntı"}
+{"metin": "Tünel duvarı çatlak genişledi acil etüt gerekli", "line": null, "station": null, "equipment": "tünel duvarı", "symptom": "çatlak"}
+{"metin": "kapi kolu kirdi cikis katinda guvenlik sorunu", "line": null, "station": null, "equipment": "kapı kolu", "symptom": "kırık"}
+{"metin": "Merdiven basamağı kırıkMetal çıkıntı yaralı riski", "line": null, "station": null, "equipment": "merdiven basamağı", "symptom": "kırık"}
+{"metin": "Yolcu aktarma rehberi eksik Levent.", "line": null, "station": "Levent", "equipment": "yolcu yönlendirme", "symptom": "eksik"}
+{"metin": "Personel eksikliği seferler seyreltildi Şişli.", "line": null, "station": "Şişli", "equipment": null, "symptom": "personel eksikliği"}
+{"metin": "Yolcu hastalığı nedeniyle sefer gecikiyor, sağlık ekipleri istasyona yönlendirildi.", "line": null, "station": null, "equipment": null, "symptom": "sefer gecikmesi"}
+{"metin": "Yanlış anons yapıldığı için yolcular yan perona geçti, düzeltme anonsu bekleniyor.", "line": null, "station": null, "equipment": "anons sistemi", "symptom": "anons sorunu"}
+{"metin": "kayip esya bildirimi alindi gayrettepe", "line": null, "station": "Gayrettepe", "equipment": null, "symptom": "kayıp eşya"}
+{"metin": "Mecidiyeköy istasyonu peron duvarlarında silinmesi zor grafitler ve etiketler görüldü.", "line": null, "station": "Mecidiyeköy", "equipment": "duvar", "symptom": "grafiti"}
+{"metin": "Kartal peron zeminine kola dökülmüş yapışkan.", "line": null, "station": "Kartal", "equipment": "zemin", "symptom": "döküntü"}
+{"metin": "Yenikapı dış peron tuzlama talep", "line": null, "station": "Yenikapı", "equipment": null, "symptom": "tuzlama talebi"}
+{"metin": "Kadıköy istasyonu B peronu tuvaletlerinde kötü koku ve kir birikimi tespit edildi.", "line": null, "station": "Kadıköy", "equipment": "tuvalet", "symptom": "kötü koku"}
+{"metin": "Taksim peron girişinde buzlanma kayganlık riski.", "line": null, "station": "Taksim", "equipment": null, "symptom": "buzlanma"}

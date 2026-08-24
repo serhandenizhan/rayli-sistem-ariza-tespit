@@ -14,13 +14,16 @@ import TestPaneli from "@/components/TestPaneli";
 import AktifAlarmlar from "@/components/AktifAlarmlar";
 import AnomaliPaneli from "@/components/AnomaliPaneli";
 import GecmisPaneli from "@/components/GecmisPaneli";
+import NlpBildirimPaneli from "@/components/NlpBildirimPaneli";
 import { SINIF_ETIKET, SINIF_RENK } from "@/lib/tipler";
 import { useAkis } from "@/lib/useAkis";
+import { useNlp } from "@/lib/useNlp";
 
 export default function Sayfa() {
   const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
           oynatiliyor, korMod, histerezis, belirsizlikEsigi,
           testleriCalistir, gecmis, gecmisiYenile } = useAkis();
+  const nlp = useNlp();
   const [secili, setSecili] = useState<string | null>(null);
   const [sekme, setSekme] = useState<Sekme>("izleme");
 
@@ -116,6 +119,14 @@ export default function Sayfa() {
             </div>
           </div>
         </div>
+      )}
+
+      {sekme === "bildirimler" && (
+        <NlpBildirimPaneli
+          ornekler={nlp.ornekler} kategoriler={nlp.kategoriler} dagilim={nlp.dagilim}
+          sonKayitlar={nlp.sonKayitlar} sonuc={nlp.sonuc} yukleniyor={nlp.yukleniyor}
+          hata={nlp.hata} tahminEt={nlp.tahminEt} dogrula={nlp.dogrula}
+        />
       )}
 
       {sekme === "gecmis" && (

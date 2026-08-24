@@ -1,0 +1,109 @@
+{
+  "base_model": "dbmdz/bert-base-turkish-cased",
+  "lora": true,
+  "epochs": 12,
+  "calisan_epoch": 7,
+  "early_stopped": true,
+  "batch_size": 16,
+  "learning_rate": 0.0005,
+  "max_length": 64,
+  "seed": 42,
+  "cihaz": "mps",
+  "ascii_cogaltma": true,
+  "train_kayit": 3739,
+  "egitilebilir_parametre": 605204,
+  "toplam_parametre": 111222548,
+  "en_iyi_epoch": 7,
+  "en_iyi_val_ortalama_f1": 0.8349488593421966,
+  "gorevler": {
+    "kategori": 11,
+    "intent": 5,
+    "oncelik": 4
+  },
+  "gecmis": [
+    {
+      "epoch": 1,
+      "train_kayip": 4.559296330835065,
+      "val_kayip": 2.752163297989789,
+      "ortalama_f1": 0.5514692302308556,
+      "kategori_f1": 0.5113168579781292,
+      "intent_f1": 0.5961450141043081,
+      "oncelik_f1": 0.5469458186101296,
+      "kategori_acc": 0.5410447761194029,
+      "intent_acc": 0.835820895522388,
+      "oncelik_acc": 0.6567164179104478
+    },
+    {
+      "epoch": 2,
+      "train_kayip": 2.0220435806828685,
+      "val_kayip": 1.5045788568608902,
+      "ortalama_f1": 0.7824150503056021,
+      "kategori_f1": 0.8487118030850294,
+      "intent_f1": 0.8151060533116412,
+      "oncelik_f1": 0.6834272945201354,
+      "kategori_acc": 0.8470149253731343,
+      "intent_acc": 0.9067164179104478,
+      "oncelik_acc": 0.7313432835820896
+    },
+    {
+      "epoch": 3,
+      "train_kayip": 1.2700086014393048,
+      "val_kayip": 1.3823474294999067,
+      "ortalama_f1": 0.8199871559755328,
+      "kategori_f1": 0.8577506972718093,
+      "intent_f1": 0.8629438502673796,
+      "oncelik_f1": 0.7392669203874097,
+      "kategori_acc": 0.8582089552238806,
+      "intent_acc": 0.9216417910447762,
+      "oncelik_acc": 0.7574626865671642
+    },
+    {
+      "epoch": 4,
+      "train_kayip": 0.9773033728711625,
+      "val_kayip": 1.3755486011505127,
+      "ortalama_f1": 0.8260515628436921,
+      "kategori_f1": 0.857362552861444,
+      "intent_f1": 0.8438939674003143,
+      "oncelik_f1": 0.7768981682693178,
+      "kategori_acc": 0.8544776119402985,
+      "intent_acc": 0.9067164179104478,
+      "oncelik_acc": 0.7798507462686567
+    },
+    {
+      "epoch": 5,
+      "train_kayip": 0.7992359120876361,
+      "val_kayip": 1.3806383592240952,
+      "ortalama_f1": 0.8268873833872773,
+      "kategori_f1": 0.8578567536428188,
+      "intent_f1": 0.8477068500790036,
+      "oncelik_f1": 0.7750985464400099,
+      "kategori_acc": 0.8544776119402985,
+      "intent_acc": 0.9253731343283582,
+      "oncelik_acc": 0.7798507462686567
+    },
+    {
+      "epoch": 6,
+      "train_kayip": 0.608422244206453,
+      "val_kayip": 1.5160749484510982,
+      "ortalama_f1": 0.8205755016233119,
+      "kategori_f1": 0.8531118328824739,
+      "intent_f1": 0.8267450745871956,
+      "oncelik_f1": 0.7818695974002663,
+      "kategori_acc": 0.8507462686567164,
+      "intent_acc": 0.9029850746268657,
+      "oncelik_acc": 0.7873134328358209
+    },
+    {
+      "epoch": 7,
+      "train_kayip": 0.49735599565200317,
+      "val_kayip": 1.496939564452452,
+      "ortalama_f1": 0.8349488593421966,
+      "kategori_f1": 0.8613636087819152,
+      "intent_f1": 0.8619197860962566,
+      "oncelik_f1": 0.781563183148418,
+      "kategori_acc": 0.8582089552238806,
+      "intent_acc": 0.917910447761194,
+      "oncelik_acc": 0.7873134328358209
+    }
+  ]
+}

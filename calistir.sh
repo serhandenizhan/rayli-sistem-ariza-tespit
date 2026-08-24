@@ -11,16 +11,21 @@
 #   ./calistir.sh --kor-mod       # cevap anahtarını arayüze hiç gönderme
 #   ./calistir.sh --testsiz       # birim testlerini atla
 #   API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # portlar meşgulse alternatif port
+#   NLP_API_PORT=8002 ./calistir.sh             # NLP servisi de meşgulse
+#   ./calistir.sh --nlpsiz                      # metin sınıflandırma servisini başlatma
 #
 set -euo pipefail
 
 KOK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV="$KOK/.venv"
 PY="$VENV/bin/python"
+NLP_VENV="$KOK/nlp/venv"
+NLP_PY="$NLP_VENV/bin/python"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
+NLP_API_PORT="${NLP_API_PORT:-8001}"
 
-EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""; TEST=1
+EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""; TEST=1; NLP=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --egitmeden) EGIT=0; shift ;;
@@ -28,6 +33,7 @@ while [[ $# -gt 0 ]]; do
     --testsiz) TEST=0; shift ;;
     --hiz) HIZ="$2"; shift 2 ;;
     --kor-mod) KOR_MOD="--kor-mod"; shift ;;
+    --nlpsiz) NLP=0; shift ;;
     *) echo "Bilinmeyen seçenek: $1"; exit 1 ;;
   esac
 done
@@ -62,6 +68,7 @@ port_kontrol() {
 # yerine hemen bilgilendirilmek daha iyi.
 port_kontrol "$API_PORT" "canlı akış API'si" "API_PORT"
 port_kontrol "$WEB_PORT" "Next.js dashboard" "WEB_PORT"
+[[ $NLP -eq 1 ]] && port_kontrol "$NLP_API_PORT" "NLP metin sınıflandırma API'si" "NLP_API_PORT"
 
 # ------------------------------------------------------------------ 1) ortam
 baslik "1/8  Python ortamı"
@@ -115,6 +122,22 @@ else
   echo "Testler atlandı (--testsiz)"
 fi
 
+# --------------------------------------------------------- 5.5) NLP servisi
+NLP_PID=""
+if [[ $NLP -eq 1 ]]; then
+  baslik "5.5/8  NLP metin sınıflandırma servisi (:$NLP_API_PORT)"
+  if [[ ! -x "$NLP_PY" ]]; then
+    echo "NLP sanal ortamı kuruluyor (nlp/venv) — ilk kurulumda birkaç dakika sürebilir…"
+    python3 -m venv "$NLP_VENV"
+    "$NLP_PY" -m pip install -q --upgrade pip
+    "$NLP_PY" -m pip install -q -r "$KOK/nlp/requirements.txt"
+  fi
+  (cd "$KOK/nlp" && API_PORT="$NLP_API_PORT" "$NLP_PY" -m uvicorn backend.main:app --port "$NLP_API_PORT") &
+  NLP_PID=$!
+else
+  echo "NLP servisi atlandı (--nlpsiz)"
+fi
+
 # -------------------------------------------------------------- 6) akış API'si
 baslik "6/8  Canlı akış API'si (:$API_PORT)"
 "$PY" rayli_canli_akis_sunucu.py --port "$API_PORT" --hiz "$HIZ" $KOR_MOD &
@@ -123,6 +146,7 @@ temizle() {
   echo -e "\nKapatılıyor…"
   kill "$API_PID" 2>/dev/null || true
   [[ -n "${WEB_PID:-}" ]] && kill "$WEB_PID" 2>/dev/null || true
+  [[ -n "$NLP_PID" ]] && kill "$NLP_PID" 2>/dev/null || true
 }
 trap temizle EXIT INT TERM
 
@@ -141,11 +165,26 @@ if [[ $API_HAZIR -eq 0 ]]; then
   exit 1
 fi
 
+if [[ -n "$NLP_PID" ]]; then
+  NLP_HAZIR=0
+  for i in $(seq 1 120); do
+    if ! kill -0 "$NLP_PID" 2>/dev/null; then
+      hata "NLP servisi başlatılamadı (süreç sonlandı). Yukarıdaki çıktıya bakın."
+      exit 1
+    fi
+    if curl -sf "http://127.0.0.1:$NLP_API_PORT/health" >/dev/null; then NLP_HAZIR=1; echo "NLP servisi hazır."; break; fi
+    sleep 0.5
+  done
+  # NLP servisi model yüklemesi nedeniyle sensör API'sinden daha yavaş açılabilir (60 sn);
+  # burada başarısız olsa da uçtan uca demoyu kesmeye değmez, sadece uyar ve devam et.
+  [[ $NLP_HAZIR -eq 0 ]] && hata "NLP servisi $NLP_API_PORT portunda 60 saniyede yanıt vermedi, devam ediliyor."
+fi
+
 # ------------------------------------------------------------- 6) web arayüzü
 baslik "8/8  Next.js dashboard (:$WEB_PORT)"
 cd "$KOK/web"
 [[ -d node_modules ]] || npm install
-AKIS_API_URL="http://127.0.0.1:$API_PORT" npx next dev -p "$WEB_PORT" &
+AKIS_API_URL="http://127.0.0.1:$API_PORT" NLP_API_URL="http://127.0.0.1:$NLP_API_PORT" npx next dev -p "$WEB_PORT" &
 WEB_PID=$!
 
 for i in $(seq 1 60); do

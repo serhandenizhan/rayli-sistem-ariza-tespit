@@ -1,0 +1,79 @@
+{"metin": "Kadıköy istasyonunda 3 numaralı vagonda kapı kapanmıyor, güvenlik devresi uyarı veriyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Ayrılıkçeşmesi yönlü sette fren basıncı düşüşü alarmı üzerine makinist duraklama yaptı.", "kategori": "arac_tren", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Şişhane'de vagon içi anons sistemi çalışmıyor, yolcu bilgilendirmesi yapılamıyor.", "kategori": "arac_tren", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Klima bozuk 2. vagon Üsküdar", "kategori": "arac_tren", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Tekerlekten anormal titreme raporu Zeytinburnu", "kategori": "arac_tren", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "vagon kapisi acilmiyor yenikapi istasyon", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "makinist kabini camasi kirdi atasehir", "kategori": "arac_tren", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Fren sistemi arızası Bakırköy", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Vagon aydınlatması yanmıyor Topkapı", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Koltuk yırtık 5. vagon", "kategori": "arac_tren", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonu giriş katındaki yürüyen merdiven aniden durdu ve ters yönde kaydı.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Levent'te peron kapısı PSD-12 kapanışta takılı kalıp 'engel algılama' uyarısı veriyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Yürüyen merdiven durdu Üsküdar B çıkışı", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Turnike kolu kırık Mecidiyeköy hol", "kategori": "istasyon_mekanik", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "asansor kapisi acilmiyor 3 numarali", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "peron kapisi takildi kapatilmiyor", "kategori": "istasyon_mekanik", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Asansör 2 arıza", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "PSD 4 bozuk", "kategori": "istasyon_mekanik", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Şişhane istasyonunda BSO-05 bariyer kapağı yere düşmüş, geçişten çıkış sağlanamıyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Aksaray transfer geçidindeki 7 numaralı turnike dönme kolu sertleşmiş, yolcular geçemiyor.", "kategori": "istasyon_mekanik", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonunda peron aydınlatması tamamen söndü, acil ışıklar devreye girdi.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Üsküdar şubesinde T3 trensformatörü aşırı ısı uyarısı verdi, soğutma fanları tam devirde çalışıyor.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Katener hattı gerilimi ani düşüş gösterdi, seferler manuel modda sürülüyor.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Jeneratör test çalışması sırasında aktarma anahtarı takılmadı, istasyon enerjisiz kaldı.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "ups batarya grubu dolum hatasi verdi, acil cikis isiklari calismiyor.", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "ucuncu ray izolasyon direnci dusuk, yer lekesi riski var.", "kategori": "elektrik_enerji", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Ana dağıtım panosunda sigorta atması, B blok aydınlatması yok.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Peron kenarı acil durdurma kutusu enerjisiz, led yanmıyor.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Mecidiyeköy'de YM-12 numaralı yolcu merdiveni aydınlatma fişleri yanık, koridor karanlık.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Göztepe'de katener sapan iskelesi çatlak, hat gerilimi kesildi güvenlik için.", "kategori": "elektrik_enerji", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonunda bilet satış otomatı iki numaralı cihaz banknot kabul etmiyor hata veriyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Mecidiyeköy peron PID ekranlarında sefer saatleri güncellenmiyor sunucu hatası alınıyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "SCADA iş istasyonunda sinyal modülü donduğu için sefer takibi sağlanamıyor.", "kategori": "yazilim_sistem", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "BSO-05 İstanbulkart yazılımı hata veriyor açılmıyor", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Ağ kesintisi nedeniyle turnike girişleri geçici kapalı", "kategori": "yazilim_sistem", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "bilet otomatinda nakit iade yapmiyor hata kodu 404", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "pid ekranlari dondu sefer bilgisi gelmiyo sisten hatasi", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "mobil uygulama bilet alimi calismiyor sunucu baglantisi yok", "kategori": "yazilim_sistem", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "İstanbulkart okuyucu yazılım hatası", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Veritabanı erişim hatası merkezi", "kategori": "yazilim_sistem", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonunda peron sonundaki acil çıkış kapısı açılmıyor, yangın merchı takılı.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Ayrılıkçeşme yönlü trende yolcu acil durdurma kolunu çekti, makinist kontrol ediyor.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "CCTV 4 nolu kamera görüntüsü dondu, kayıt cihazı yeniden başlatılıyor.", "kategori": "guvenlik_emniyet", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Şişli peronunda şüpheli paket bildirimi, güvenlik ekipleri bölgeyi kuşatıldı.", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Yangın algılayıcı uyardı yanlış alarm, merkezi sistemden sıfırlandı.", "kategori": "guvenlik_emniyet", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Turnikeden atlama yapildi guvenlik uyardı calıstı", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Acil durum butonu basıldı yanlışlıkla, anons yapıldı durduruldu.", "kategori": "guvenlik_emniyet", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Peron kapısı arıza, güvenlik بوğu", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Kamera kayit yok", "kategori": "guvenlik_emniyet", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonu B çıkışı tünel bağlantısında tavan sarkıtı su damlıyor.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Üniversite peronu 4. direk civarında ray ALTI drenaj tıkanıklığı nedeniyle su birikti.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Tünel duvarı çatlak genişledi acil etüt gerekli", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Merdiven basamağı kırıkMetal çıkıntı yaralı riski", "kategori": "altyapi_insaat", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "asansor holu tavan panel duser tehlikesi var", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "kapi kolu kirdi cikis katinda guvenlik sorunu", "kategori": "altyapi_insaat", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Peron fayansı söküldü boşluk kaldı", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Tünel sızıntısı arttı acil müdahale", "kategori": "altyapi_insaat", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Halkalı yönü tünel gövdesinde betonarme çatlak ve sızma tespit edildi, onarım planlanıyor.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Ayrılıkçeşmesi bağlantı geçidi zemin döşemesi yer oynadı dikey fark oluştu.", "kategori": "altyapi_insaat", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonunda sefer gecikmesi nedeniyle peron yoğunluğu artmış, yönlendirme yapılıyor.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Yanlış anons yapıldığı için yolcular yan perona geçti, düzeltme anonsu bekleniyor.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Yolcu hastalığı nedeniyle sefer gecikiyor, sağlık ekipleri istasyona yönlendirildi.", "kategori": "yolcu_operasyon", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Sefer iptal edildi Mecidiyeköy, yolcular bilgilendiriliyor.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Personel eksikliği seferler seyreltildi Şişli.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Yolcu aktarma rehberi eksik Levent.", "kategori": "yolcu_operasyon", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "peron kalabaligi cok yonlendirme yok", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "kayip esya bildirimi alindi gayrettepe", "kategori": "yolcu_operasyon", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Tarife hatası bilet matik", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Anons yapılmadı peron değiştirildi", "kategori": "yolcu_operasyon", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Kadıköy istasyonu B peronu tuvaletlerinde kötü koku ve kir birikimi tespit edildi.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Mecidiyeköy istasyonu peron duvarlarında silinmesi zor grafitler ve etiketler görüldü.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Taksim peron girişinde buzlanma kayganlık riski.", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Levent bilet holü çöp kutuları taşıyor.", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:gold"}
+{"metin": "Uskudar istasyon asansor holunde fare gordu", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Gayrettepe tren icinde kusuk temizligi lazim", "kategori": "temizlik_cevre", "stil": "yazim_yanlisi", "kaynak": "openrouter:gold"}
+{"metin": "Yenikapı dış peron tuzlama talep", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Bağcılar peron koltukları kirli tozlu", "kategori": "temizlik_cevre", "stil": "cok_kisa", "kaynak": "openrouter:gold"}
+{"metin": "Esenler istasyonu 4 numaralı turnike yanında kan lekesi temizlenmesi gerekli.", "kategori": "temizlik_cevre", "stil": "standart", "kaynak": "openrouter:gold"}
+{"metin": "Kartal peron zeminine kola dökülmüş yapışkan.", "kategori": "temizlik_cevre", "stil": "devrik", "kaynak": "openrouter:gold"}

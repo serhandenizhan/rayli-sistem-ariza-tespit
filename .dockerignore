@@ -14,4 +14,12 @@ data/harici
 data/rayli_kayit.db
 data/rayli_sistem_tum_veri.csv
 
+nlp/venv
+nlp/__pycache__
+nlp/**/__pycache__
+nlp/.pytest_cache
+nlp/data/logs.db
+nlp/model/canli_kayip.json
+nlp/.env
+
 .DS_Store

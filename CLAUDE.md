@@ -4,22 +4,32 @@ Bu dosya, bu depo üzerinde çalışan bir Claude ajanı (Claude Code vb.) için
 
 ## Proje özeti
 
-Raylı sistemlerde (tren/vagon/dingil) çok sensörlü verilerden arıza tespiti ve sınıflandırması
-için uçtan uca bir proje: **gerçek İstanbul metro ağı** üzerinde sentetik veri üretimi +
-**çok görevli** (arıza tipi + şiddet) 1D-CNN/LSTM modeli + **denetimsiz anomali tespiti**
-(autoencoder, tamamlayıcı katman) + **canlı akış simülasyonu** (FastAPI/SSE, histerezisli) +
-**Next.js dashboard** (canlı ağ haritası dahil) + pytest + **hafif Docker Compose**.
-Tek komutla çalışır: `./calistir.sh` (kurulum → eğitim → etiketsiz akış → API → arayüz).
+Raylı sistemlerde arıza tespiti için **tek entegre platform**, iki bağımsız tespit yolunu
+ortak bir Next.js dashboard'da birleştirir:
+
+1. **Sensör tabanlı otomatik tespit** (`src/`, bu proje): tren/vagon/dingil sensör
+   verilerinden **gerçek İstanbul metro ağı** üzerinde sentetik veri üretimi + **çok görevli**
+   (arıza tipi + şiddet) 1D-CNN/LSTM modeli + **denetimsiz anomali tespiti** (autoencoder,
+   tamamlayıcı katman) + **canlı akış simülasyonu** (FastAPI/SSE, histerezisli).
+2. **Metin bildirimi sınıflandırma** (`nlp/`, ayrı bir FastAPI servisi): personelin/yolcunun
+   yazdığı serbest metin arıza bildirimlerinden BERTurk+LoRA ile intent + 11 kategori + öncelik
+   çıkarımı. Kendi `CLAUDE.md`'si var (`nlp/CLAUDE.md`) — tüm proje geçmişi, kararlar, ölçümler
+   orada; bu dosyadaki "NLP metin sınıflandırma modülü" bölümü sadece entegrasyon özetidir.
+
+İkisi ortak `web/` (Next.js) dashboard'unda ayrı sekmelerde yaşar, pytest + **hafif Docker
+Compose** (üç servis: sensör API, NLP API, web) ile tamamlanır. Tek komutla çalışır:
+`./calistir.sh` (kurulum → eğitim → etiketsiz akış → sensör API + NLP API → arayüz).
 Docker ile de çalışır: `docker compose up --build`.
 
 ## Kurulum ve sık kullanılan komutlar
 
 ```bash
-./calistir.sh                   # UÇTAN UCA: kurulum + eğitim + canlı akış + dashboard
-API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # portlar meşgulse alternatif port
+./calistir.sh                   # UÇTAN UCA: kurulum + eğitim + iki API + dashboard
+API_PORT=8001 WEB_PORT=3001 NLP_API_PORT=8002 ./calistir.sh   # portlar meşgulse alternatif port
 ./calistir.sh --egitmeden       # eğitimi atla, mevcut checkpoint ile başlat
 ./calistir.sh --hiz 10          # simülasyon hız çarpanı (1x = gerçek zaman, 2 sn/tick)
 ./calistir.sh --kor-mod         # cevap anahtarını arayüze hiç gönderme
+./calistir.sh --nlpsiz          # NLP metin sınıflandırma servisini başlatma
 
 pip install -r requirements.txt
 
@@ -151,13 +161,45 @@ yapılabilir.
   oranında "anomali" olarak yakalıyor. Çıktı: `model/rayli_anomali_model.pt` +
   `results/anomali_egitim_ozeti.json`.
 
+## NLP metin sınıflandırma modülü (nlp/)
+
+Personelin/yolcunun yazdığı **serbest metin arıza bildirimlerinden** BERTurk+LoRA ile
+sınıflandırma yapan, sensör tarafından bağımsız geliştirilmiş ayrı bir proje
+(`ariza-tespit-siniflandirici`) — 24 Ağu 2026'da tek platform hâline getirilirken `nlp/`
+altında kendi iç yapısını (src/, backend/, data/, model/, tests/) koruyarak taşındı. Detaylı
+proje geçmişi (taksonomi kararları, LLM sağlayıcı karşılaştırmaları, kalibrasyon, hard-negative
+örnekler, ölçüm tabloları) **`nlp/CLAUDE.md`**'de — bu bölüm sadece iki projenin nasıl bir araya
+geldiğini özetler.
+
+**Neden ayrı bir FastAPI servisi (tek app'e mount edilmedi):** ağır bağımlılıkları
+(transformers, peft, torch) sensör tarafının hafif `requirements.txt`'sine karışmasın —
+`nlp/requirements.txt` tamamen ayrı, kendi sanal ortamında kurulur (`nlp/venv/`).
+
+- **Port ve CORS:** `nlp/src/config.py`'deki `API_PORT` artık `API_PORT` ortam değişkeniyle
+  ayarlanabilir (varsayılan **8001**, sensör tarafının 8000'iyle çakışmasın diye).
+  `CORS_ORIGINS` varsayılanı eski Vite frontend'i (`:5173`) yerine ortak Next.js dashboard'una
+  (`:3000`) işaret eder — Vite frontend birleşmede kaldırıldı.
+- **`GET /logs/recent?limit=N`** — bu birleşme sırasında eklenen tek yeni endpoint. `bildirimler`
+  tablosundan en son N kaydı zamana göre azalan sırada döner; dashboard'daki "Son Metin
+  Bildirimleri" panelinin veri kaynağı (`src/db.py:son_kayitlari_getir`).
+- **`NLP_LOG_DB`** ortam değişkeni eklendi (`nlp/src/config.py`) — Docker'da `logs.db`'yi kalıcı
+  bir volume'e yönlendirmek için, sensör tarafındaki `RAYLI_KAYIT_DB` deseniyle tutarlı.
+- Çalıştırma: `cd nlp && ./venv/bin/uvicorn backend.main:app --port 8001` (veya
+  `./calistir.sh` bunu otomatik yapar — bkz. "Kurulum" bölümü, `--nlpsiz` ile atlanabilir).
+- Testler: `cd nlp && ./venv/bin/pytest tests/ -v` (31 test, sensör tarafının
+  `./testleri_calistir.sh`'inden bağımsız).
+
 ## Web arayüzü (web/)
 
 Next.js 15 (App Router) + React 19, TypeScript, ek UI kütüphanesi yok (grafikler ve harita elle
-yazılmış SVG). `web/next.config.mjs` içindeki rewrite ile `/api/*` istekleri FastAPI'ye (`:8000`)
-proxy'lenir — tarayıcı tarafında CORS/SSE sorunu olmaz. `lib/useAkis.ts` SSE bağlantısını ve
-kontrol çağrılarını yönetir; `lib/tipler.ts` sunucu paketlerinin tip tanımıdır (sunucudaki
-payload alanlarını değiştirirsen burayı da güncelle). Arayüz metinleri Türkçedir.
+yazılmış SVG). `web/next.config.mjs` içindeki rewrite ile `/api/*` istekleri sensör API'sine
+(`:8000`) proxy'lenir; `/api/nlp/*` ise **ayrı bir rewrite kuralıyla** NLP API'sine (`:8001`)
+proxy'lenir (prefix kesilerek) — tarayıcı tarafında CORS/SSE sorunu olmaz, iki backend de aynı
+origin üzerinden görünür. `/api/nlp/:path*` kuralı genel `/api/:path*` kuralından ÖNCE gelir
+(Next.js ilk eşleşeni kullanır). `lib/useAkis.ts` sensör SSE bağlantısını, `lib/useNlp.ts` ise
+NLP tarafının düz request/response çağrılarını (predict/categories/examples/logs) yönetir;
+`lib/tipler.ts` her iki tarafın da payload tip tanımlarını taşır (sunucu tarafında alan
+değiştirirsen burayı da güncelle). Arayüz metinleri Türkçedir.
 
 Paneller: üst kontrol barı (play/duraklat/baştan, hız, **histerezis**, **kör mod** — hepsi
 çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; kara/deniz
@@ -165,7 +207,10 @@ zemini ilçe poligonlarından çizilir, trenler tahmin rengiyle hareket eder, ra
 işaretlidir; `--deniz`/`--kara`/`--kara-sinir` CSS değişkenleriyle renklendirilir), hat bazında gruplanmış dingil
 kartları (şiddet rozeti + histerezis bekleme göstergesi), sensör akış grafiği, iki başlıklı model
 çıktısı (tip + şiddet), alarm günlüğü, canlı doğrulama, **TestPaneli** (pytest sonuçları),
-eğitim özeti.
+eğitim özeti, ve **NlpBildirimPaneli** ("Metin Bildirimleri" sekmesi — serbest metin girişi,
+intent/kategori/öncelik rozetleri, yapısal alanlar, kanıt (gradient×input), kategori dağılım
+grafiği, son bildirimler listesi; NLP tarafı sensörden tamamen bağımsız, ortak veritabanı YOK —
+iki kaynak yalnızca dashboard seviyesinde, zaman damgasına göre yan yana gösteriliyor).
 
 Kontrol durumları (play/pause, kör mod, histerezis) SSE paketinden DEĞİL, her kontrol çağrısının
 kendi yanıtından güncellenir — aksi hâlde duraklatınca yeni paket gelmediği için butonlar donmuş
@@ -277,13 +322,14 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 
 ## Docker (hafif docker-compose)
 
-`docker-compose.yml` + `docker/Dockerfile.api` + `docker/Dockerfile.web` — bilinçli olarak
-**mikroservis DEĞİL**: sadece iki servis (API, web). Kafka/Redis/Celery ayrımı değerlendirildi
-ve reddedildi — bu projede tek bir simüle akış var, eş zamanlı yük veya bağımsız ölçeklenme
-ihtiyacı yok; ayrım gerçek bir faydaya değil teorik bir beklentiye hizmet ederdi (bkz.
-`docker-compose.yml` başındaki gerekçe). SQLite kaydı (`data/rayli_kayit.db`) `RAYLI_KAYIT_DB`
-ortam değişkeniyle `/app/data_kalici/` altına yönlendirilip ayrı bir volume'e bağlanır —
-`/app/data` üzerine volume bağlamak, imaja gömülü eğitim/ağ verilerini gizlerdi.
+`docker-compose.yml` + `docker/Dockerfile.api` + `docker/Dockerfile.nlp` + `docker/Dockerfile.web`
+— bilinçli olarak **mikroservis DEĞİL**: üç servis (sensör API, NLP API, web), Kafka/Redis/Celery
+yok. `api-nlp`'nin ayrı bir servis olması aynı "gereksiz ayrım yapma" ilkesiyle çelişmiyor: burada
+gerçek bir ihtiyaç var (transformers/peft gibi ağır bağımlılıkların sensör imajına karışmaması),
+teorik bir ölçeklenme beklentisi değil. SQLite kayıtları (`data/rayli_kayit.db`,
+`nlp/data/logs.db`) sırasıyla `RAYLI_KAYIT_DB`/`NLP_LOG_DB` ortam değişkenleriyle
+`/app/data_kalici/` altına yönlendirilip ayrı volume'lere bağlanır — `/app/data` üzerine volume
+bağlamak, imaja gömülü eğitim/ağ verilerini gizlerdi.
 **Not**: bu geliştirme ortamında Docker kurulu değildi; Dockerfile/compose dosyaları dikkatle
 yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile doğrulanamadı — ilk
 çalıştırmada küçük bir sorun çıkarsa (ör. Next.js `output` modu, healthcheck zamanlaması)
