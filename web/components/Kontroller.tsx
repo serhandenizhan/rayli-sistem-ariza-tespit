@@ -7,19 +7,8 @@ const HISTEREZIS_SECENEK = [1, 2, 3, 5, 8];
 // Normalize entropi eşiği: düşük = katı (çok tahmini belirsiz say), yüksek = gevşek
 const BELIRSIZLIK_SECENEK = [0.2, 0.35, 0.5, 1.0];
 
-export type Sekme = "izleme" | "dingiller" | "dogrulama" | "bildirimler" | "gecmis" | "testler";
-
-export const SEKMELER: { id: Sekme; ad: string; ikon: string }[] = [
-  { id: "izleme", ad: "Canlı İzleme", ikon: "🗺" },
-  { id: "dingiller", ad: "Dingiller", ikon: "🔧" },
-  { id: "dogrulama", ad: "Doğrulama", ikon: "🎯" },
-  { id: "bildirimler", ad: "Metin Bildirimleri", ikon: "📝" },
-  { id: "gecmis", ad: "Geçmiş", ikon: "🗄" },
-  { id: "testler", ad: "Testler", ikon: "🧪" },
-];
-
 export default function Kontroller({
-  meta, tick, bagli, kontrol, oynatiliyor, korMod, histerezis, sekme, onSekme, alarmSayisi,
+  meta, tick, bagli, kontrol, oynatiliyor, korMod, histerezis,
   belirsizlikEsigi,
 }: {
   meta: Meta | null;
@@ -29,9 +18,6 @@ export default function Kontroller({
   oynatiliyor: boolean;
   korMod: boolean;
   histerezis: number;
-  sekme: Sekme;
-  onSekme: (s: Sekme) => void;
-  alarmSayisi: number;
   belirsizlikEsigi: number;
 }) {
   const toplam = tick?.toplam_tick ?? meta?.toplam_tick ?? 0;
@@ -49,7 +35,7 @@ export default function Kontroller({
         <div className="baslik-blok">
           <h1>🚇 İstanbul Raylı Sistem — Canlı Arıza İzleme</h1>
           <div className="alt">
-            CNN+LSTM · tip + şiddet · {meta?.axles.length ?? 0} dingil · etiketsiz akış
+            Çok görevli model · tip + şiddet · {meta?.axles.length ?? 0} dingil · etiketsiz akış
           </div>
         </div>
 
@@ -85,22 +71,8 @@ export default function Kontroller({
         </button>
       </div>
 
-      {/* --- 2. satır: sekmeler (sol) + simülasyon ayarları (sağ) --- */}
+      {/* --- 2. satır: simülasyon ayarları --- */}
       <div className="ust-satir alt-satir">
-        <nav className="sekmeler">
-          {SEKMELER.map((s) => (
-            <button key={s.id} className={"sekme" + (sekme === s.id ? " aktif" : "")}
-                    onClick={() => onSekme(s.id)}>
-              <span className="sekme-ikon">{s.ikon}</span> {s.ad}
-              {s.id === "izleme" && alarmSayisi > 0 && (
-                <span className="sekme-rozet">{alarmSayisi}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        <div className="bosluk" />
-
         <div className="kontrol-grup">
           <label>Hız</label>
           <div className="hiz-grup">

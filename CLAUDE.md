@@ -201,16 +201,35 @@ NLP tarafının düz request/response çağrılarını (predict/categories/examp
 `lib/tipler.ts` her iki tarafın da payload tip tanımlarını taşır (sunucu tarafında alan
 değiştirirsen burayı da güncelle). Arayüz metinleri Türkçedir.
 
+**Gezinme (24 Ağu 2026'dan itibaren sidebar):** sekmeler eskiden üst barda yatay duruyordu,
+şimdi solda dikey bir **kenar çubuğu**nda (`components/KenarCubugu.tsx` — `Sekme` tipi ve
+`SEKMELER` dizisi de burada, eskiden `Kontroller.tsx`'teydi). `Kontroller.tsx` artık sadece üst
+bar durumunu (başlık, bağlantı rozeti, play/duraklat/sıfırla, hız/histerezis/belirsizlik, kör
+mod) render ediyor. `page.tsx`'te `.uygulama` (flex sarmalayıcı) → `KenarCubugu` + `.ana-icerik`
+(eski `.sayfa`) yapısı. Dar ekranda (`≤720px`) kenar çubuğu yatay bir şeride döner. **Birim
+Testleri sekmesi kaldırıldı** (demoda anlamsız duruyordu) — `TestPaneli.tsx` ve `useAkis.ts`
+içindeki `testler`/`testleriCalistir` state'i hâlâ dursun diye silinmedi, sadece `page.tsx`'ten
+bağlantısı kesildi; backend'deki `/api/testler` da dokunulmadı. Üst bardaki mimari ismi
+("CNN+LSTM") kaldırıldı, yerine nötr "Çok görevli model" ifadesi geldi (`layout.tsx` meta
+description'ından da aynı ifade çıkarıldı) — daha profesyonel görünmesi için.
+
 Paneller: üst kontrol barı (play/duraklat/baştan, hız, **histerezis**, **kör mod** — hepsi
 çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; kara/deniz
 zemini ilçe poligonlarından çizilir, trenler tahmin rengiyle hareket eder, ray kusurları üçgenle
-işaretlidir; `--deniz`/`--kara`/`--kara-sinir` CSS değişkenleriyle renklendirilir), hat bazında gruplanmış dingil
-kartları (şiddet rozeti + histerezis bekleme göstergesi), sensör akış grafiği, iki başlıklı model
-çıktısı (tip + şiddet), alarm günlüğü, canlı doğrulama, **TestPaneli** (pytest sonuçları),
-eğitim özeti, ve **NlpBildirimPaneli** ("Metin Bildirimleri" sekmesi — serbest metin girişi,
-intent/kategori/öncelik rozetleri, yapısal alanlar, kanıt (gradient×input), kategori dağılım
-grafiği, son bildirimler listesi; NLP tarafı sensörden tamamen bağımsız, ortak veritabanı YOK —
-iki kaynak yalnızca dashboard seviyesinde, zaman damgasına göre yan yana gösteriliyor).
+işaretlidir; `--deniz`/`--kara`/`--kara-sinir` CSS değişkenleriyle renklendirilir; **istasyonların
+üzerine gelince özel bir tooltip** — hat/istasyon/km + o istasyonda `olaylar` listesinden son ≤5
+arıza, başladı/giderildi durumuyla; `position: fixed` kullanır çünkü harita zoom/pan transform'lu,
+viewBox yüzdesi işe yaramaz — bkz. `.harita-ipucu` CSS), hat bazında gruplanmış dingil kartları
+(şiddet rozeti + histerezis bekleme göstergesi), sensör akış grafiği, iki başlıklı model çıktısı
+(tip + şiddet), alarm günlüğü, canlı doğrulama, eğitim özeti, ve **NlpBildirimPaneli** ("Metin
+Bildirimleri" sekmesi — serbest metin girişi, intent/kategori/öncelik rozetleri, yapısal alanlar,
+kanıt (gradient×input), kategori dağılım grafiği, son bildirimler listesi; NLP tarafı sensörden
+tamamen bağımsız, ortak veritabanı YOK — iki kaynak yalnızca dashboard seviyesinde, zaman
+damgasına göre yan yana gösteriliyor). **Doğru/Yanlış onay butonları**: `SonucKarti` bileşeni
+her tahminde `key={sonuc.log_id + sonuc.response_time_ms}` ile yeniden kurulur — bu olmadan bir
+kez "Yanlış"a basınca `duzeltmeAcik` state'i bir sonraki tahmine sızıp butonları sonsuza kadar
+gizliyordu (bu proje ailesinde ikinci kez yaşanan aynı hata, bkz. `nlp/CLAUDE.md` Adım 8). Onay
+başarılı olunca "✓ Teşekkürler, kaydedildi." / "✓ Düzeltme kaydedildi." gösterilir.
 
 Kontrol durumları (play/pause, kör mod, histerezis) SSE paketinden DEĞİL, her kontrol çağrısının
 kendi yanıtından güncellenir — aksi hâlde duraklatınca yeni paket gelmediği için butonlar donmuş

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Raylı Sistem — Canlı Arıza İzleme",
-  description: "CNN+LSTM modeliyle raylı sistem dingillerinde canlı arıza tespiti ve doğrulama panosu",
+  description: "Raylı sistem dingillerinde canlı arıza tespiti ve doğrulama panosu",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

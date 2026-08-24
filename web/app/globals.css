@@ -44,7 +44,41 @@ body {
 .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
 
 /* ---------------------------------------------------------------- düzen */
-.sayfa { max-width: 1720px; margin: 0 auto; padding: 16px 20px 48px; }
+.uygulama { display: flex; align-items: flex-start; min-height: 100vh; }
+.ana-icerik { flex: 1 1 auto; min-width: 0; max-width: 1720px; margin: 0 auto; padding: 16px 20px 48px; }
+
+/* --------------------------------------------------------- kenar çubuğu (sekmeler) */
+.kenar-cubugu {
+  flex: 0 0 200px; width: 200px; position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--panel); border-right: 1px solid var(--line);
+  padding: 16px 10px;
+}
+.kenar-marka { display: flex; align-items: center; gap: 8px; padding: 0 6px 14px; }
+.kenar-marka-ikon { font-size: 20px; }
+.kenar-marka-ad {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted);
+}
+.sekmeler-dikey { display: flex; flex-direction: column; gap: 3px; }
+.sekmeler-dikey .sekme {
+  justify-content: flex-start; padding: 9px 10px; font-size: 12.5px;
+}
+.sekmeler-dikey .sekme-ikon { font-size: 15px; }
+.sekmeler-dikey .sekme-ad { flex: 1; text-align: left; }
+.sekmeler-dikey .sekme.aktif { box-shadow: inset 2px 0 0 var(--accent); }
+
+@media (max-width: 720px) {
+  .uygulama { flex-direction: column; }
+  .kenar-cubugu {
+    flex: 0 0 auto; width: auto; position: static; height: auto;
+    flex-direction: row; align-items: center; overflow-x: auto;
+    padding: 8px 10px;
+  }
+  .kenar-marka { padding: 0 10px 0 0; }
+  .sekmeler-dikey { flex-direction: row; }
+  .sekmeler-dikey .sekme-ad { display: none; }
+}
 
 .ust-bar {
   display: flex; flex-direction: column; gap: 12px;
@@ -261,9 +295,6 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* ------------------------------------------------------------------ sekmeler */
-.sekmeler { display: flex; gap: 3px; flex-wrap: nowrap; }
-/* Çok dar ekranda sekme ikonları gizlenir, metin kalır */
-@media (max-width: 1000px) { .sekme-ikon { display: none; } }
 .sekme {
   position: relative; display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 9px; font-size: 11.5px; border-radius: 8px; white-space: nowrap;
@@ -333,6 +364,30 @@ tbody tr:last-child td { border-bottom: none; }
 .ipucu-satir i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 .ipucu-satir .ad { color: var(--muted); }
 .ipucu-satir .deger { color: var(--text); font-weight: 600; }
+
+/* ------------------------------------------------------- harita istasyon ipucu */
+/* Harita zoom/pan transform'lu (SVG <g transform>) olduğu için viewBox yüzdesi değil,
+   gerçek clientX/clientY + position:fixed kullanılır — transform'dan etkilenmez. */
+.harita-ipucu {
+  position: fixed; z-index: 50; pointer-events: none;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 8px;
+  padding: 9px 11px; min-width: 190px; max-width: 260px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.harita-ipucu .ipucu-baslik {
+  font-size: 12px; font-weight: 700; margin-bottom: 2px;
+}
+.harita-ipucu .ipucu-alt {
+  font-size: 10.5px; color: var(--muted); margin-bottom: 7px;
+  border-bottom: 1px solid var(--line); padding-bottom: 6px;
+}
+.harita-ipucu .olay-satir {
+  display: grid; grid-template-columns: 8px 1fr auto; gap: 6px; align-items: center;
+  font-size: 11px; padding: 2px 0;
+}
+.harita-ipucu .olay-satir i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+.harita-ipucu .olay-satir .saat { color: var(--muted); font-size: 10px; }
+.harita-ipucu .olay-yok { font-size: 11px; color: var(--muted); }
 
 /* --------------------------------------------------------- test çalışma durumu */
 .test-calisiyor {

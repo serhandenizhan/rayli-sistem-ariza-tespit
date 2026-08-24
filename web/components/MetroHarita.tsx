@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SINIF_ETIKET, SINIF_RENK, type AxleDurum, type MetroAgi } from "@/lib/tipler";
+import { SINIF_ETIKET, SINIF_RENK, type AxleDurum, type Hat, type Istasyon, type MetroAgi, type Olay } from "@/lib/tipler";
 
 /**
  * İstanbul raylı sistem ağı haritası — yakınlaştırma / kaydırma destekli.
@@ -43,18 +43,36 @@ function agirlikMerkezi(halka: number[][]): [number, number] {
   return [cx / (6 * alan), cy / (6 * alan)];
 }
 
+type IstasyonIpucu = { ist: Istasyon; hat: Hat; x: number; y: number };
+
 export default function MetroHarita({
-  ag, axles, secili, onSec,
+  ag, axles, secili, onSec, olaylar = [],
 }: {
   ag: MetroAgi | null;
   axles: AxleDurum[];
   secili: string | null;
   onSec: (axle: string) => void;
+  olaylar?: Olay[];
 }) {
   const [tumHatlar, setTumHatlar] = useState(true);
   const [ilceAdlari, setIlceAdlari] = useState(true);
   const [vurgu, setVurgu] = useState<string | null>(null);
   const [don, setDon] = useState<Donusum>({ k: 1, x: 0, y: 0 });
+  const [ipucu, setIpucu] = useState<IstasyonIpucu | null>(null);
+
+  // İstasyon adına göre gruplanmış son olaylar — "bu durakta son saatlerde ne oldu, çözüldü mü"
+  // sorusuna cevap vermek için. Ekstra backend çağrısı gerekmiyor: olaylar zaten useAkis'ten
+  // en yeniden en eskiye sıralı geliyor.
+  const olaylarIstasyonda = useMemo(() => {
+    const m = new Map<string, Olay[]>();
+    for (const o of olaylar) {
+      if (!o.istasyon) continue;
+      const arr = m.get(o.istasyon) ?? [];
+      arr.push(o);
+      m.set(o.istasyon, arr);
+    }
+    return m;
+  }, [olaylar]);
 
   const [bilgiAcik, setBilgiAcik] = useState(false);
   // SVG'nin ekrana çizilirkenki ölçeği (letterbox nedeniyle 1'den küçük olabilir).
@@ -309,9 +327,12 @@ export default function MetroHarita({
                   <circle key={ist.ad} cx={X(ist.lon)} cy={Y(ist.lat)}
                           r={kal(simHatlari.has(h.kod) ? 2.6 : 1.6)}
                           fill="var(--bg)" stroke={h.renk}
-                          strokeWidth={kal(simHatlari.has(h.kod) ? 1.4 : 0.9)}>
-                    <title>{`${h.kod} · ${ist.ad} (${ist.km.toFixed(1)} km)`}</title>
-                  </circle>
+                          strokeWidth={kal(simHatlari.has(h.kod) ? 1.4 : 0.9)}
+                          style={{ cursor: "default" }}
+                          onMouseEnter={(e) => setIpucu({ ist, hat: h, x: e.clientX, y: e.clientY })}
+                          onMouseMove={(e) => setIpucu((p) => p && p.ist.ad === ist.ad
+                            ? { ...p, x: e.clientX, y: e.clientY } : p)}
+                          onMouseLeave={() => setIpucu(null)} />
                 ))}
               </g>
             ))}
@@ -373,6 +394,33 @@ export default function MetroHarita({
           </g>
         </svg>
       </div>
+
+      {ipucu && (() => {
+        const olaylarBurada = (olaylarIstasyonda.get(ipucu.ist.ad) ?? []).slice(0, 5);
+        const fazlaSayi = (olaylarIstasyonda.get(ipucu.ist.ad)?.length ?? 0) - olaylarBurada.length;
+        return (
+          <div className="harita-ipucu" style={{ left: ipucu.x + 14, top: ipucu.y + 14 }}>
+            <div className="ipucu-baslik">{ipucu.hat.kod} · {ipucu.ist.ad}</div>
+            <div className="ipucu-alt">km {ipucu.ist.km.toFixed(1)}</div>
+            {olaylarBurada.length === 0 ? (
+              <div className="olay-yok">Bu istasyonda kayıtlı arıza yok.</div>
+            ) : (
+              <>
+                {olaylarBurada.map((o, i) => (
+                  <div key={i} className="olay-satir">
+                    <i style={{ background: SINIF_RENK[o.yeni] }} />
+                    <span>
+                      {SINIF_ETIKET[o.yeni]} · {o.tip === "alarm" ? "başladı" : "giderildi"}
+                    </span>
+                    <span className="saat mono">{o.ts?.slice(11, 19)}</span>
+                  </div>
+                ))}
+                {fazlaSayi > 0 && <div className="olay-yok">+{fazlaSayi} daha</div>}
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="hat-rozetleri">
         {gosterilecek.filter((h) => simHatlari.has(h.kod)).map((h) => (

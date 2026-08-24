@@ -16,10 +16,24 @@ function tarihMetni(iso: string) {
 /** Tahmin sonucu: kategori/intent/öncelik rozetleri, yapısal alanlar, kanıt, uyarılar. */
 function SonucKarti({ sonuc, onDogrula, kategoriler }: {
   sonuc: NlpPredictYanit;
-  onDogrula: (dogru: boolean, duzeltilmisKategori?: string) => void;
+  onDogrula: (dogru: boolean, duzeltilmisKategori?: string) => Promise<void>;
   kategoriler: NlpKategoriInfo[];
 }) {
   const [duzeltmeAcik, setDuzeltmeAcik] = useState(false);
+  // null | "dogru" | "yanlis" — onaylandıktan sonra buton yerine teşekkür mesajı gösterilir.
+  const [onayDurumu, setOnayDurumu] = useState<"dogru" | "yanlis" | null>(null);
+  const [gonderiliyor, setGonderiliyor] = useState(false);
+
+  const gonder = async (dogru: boolean, duzeltilmisKategori?: string) => {
+    setGonderiliyor(true);
+    try {
+      await onDogrula(dogru, duzeltilmisKategori);
+      setOnayDurumu(dogru ? "dogru" : "yanlis");
+    } finally {
+      setGonderiliyor(false);
+    }
+  };
+
   const yapisalAlanlar = ["line", "station", "location", "equipment", "symptom", "root_cause"] as const;
   const doluAlanlar = yapisalAlanlar.filter((a) => sonuc[a]);
 
@@ -92,17 +106,20 @@ function SonucKarti({ sonuc, onDogrula, kategoriler }: {
         <div className="uyari" style={{ marginBottom: 10 }}>{sonuc.manual_review_message ?? "Bu bildirim manuel incelemeye alınmalı."}</div>
       )}
 
-      {sonuc.log_id >= 0 && !duzeltmeAcik && (
+      {onayDurumu === "dogru" && <span className="ipucu">✓ Teşekkürler, kaydedildi.</span>}
+      {onayDurumu === "yanlis" && <span className="ipucu">✓ Düzeltme kaydedildi.</span>}
+
+      {sonuc.log_id >= 0 && onayDurumu === null && !duzeltmeAcik && (
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="ikon" onClick={() => onDogrula(true)}>✓ Doğru</button>
-          <button className="ikon" onClick={() => setDuzeltmeAcik(true)}>✕ Yanlış</button>
+          <button className="ikon" disabled={gonderiliyor} onClick={() => gonder(true)}>✓ Doğru</button>
+          <button className="ikon" disabled={gonderiliyor} onClick={() => setDuzeltmeAcik(true)}>✕ Yanlış</button>
         </div>
       )}
-      {duzeltmeAcik && (
+      {onayDurumu === null && duzeltmeAcik && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {kategoriler.map((k) => (
-            <button key={k.category} className="ikon" style={{ fontSize: 11 }}
-                    onClick={() => { onDogrula(false, k.category); setDuzeltmeAcik(false); }}>
+            <button key={k.category} className="ikon" style={{ fontSize: 11 }} disabled={gonderiliyor}
+                    onClick={() => gonder(false, k.category)}>
               {k.label}
             </button>
           ))}
@@ -184,7 +201,7 @@ export default function NlpBildirimPaneli({
   ornekler: NlpOrnek[]; kategoriler: NlpKategoriInfo[]; dagilim: NlpKategoriSayim[];
   sonKayitlar: NlpSonKayit[]; sonuc: NlpPredictYanit | null; yukleniyor: boolean; hata: string | null;
   tahminEt: (text: string) => void;
-  dogrula: (logId: number, dogru: boolean, duzeltilmisKategori?: string) => void;
+  dogrula: (logId: number, dogru: boolean, duzeltilmisKategori?: string) => Promise<void>;
 }) {
   const [metin, setMetin] = useState("");
   const MAKS_KARAKTER = 300;
@@ -235,7 +252,7 @@ export default function NlpBildirimPaneli({
 
           {hata && <div className="uyari">{hata}</div>}
           {sonuc && (
-            <SonucKarti sonuc={sonuc} kategoriler={kategoriler}
+            <SonucKarti key={sonuc.log_id + sonuc.response_time_ms} sonuc={sonuc} kategoriler={kategoriler}
                         onDogrula={(dogru, duzeltilmisKategori) => dogrula(sonuc.log_id, dogru, duzeltilmisKategori)} />
           )}
         </div>

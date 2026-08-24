@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Kontroller, { type Sekme } from "@/components/Kontroller";
+import Kontroller from "@/components/Kontroller";
+import KenarCubugu, { type Sekme } from "@/components/KenarCubugu";
 import KpiKartlari from "@/components/KpiKartlari";
 import MetroHarita from "@/components/MetroHarita";
 import DingilIzgara from "@/components/DingilIzgara";
@@ -10,7 +11,6 @@ import OlasilikCubuk from "@/components/OlasilikCubuk";
 import OlayGunlugu from "@/components/OlayGunlugu";
 import DogrulamaPaneli from "@/components/DogrulamaPaneli";
 import EgitimPaneli from "@/components/EgitimPaneli";
-import TestPaneli from "@/components/TestPaneli";
 import AktifAlarmlar from "@/components/AktifAlarmlar";
 import AnomaliPaneli from "@/components/AnomaliPaneli";
 import GecmisPaneli from "@/components/GecmisPaneli";
@@ -20,9 +20,9 @@ import { useAkis } from "@/lib/useAkis";
 import { useNlp } from "@/lib/useNlp";
 
 export default function Sayfa() {
-  const { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
+  const { meta, ag, tick, olaylar, bagli, hata, kontrol, gecmisAl,
           oynatiliyor, korMod, histerezis, belirsizlikEsigi,
-          testleriCalistir, gecmis, gecmisiYenile } = useAkis();
+          gecmis, gecmisiYenile } = useAkis();
   const nlp = useNlp();
   const [secili, setSecili] = useState<string | null>(null);
   const [sekme, setSekme] = useState<Sekme>("izleme");
@@ -48,10 +48,11 @@ export default function Sayfa() {
   const aktifAlarm = (tick?.axles ?? []).filter((a) => a.yerlesik && a.yerlesik !== "normal").length;
 
   return (
-    <main className="sayfa">
+    <div className="uygulama">
+      <KenarCubugu sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm} />
+      <main className="ana-icerik">
       <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol}
                   oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis}
-                  sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm}
                   belirsizlikEsigi={belirsizlikEsigi} />
 
       {hata && <div className="uyari">{hata}</div>}
@@ -63,7 +64,7 @@ export default function Sayfa() {
         <div className="sekme-icerik">
           {/* Harita tam genişlikte (yatayda mümkün olduğunca büyük); alarm günlüğü ve renk
               anahtarı haritanın ALTINDA yan yana. */}
-          <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} />
+          <MetroHarita ag={ag} axles={tick?.axles ?? []} secili={secili} onSec={dingilSec} olaylar={olaylar} />
           <div className="izgara">
             <div className="sutun">
               <AktifAlarmlar alarmlar={tick?.aktif_alarmlar ?? []} onSec={dingilSec} />
@@ -134,12 +135,7 @@ export default function Sayfa() {
           <GecmisPaneli gecmis={gecmis} yenile={gecmisiYenile} />
         </div>
       )}
-
-      {sekme === "testler" && (
-        <div className="sekme-icerik">
-          <TestPaneli testler={testler} calistir={testleriCalistir} />
-        </div>
-      )}
-    </main>
+      </main>
+    </div>
   );
 }
