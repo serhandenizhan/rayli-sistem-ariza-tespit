@@ -213,6 +213,21 @@ bağlantısı kesildi; backend'deki `/api/testler` da dokunulmadı. Üst bardaki
 ("CNN+LSTM") kaldırıldı, yerine nötr "Çok görevli model" ifadesi geldi (`layout.tsx` meta
 description'ından da aynı ifade çıkarıldı) — daha profesyonel görünmesi için.
 
+**İkinci tur toparlama (aynı gün):** kenar çubuğu artık daraltılabilir (üstteki «/» butonu,
+tercih `localStorage`'da kalıcı — `KenarCubugu.tsx`); daraltılmışken sadece ikonlar görünür.
+Kör mod eskiden `.kontrol-grup` içinde ayrı bir `<label>` + buton olarak render ediliyordu; bu,
+sütunun kendi yüksekliği yüzünden butonun satırdaki diğer butonlara göre daha aşağıda
+görünmesine yol açıyordu — düzeltme: artık diğerleri gibi tek bir `<button className="ikon">`,
+açıklama `title` tooltip'ine taşındı. **Hız butonlarındaki gerçek bug**: `Kontroller.tsx` hızı
+`tick?.hiz ?? 5` ile SSE paketinden okuyordu; akış DURAKLATILMIŞKEN yeni paket gelmediği için
+`/api/kontrol` ile hız değiştirilse bile hangi butonun "aktif" olduğu güncellenmiyordu (akış
+tekrar oynatılana kadar). Düzeltme: `useAkis.ts`'e `histerezis`/`belirsizlikEsigi` ile aynı
+desende bağımsız bir `hiz` state'i eklendi, hem SSE paketinden hem `kontrol()` yanıtından
+güncelleniyor. **Harita**: istasyon noktaları büyütüldü (hedeflemesi zordu), trenlere de
+istasyonlarla aynı `.harita-ipucu` deseninde özel bir tooltip eklendi (`Ipucu` ayrık birleşim
+tipi, `tur: "istasyon" | "tren"`) — tooltip artık `ipucuStil()` ile imlecin ekranın hangi
+çeyreğinde olduğuna göre konumlanıyor (sağ/alt kenara taşmasın diye).
+
 Paneller: üst kontrol barı (play/duraklat/baştan, hız, **histerezis**, **kör mod** — hepsi
 çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; kara/deniz
 zemini ilçe poligonlarından çizilir, trenler tahmin rengiyle hareket eder, ray kusurları üçgenle

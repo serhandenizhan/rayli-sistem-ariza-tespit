@@ -24,6 +24,7 @@ export function useAkis() {
   // Başlangıç değeri /api/meta'dan gelir: akış duraklatılmış başlar.
   const [oynatiliyor, setOynatiliyor] = useState(false);
   const [korMod, setKorMod] = useState(false);
+  const [hiz, setHiz] = useState(5);
   const [histerezis, setHisterezis] = useState(3);
   const [belirsizlikEsigi, setBelirsizlikEsigi] = useState(0.35);
   const [gecmis, setGecmis] = useState<GecmisOzet | null>(null);
@@ -58,6 +59,7 @@ export function useAkis() {
       setTick(p);
       setOynatiliyor(p.oynatiliyor);
       setKorMod(p.kor_mod);
+      setHiz(p.hiz);
       setHisterezis(p.histerezis);
       setBelirsizlikEsigi(p.belirsizlik_esigi);
       if (p.yeni_olaylar?.length) {
@@ -85,6 +87,7 @@ export function useAkis() {
       const data = await res.json();
       if (typeof data.oynatiliyor === "boolean") setOynatiliyor(data.oynatiliyor);
       if (typeof data.kor_mod === "boolean") setKorMod(data.kor_mod);
+      if (typeof data.hiz === "number") setHiz(data.hiz);
       if (typeof data.histerezis === "number") setHisterezis(data.histerezis);
       if (typeof data.belirsizlik_esigi === "number") setBelirsizlikEsigi(data.belirsizlik_esigi);
       if (action === "reset") {
@@ -126,6 +129,6 @@ export function useAkis() {
   const gecmisAl = useCallback((axle: string) => gecmisRef.current.get(axle) ?? [], []);
 
   return { meta, ag, tick, olaylar, testler, bagli, hata, kontrol, gecmisAl,
-           oynatiliyor, korMod, histerezis, belirsizlikEsigi,
+           oynatiliyor, korMod, hiz, histerezis, belirsizlikEsigi,
            testleriYenile, testleriCalistir, gecmis, gecmisiYenile };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { SINIF_ETIKET, SINIF_RENK, type AxleDurum, type Hat, type Istasyon, type MetroAgi, type Olay } from "@/lib/tipler";
 
 /**
@@ -43,7 +43,22 @@ function agirlikMerkezi(halka: number[][]): [number, number] {
   return [cx / (6 * alan), cy / (6 * alan)];
 }
 
-type IstasyonIpucu = { ist: Istasyon; hat: Hat; x: number; y: number };
+type Ipucu =
+  | { tur: "istasyon"; ist: Istasyon; hat: Hat; x: number; y: number }
+  | { tur: "tren"; trainId: string; axles: AxleDurum[]; x: number; y: number };
+
+/** Tooltip'i imlecin hangi çeyrekte olduğuna göre konumlandırır — ekran kenarından taşmasın diye
+ *  (tooltip büyüklüğünü tam bilmeden basit ama sağlam bir çözüm). */
+function ipucuStil(x: number, y: number): CSSProperties {
+  const sagYarim = x > window.innerWidth / 2;
+  const altYarim = y > window.innerHeight / 2;
+  return {
+    left: sagYarim ? undefined : x + 16,
+    right: sagYarim ? window.innerWidth - x + 16 : undefined,
+    top: altYarim ? undefined : y + 16,
+    bottom: altYarim ? window.innerHeight - y + 16 : undefined,
+  };
+}
 
 export default function MetroHarita({
   ag, axles, secili, onSec, olaylar = [],
@@ -58,7 +73,7 @@ export default function MetroHarita({
   const [ilceAdlari, setIlceAdlari] = useState(true);
   const [vurgu, setVurgu] = useState<string | null>(null);
   const [don, setDon] = useState<Donusum>({ k: 1, x: 0, y: 0 });
-  const [ipucu, setIpucu] = useState<IstasyonIpucu | null>(null);
+  const [ipucu, setIpucu] = useState<Ipucu | null>(null);
 
   // İstasyon adına göre gruplanmış son olaylar — "bu durakta son saatlerde ne oldu, çözüldü mü"
   // sorusuna cevap vermek için. Ekstra backend çağrısı gerekmiyor: olaylar zaten useAkis'ten
@@ -325,12 +340,12 @@ export default function MetroHarita({
               <g key={`i-${h.kod}`} opacity={vurgu && vurgu !== h.kod ? 0.15 : 1}>
                 {h.istasyonlar.map((ist) => (
                   <circle key={ist.ad} cx={X(ist.lon)} cy={Y(ist.lat)}
-                          r={kal(simHatlari.has(h.kod) ? 2.6 : 1.6)}
+                          r={kal(simHatlari.has(h.kod) ? 4.2 : 2.4)}
                           fill="var(--bg)" stroke={h.renk}
-                          strokeWidth={kal(simHatlari.has(h.kod) ? 1.4 : 0.9)}
+                          strokeWidth={kal(simHatlari.has(h.kod) ? 1.8 : 1.1)}
                           style={{ cursor: "default" }}
-                          onMouseEnter={(e) => setIpucu({ ist, hat: h, x: e.clientX, y: e.clientY })}
-                          onMouseMove={(e) => setIpucu((p) => p && p.ist.ad === ist.ad
+                          onMouseEnter={(e) => setIpucu({ tur: "istasyon", ist, hat: h, x: e.clientX, y: e.clientY })}
+                          onMouseMove={(e) => setIpucu((p) => p && p.tur === "istasyon" && p.ist.ad === ist.ad
                             ? { ...p, x: e.clientX, y: e.clientY } : p)}
                           onMouseLeave={() => setIpucu(null)} />
                 ))}
@@ -369,8 +384,13 @@ export default function MetroHarita({
               return (
                 <g key={trainId} style={{ cursor: "pointer" }}
                    onClick={() => { if (!surukleRef.current.kaydi) onSec(g.axles[0].axle); }}
-                   onMouseEnter={() => setVurgu(g.axles[0].line_id ?? null)}
-                   onMouseLeave={() => setVurgu(null)}>
+                   onMouseEnter={(e) => {
+                     setVurgu(g.axles[0].line_id ?? null);
+                     setIpucu({ tur: "tren", trainId, axles: g.axles, x: e.clientX, y: e.clientY });
+                   }}
+                   onMouseMove={(e) => setIpucu((p) => p && p.tur === "tren" && p.trainId === trainId
+                     ? { ...p, x: e.clientX, y: e.clientY } : p)}
+                   onMouseLeave={() => { setVurgu(null); setIpucu(null); }}>
                   {arizali.length > 0 && (
                     <circle cx={cx} cy={cy} r={kal(11)} fill={renk} opacity={0.22}>
                       <animate attributeName="opacity" values="0.35;0;0.35" dur="1.8s" repeatCount="indefinite" />
@@ -380,14 +400,6 @@ export default function MetroHarita({
                         fill={renk} stroke={seciliTren ? "var(--text)" : "var(--bg)"}
                         strokeWidth={kal(seciliTren ? 2 : 1.2)} />
                   {g.axles[0]?.konum?.durakta && <circle cx={cx} cy={cy} r={kal(1.6)} fill="var(--bg)" />}
-                  <title>
-                    {`${trainId} · ${g.axles[0].line_id}\n` +
-                     `${g.axles[0].konum.durakta ? "İstasyonda: " : "Sonraki: "}${g.axles[0].konum.istasyon ?? "-"}\n` +
-                     `km ${g.axles[0].konum.km.toFixed(2)}\n` +
-                     (arizali.length
-                       ? arizali.map((a) => `⚠ ${a.axle}: ${SINIF_ETIKET[a.yerlesik!]}`).join("\n")
-                       : "Tüm dingiller normal")}
-                  </title>
                 </g>
               );
             })}
@@ -395,11 +407,11 @@ export default function MetroHarita({
         </svg>
       </div>
 
-      {ipucu && (() => {
+      {ipucu?.tur === "istasyon" && (() => {
         const olaylarBurada = (olaylarIstasyonda.get(ipucu.ist.ad) ?? []).slice(0, 5);
         const fazlaSayi = (olaylarIstasyonda.get(ipucu.ist.ad)?.length ?? 0) - olaylarBurada.length;
         return (
-          <div className="harita-ipucu" style={{ left: ipucu.x + 14, top: ipucu.y + 14 }}>
+          <div className="harita-ipucu" style={ipucuStil(ipucu.x, ipucu.y)}>
             <div className="ipucu-baslik">{ipucu.hat.kod} · {ipucu.ist.ad}</div>
             <div className="ipucu-alt">km {ipucu.ist.km.toFixed(1)}</div>
             {olaylarBurada.length === 0 ? (
@@ -417,6 +429,31 @@ export default function MetroHarita({
                 ))}
                 {fazlaSayi > 0 && <div className="olay-yok">+{fazlaSayi} daha</div>}
               </>
+            )}
+          </div>
+        );
+      })()}
+
+      {ipucu?.tur === "tren" && (() => {
+        const ilk = ipucu.axles[0];
+        const arizali = ipucu.axles.filter((a) => a.yerlesik && a.yerlesik !== "normal");
+        return (
+          <div className="harita-ipucu" style={ipucuStil(ipucu.x, ipucu.y)}>
+            <div className="ipucu-baslik">{ipucu.trainId} · {ilk.line_id}</div>
+            <div className="ipucu-alt">
+              {ilk.konum.durakta ? "İstasyonda: " : "Sonraki: "}{ilk.konum.istasyon ?? "—"}
+              {" "}· km {ilk.konum.km.toFixed(2)}
+            </div>
+            {arizali.length === 0 ? (
+              <div className="olay-yok">Tüm dingiller normal.</div>
+            ) : (
+              arizali.map((a) => (
+                <div key={a.axle} className="olay-satir">
+                  <i style={{ background: SINIF_RENK[a.yerlesik!] }} />
+                  <span className="mono">{a.axle}</span>
+                  <span>{SINIF_ETIKET[a.yerlesik!]}</span>
+                </div>
+              ))
             )}
           </div>
         );

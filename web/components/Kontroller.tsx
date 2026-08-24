@@ -8,7 +8,7 @@ const HISTEREZIS_SECENEK = [1, 2, 3, 5, 8];
 const BELIRSIZLIK_SECENEK = [0.2, 0.35, 0.5, 1.0];
 
 export default function Kontroller({
-  meta, tick, bagli, kontrol, oynatiliyor, korMod, histerezis,
+  meta, tick, bagli, kontrol, oynatiliyor, korMod, hiz, histerezis,
   belirsizlikEsigi,
 }: {
   meta: Meta | null;
@@ -17,13 +17,13 @@ export default function Kontroller({
   kontrol: (action: string, value?: number | boolean) => void;
   oynatiliyor: boolean;
   korMod: boolean;
+  hiz: number;
   histerezis: number;
   belirsizlikEsigi: number;
 }) {
   const toplam = tick?.toplam_tick ?? meta?.toplam_tick ?? 0;
   const simdi = tick ? tick.tick + 1 : 0;
   const yuzde = toplam ? (simdi / toplam) * 100 : 0;
-  const hiz = tick?.hiz ?? 5;
   const saat = tick?.timestamp?.slice(11, 19) ?? "--:--:--";
   // Akış hiç ilerlemediyse (tick 0 ve paket yok) "Başlat"; sıfırlanacak veri de yoktur
   const baslamadi = !tick || tick.tick === 0;
@@ -48,13 +48,10 @@ export default function Kontroller({
 
         <div className="bosluk" />
 
-        {/* Kör mod bilinçli olarak üst satırda: alt satırda sekmelerin taşmadan sığması için */}
-        <div className="kontrol-grup">
-          <label title="Açıkken cevap anahtarı arayüze hiç gönderilmez — tam kör demo">Kör mod</label>
-          <button className={korMod ? "aktif" : ""} onClick={() => kontrol("kor_mod", !korMod)}>
-            {korMod ? "🙈 Açık" : "👁 Kapalı"}
-          </button>
-        </div>
+        <button className={"ikon" + (korMod ? " aktif" : "")} onClick={() => kontrol("kor_mod", !korMod)}
+                title="Açıkken cevap anahtarı arayüze hiç gönderilmez — tam kör demo">
+          {korMod ? "🙈 Kör Mod: Açık" : "👁 Kör Mod: Kapalı"}
+        </button>
 
         {/* Akışı BAŞLATAN tek düğme "Başlat/Devam"tır. Sıfırla yalnızca duraklatılmışken ve
             işlenmiş veri varken etkindir; veriyi temizler ve akışı duraklatılmış bırakır. */}

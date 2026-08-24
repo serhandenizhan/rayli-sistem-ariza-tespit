@@ -21,7 +21,7 @@ import { useNlp } from "@/lib/useNlp";
 
 export default function Sayfa() {
   const { meta, ag, tick, olaylar, bagli, hata, kontrol, gecmisAl,
-          oynatiliyor, korMod, histerezis, belirsizlikEsigi,
+          oynatiliyor, korMod, hiz, histerezis, belirsizlikEsigi,
           gecmis, gecmisiYenile } = useAkis();
   const nlp = useNlp();
   const [secili, setSecili] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function Sayfa() {
       <KenarCubugu sekme={sekme} onSekme={setSekme} alarmSayisi={aktifAlarm} />
       <main className="ana-icerik">
       <Kontroller meta={meta} tick={tick} bagli={bagli} kontrol={kontrol}
-                  oynatiliyor={oynatiliyor} korMod={korMod} histerezis={histerezis}
+                  oynatiliyor={oynatiliyor} korMod={korMod} hiz={hiz} histerezis={histerezis}
                   belirsizlikEsigi={belirsizlikEsigi} />
 
       {hata && <div className="uyari">{hata}</div>}
