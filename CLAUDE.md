@@ -47,6 +47,7 @@ python rayli_canli_akis_sunucu.py --otomatik-basla # duraklatılmış değil, oy
 python istanbul_metro_agi.py    # İBB açık verisinden metro ağı modelini kurar
 python istanbul_metro_agi.py --indir   # ham GeoJSON'ları İBB'den yeniden indir
 python rayli_kafka.py --uret    # etiketsiz akışı Kafka topic'ine yayınla (broker gerekir)
+python rayli_baseline_karsilastirma.py   # LogReg/RF/tek-CNN/tek-LSTM/final modeli kıyaslar
 
 ./testleri_calistir.sh          # pytest (94 test) + results/test_ozeti.json üretir
 python rayli_kayit.py --ozet    # SQLite'daki alarm geçmişini terminalden sorgula
@@ -109,6 +110,20 @@ yapılabilir.
   scaler parametreleri + sınıf isimleri), `rayli_model.rebuild_scaler_and_encoder` ile
   StandardScaler/LabelEncoder'ı checkpoint'ten yeniden kurar (sıfırdan fit ETMEZ), test verisi
   üzerinde tahmin üretir.
+- `rayli_baseline_karsilastirma.py` — mevcut çok görevli CNN+LSTM mimarisinin "neden bu
+  mimari?" sorusuna deneysel cevap verir; aynı train/test bölmesiyle 5 modeli sadece arıza TİPİ
+  görevinde kıyaslar: Logistic Regression ve Random Forest (pencere `mean/std/min/max` ile
+  `ozetle()` üzerinden düz vektöre indirgenir; LogReg'in girdisi ayrıca kendi `StandardScaler`'ı
+  ile ölçeklenir, RF ham özet üzerinde çalışır), tek başına 1D-CNN (`TekBasinaCNN`, LSTM'siz,
+  global average pooling ile özetler), tek başına LSTM (`TekBasinaLSTM`, konvolüsyonsuz), ve
+  final CNN+LSTM (**yeniden eğitilmez**, `model/rayli_cnn_lstm_model.pt` checkpoint'i
+  `load_model_checkpoint` ile yüklenip yalnızca test setinde değerlendirilir — adil kıyas + zaman
+  tasarrufu). Her model için `time.perf_counter()` ile test seti üzerinde toplam ve örnek başı
+  inference süresi de ölçülür. Çıktı: `results/baseline_karsilastirma.json` +
+  `results/baseline_karsilastirma.md` (okunabilir tablo). Güncel sonuç: final model en iyisi
+  (accuracy 0.9922, macro F1 0.9820), tek başına LSTM/CNN yakın ama biraz zayıf (0.977-0.980),
+  LogReg/RF belirgin şekilde daha zayıf (macro F1 ~0.88-0.90) — mimari seçiminin (özellikle
+  konvolüsyon+LSTM birlikteliğinin) ölçülebilir bir fark yarattığını gösteriyor.
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
@@ -444,9 +459,6 @@ yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile d
   bile trenler birbirini etkilemiyor, gerçek sinyalizasyonun sağladığı asgari ayrım mesafesi
   temsil edilmiyor. **Sinyalizasyon etkisi** de en azından basit bir operasyonel değişken
   olarak (ör. rastgele "sinyal arızası" dönemlerinde hat genelinde hız/gecikme) eklenebilir.
-- Mevcut CNN+LSTM mimarisinin gerekçesini deneysel olarak göstermek üzere baseline
-  karşılaştırması (Logistic/RandomForest → 1D-CNN → LSTM → final CNN+LSTM; accuracy/macro
-  F1/inference süresi tek tabloda).
 - Gerçek (sentetik olmayan) veriye uyarlama; bkz. "Bilinen basitleştirmeler".
 
 ## Diğer notlar

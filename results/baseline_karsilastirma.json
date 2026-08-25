@@ -1,0 +1,46 @@
+{
+  "seed": 42,
+  "epochs_basit_modeller": 8,
+  "sonuclar": [
+    {
+      "model": "Logistic Regression",
+      "accuracy": 0.9806139921722113,
+      "macro_f1": 0.8775357955637578,
+      "toplam_inference_sn": 0.005264792000000185,
+      "ornek_basi_ms": 0.0003219662426614595,
+      "n_test": 16352
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 0.9825097847358122,
+      "macro_f1": 0.8971656990566513,
+      "toplam_inference_sn": 0.039634833000000924,
+      "ornek_basi_ms": 0.0024238523116438923,
+      "n_test": 16352
+    },
+    {
+      "model": "1D-CNN (tek başına)",
+      "accuracy": 0.9905210371819961,
+      "macro_f1": 0.977179647694781,
+      "toplam_inference_sn": 0.25867295799999823,
+      "ornek_basi_ms": 0.015819040973581104,
+      "n_test": 16352
+    },
+    {
+      "model": "LSTM (tek başına)",
+      "accuracy": 0.9913772015655578,
+      "macro_f1": 0.9798550184806958,
+      "toplam_inference_sn": 0.05927025000000441,
+      "ornek_basi_ms": 0.003624648361057021,
+      "n_test": 16352
+    },
+    {
+      "model": "Final CNN+LSTM (çok görevli, kayıtlı checkpoint)",
+      "accuracy": 0.9922333659491194,
+      "macro_f1": 0.9819945452437144,
+      "toplam_inference_sn": 0.26296854200000297,
+      "ornek_basi_ms": 0.01608173568982406,
+      "n_test": 16352
+    }
+  ]
+}
