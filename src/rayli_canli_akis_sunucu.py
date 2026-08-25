@@ -159,6 +159,11 @@ class AkisSimulatoru:
         self.histerezis = max(1, int(histerezis))
         self.belirsizlik_esigi = float(belirsizlik_esigi)
         self.kaynak = kaynak
+        # "İşlenen Sekans" KPI'sı için: reset() SIFIRLAMAZ — kullanıcı "Sıfırla"ya bassa da
+        # oturum başından beri toplam işlenmiş sekans sayısını göstermek istedi (madde: "son
+        # akış değil, baştan sona akış olan süreç"). self.degerlendirilen (aşağıda, reset()'te
+        # sıfırlanır) hâlâ o anki oturumun DOĞRULUK hesaplaması için kullanılıyor, ayrı tutuldu.
+        self.toplam_degerlendirilen = 0
 
         self.ticks = []
         self.timestamps = []
@@ -447,6 +452,7 @@ class AkisSimulatoru:
                 gercek = self.answer_key.get(sample_id)
                 if gercek is not None:
                     self.degerlendirilen += 1
+                    self.toplam_degerlendirilen += 1
                     dogru_mu = (gercek == t["pred"])
                     self.dogru += int(dogru_mu)
                     self.confusion[self.classes.index(gercek), self.classes.index(t["pred"])] += 1
@@ -567,7 +573,8 @@ class AkisSimulatoru:
         akış sırasında hiçbir tekil tahmin/etiket ifşa edilmemiş olur."""
         akis_bitti = (not self.ticks) or (self.tick_index + 1 >= len(self.ticks))
         if (self.kor_mod and not akis_bitti) or self.degerlendirilen == 0:
-            return {"kor_mod": self.kor_mod, "degerlendirilen": self.degerlendirilen}
+            return {"kor_mod": self.kor_mod, "degerlendirilen": self.degerlendirilen,
+                    "toplam_degerlendirilen": self.toplam_degerlendirilen}
 
         cm = self.confusion
         per_class = {}
@@ -587,6 +594,7 @@ class AkisSimulatoru:
             # gizliydi, şimdi sona erdiği için gösteriliyor" diye ayrı bir bantla işaretleyebilsin.
             "kor_mod_sonu_acildi": bool(self.kor_mod and akis_bitti),
             "degerlendirilen": self.degerlendirilen,
+            "toplam_degerlendirilen": self.toplam_degerlendirilen,
             "dogru": self.dogru,
             "accuracy": round(self.dogru / self.degerlendirilen, 4),
             "severity_accuracy": round(self.sev_dogru / self.degerlendirilen, 4),

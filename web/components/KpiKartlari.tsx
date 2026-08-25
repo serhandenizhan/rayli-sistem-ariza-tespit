@@ -59,8 +59,8 @@ export default function KpiKartlari({ tick, meta }: { tick: TickPaketi | null; m
       />
       <Kpi
         baslik="İşlenen Sekans"
-        deger={`${m?.degerlendirilen?.toLocaleString("tr-TR") ?? 0}`}
-        alt={`akış: ${meta?.baslangic?.slice(11, 16) ?? "--"} → ${meta?.bitis?.slice(11, 16) ?? "--"}`}
+        deger={`${(m?.toplam_degerlendirilen ?? m?.degerlendirilen)?.toLocaleString("tr-TR") ?? 0}`}
+        alt="oturum başından beri toplam (Sıfırla'dan etkilenmez)"
       />
     </div>
   );

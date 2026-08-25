@@ -69,6 +69,7 @@ export interface Metrikler {
   kor_mod: boolean;
   kor_mod_sonu_acildi?: boolean;
   degerlendirilen: number;
+  toplam_degerlendirilen?: number;   // "Sıfırla"dan etkilenmeyen, oturum başından beri toplam
   dogru?: number;
   accuracy?: number;
   severity_accuracy?: number;
