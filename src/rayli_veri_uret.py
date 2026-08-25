@@ -166,7 +166,9 @@ def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durum
         # Başlangıç istasyonu: tek trenli hatta rastgele, çok trenli hatta hat boyunca eşit
         # aralıklı (trenler birbirinin üstünde başlamasın, sefer aralığı gerçekçi olsun).
         if baslangic_orani is None:
-            hedef_idx = int(rng_local.integers(1, n_ist))
+            # n_ist=1 (tek istasyonlu, gerçekte olmayan ama edge-case testlerinde denenen bir
+            # hat) için integers(1,1) boş aralık hatası verirdi — savunmacı olarak 1'e sabitlenir.
+            hedef_idx = int(rng_local.integers(1, n_ist)) if n_ist > 1 else 0
         else:
             hedef_idx = max(1, min(n_ist - 1, int(round(baslangic_orani * (n_ist - 1))) or 1))
         yon = 1
@@ -242,17 +244,24 @@ def beklenen_akim(speed_kmh, load_ton, ivme_ms2):
 
 def base_row(speed_kmh, load_ton, ivme_ms2=0.0, fren_aktivite=0.0):
     """Sağlıklı (normal) durum için gürültülü temel sensör değerleri.
-    Titreşim/akustik büyüklükler hızla artar — duran trende titreşim yok denecek kadar azdır."""
+    Titreşim/akustik büyüklükler hızla artar — duran trende titreşim yok denecek kadar azdır.
+
+    RMS/tepe/frekans büyüklükleri (vib_*, acoustic_rms, vib_dom_freq_hz) FİZİKSEL OLARAK
+    negatif olamaz; ortalaması sıfıra yakın gürültü terimleri (`rng.normal`) nadiren küçük
+    negatif değerler üretebiliyordu — `max(0.0, ...)` ile kırpılır (bkz.
+    `testler/test_sinyal_kalitesi.py`, bu kırpma olmadan bulunan gerçek bir kusurdu).
+    `motor_current_a` BİLEREK kırpılmıyor — rejeneratif frenlemede gerçek trenlerde de negatif
+    (enerji şebekeye geri veriliyor) olabilir, bu tasarım gereği."""
     hiz_faktor = speed_kmh / 80.0
     return {
-        "vib_x_rms_g": rng.normal(0.02, 0.005) + 0.045 * hiz_faktor,
-        "vib_y_rms_g": rng.normal(0.02, 0.005) + 0.045 * hiz_faktor,
-        "vib_z_rms_g": rng.normal(0.03, 0.006) + 0.060 * hiz_faktor,
-        "vib_peak_g": rng.normal(0.06, 0.012) + 0.130 * hiz_faktor,
+        "vib_x_rms_g": max(0.0, rng.normal(0.02, 0.005) + 0.045 * hiz_faktor),
+        "vib_y_rms_g": max(0.0, rng.normal(0.02, 0.005) + 0.045 * hiz_faktor),
+        "vib_z_rms_g": max(0.0, rng.normal(0.03, 0.006) + 0.060 * hiz_faktor),
+        "vib_peak_g": max(0.0, rng.normal(0.06, 0.012) + 0.130 * hiz_faktor),
         "vib_kurtosis": rng.normal(3.0, 0.2),
         "vib_crest_factor": rng.normal(2.8, 0.15),
-        "vib_dom_freq_hz": rng.normal(2.0, 0.3) + 0.02 * speed_kmh,
-        "acoustic_rms": rng.normal(0.008, 0.002) + 0.020 * hiz_faktor,
+        "vib_dom_freq_hz": max(0.0, rng.normal(2.0, 0.3) + 0.02 * speed_kmh),
+        "acoustic_rms": max(0.0, rng.normal(0.008, 0.002) + 0.020 * hiz_faktor),
         "acoustic_peak_freq_hz": rng.normal(500, 50),
         "axle_box_temp_c": rng.normal(35, 2) + 0.05 * speed_kmh,
         # fren sıcaklığı fren kullanımıyla ısınır, sonra yavaşça soğur
@@ -271,7 +280,7 @@ def apply_fault(row, fault_type, sev, speed_kmh):
         # düzlük darbesi tekerlek dönüş frekansında; hız arttıkça darbe şiddeti artar
         wheel_rot_hz = max(speed_kmh, 1) / 3.6 / (np.pi * WHEEL_DIAM_M)
         hiz_kat = 0.3 + 0.7 * min(speed_kmh / 60.0, 1.0)
-        row["vib_dom_freq_hz"] = wheel_rot_hz + rng.normal(0, 0.05)
+        row["vib_dom_freq_hz"] = max(0.0, wheel_rot_hz + rng.normal(0, 0.05))
         row["vib_crest_factor"] += sev * hiz_kat * rng.uniform(2.5, 4.0)
         row["vib_peak_g"] += sev * hiz_kat * rng.uniform(1.0, 1.8)
         row["vib_kurtosis"] += sev * hiz_kat * rng.uniform(1.5, 3.0)
@@ -294,7 +303,12 @@ def apply_fault(row, fault_type, sev, speed_kmh):
 
 
 def severity_at(step, fault_start, fault_len):
-    """mild -> moderate -> severe -> (onarım varsayımıyla) normale dönüş üçgen profili."""
+    """mild -> moderate -> severe -> (onarım varsayımıyla) normale dönüş üçgen profili.
+
+    `fault_len<=0` normalde üretilmez (segment/offline üretimde f_len her zaman pozitif
+    hesaplanır) ama savunmacı bir asgari değer uygulanır — çok küçük `n_steps` (test/edge-case)
+    ile çağrıldığında sıfıra bölme çökmesini önler."""
+    fault_len = max(1, fault_len)
     rel = (step - fault_start) / fault_len
     if rel < 0.5:
         return min(1.0, rel * 2)

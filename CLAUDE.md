@@ -372,7 +372,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **94 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **123 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -399,6 +399,23 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
   düşük yanlış alarm, bilinen arızaların normalden anlamlı ayrışması (mekanizma doğrulaması);
   `test_canli_akis.py` içinde ayrıca: anomali alanlarının pakete eklenmesi, "bilinmeyen anomali"
   tanımının doğruluğu, anomali modeli olmadan sistemin sorunsuz çalışması
+- `test_sinyal_kalitesi.py` — **sentetik sinyal kalitesi doğrulama paketi**: her `FEATURE_COLS`
+  kolonu için fiziksel akla uygun aralık kontrolü (`ARALIKLAR` sözlüğü; kapsam
+  `test_tum_feature_cols_araliklarda_kapsanmis` ile FEATURE_COLS'a karşı denetlenir — yeni bir
+  özellik eklenip aralığı unutulursa test kırılır), korelasyon kontrolleri (hız↔titreşim,
+  yük↔motor akımı, frenleme↔fren sıcaklığı pozitif ilişkili mi), zaman sürekliliği (sabit 2 sn
+  örnekleme aralığı, konum adımının fiziksel üst sınırı aşmaması), ve `rayli_veri_uret.py`
+  fonksiyonlarının (`severity_at`, `tren_hareketi`, `generate_series`, `bir_segment_uret`) uç
+  parametrelerle (sıfır uzunluklu arıza, tek istasyonlu hat, kısa segment) çökmediğini doğrulayan
+  edge-case testleri. Bu paket yazılırken 3 gerçek kusur bulundu ve düzeltildi:
+  `base_row()`'daki RMS/tepe/frekans büyüklükleri (`vib_x/y/z_rms_g`, `vib_peak_g`,
+  `vib_dom_freq_hz`, `acoustic_rms`) gürültü terimi negatife düştüğünde fiziksel olarak imkânsız
+  eksi değer üretebiliyordu (artık `max(0.0, ...)` ile kelepçelenmiş; `motor_current_a` KASITLI
+  olarak kelepçelenmedi — rejeneratif frenlemede gerçek trenlerde de negatif olabilir);
+  `apply_fault()`'taki `wheel_flat` dalı düşük hızda `vib_dom_freq_hz`'i negatife düşürebiliyordu
+  (aynı kelepçe eklendi); `severity_at()` sıfır uzunluklu arızada (`fault_len=0`) sıfıra bölme
+  riski taşıyordu (`fault_len = max(1, fault_len)` eklendi); `tren_hareketi()` tek istasyonlu
+  hatta `rng.integers(1,1)` ile ValueError verebiliyordu (`n_ist>1` koşulu eklendi).
 
 ## Docker (hafif docker-compose)
 
@@ -427,8 +444,6 @@ yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile d
   bile trenler birbirini etkilemiyor, gerçek sinyalizasyonun sağladığı asgari ayrım mesafesi
   temsil edilmiyor. **Sinyalizasyon etkisi** de en azından basit bir operasyonel değişken
   olarak (ör. rastgele "sinyal arızası" dönemlerinde hat genelinde hız/gecikme) eklenebilir.
-- Sentetik veri üretim modülü için doğrulama paketi: fiziksel aralık kontrolleri, sensörler
-  arası korelasyon kontrolleri, zaman sürekliliği kontrolleri, edge-case testleri.
 - Mevcut CNN+LSTM mimarisinin gerekçesini deneysel olarak göstermek üzere baseline
   karşılaştırması (Logistic/RandomForest → 1D-CNN → LSTM → final CNN+LSTM; accuracy/macro
   F1/inference süresi tek tabloda).
