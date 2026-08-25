@@ -52,3 +52,27 @@ Rastgele karıştırma yerine **zaman bazlı** bölünür: verinin ilk %80'i (kr
 eski) eğitim, son %20'si (daha yeni) test setidir. Bu hem veri sızıntısını (data leakage) önler
 hem de canlı akış simülasyonunu gerçekçi kılar — model yalnızca "geçmiş" veriyle eğitilmiş
 haldeyken "gelecekten" akan test verisini sınıflandırıyormuş gibi çalışır.
+
+Bu bölüm sadece **model eğitimi** için: `python rayli_veri_uret.py` çalıştırıldığında
+SEED=42 ile deterministik, tekrar üretilebilir train/test CSV'leri üretir — canlı akış
+mimarisinden (aşağıya bakın) TAMAMEN AYRIDIR ve ondan etkilenmez.
+
+## Canlı akış mimarisi (`rayli_canli_akis_sunucu.py --kaynak canli`, varsayılan)
+
+Yukarıdaki şema/sınıf mantığı canlı akışta da BİREBİR aynıdır (aynı üretim fonksiyonları
+kullanılır) — farklı olan sadece **ne zaman ve nasıl** üretildiği:
+
+- Sabit bir dosya yerine `rayli_veri_uret.bir_segment_uret()` sunucu içinde **bellek içinde,
+  canlı** çağrılır. Saat hiç durmadan ilerler; her ~300 tick'lik (10 dakika) "**segment**"
+  bitince trenler kaldığı fiziksel konum/hızdan devam eder (ışınlanmaz) ama arıza senaryosu
+  **taze rastgele** seçilir — `python rayli_veri_uret.py`'nin SEED=42'li deterministik
+  üretecinden tamamen bağımsız, seedsiz bir üreteç kullanılır.
+- Arıza yoğunluğu segment ölçeğinde çok daha düşük tutulur (`SEGMENT_EK_ARIZA_IHTIMALI`,
+  `SEGMENT_DEDICATED_ORAN` — `rayli_veri_uret.py`) — offline eğitim verisindeki %35 ihtimal
+  canlıda aynı anda gerçekçi olmayan sayıda arızalı dingile yol açardı.
+- Cevap anahtarı (`fault_type`/`fault_severity`) ayrı bir dosyadan değil, segment üretimiyle
+  eşzamanlı bellek içinde doldurulur; model girdisine (FEATURE_COLS) hiçbir zaman sızmaz —
+  yukarıdaki sızıntı önleme ilkesi (tahminden SONRA skorlama) canlı modda da aynen geçerlidir.
+- `--kaynak csv` ile eski davranışa (sabit `rayli_sistem_test_akis.csv`'yi baştan sona oynatma,
+  tekrar üretilebilir/test amaçlı) dönülebilir — testler (`testler/test_canli_akis.py`,
+  `conftest.py` fixture'ları) bu modu kullanmaya devam eder.

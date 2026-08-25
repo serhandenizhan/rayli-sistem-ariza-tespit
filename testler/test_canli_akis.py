@@ -365,3 +365,131 @@ def test_anomali_modeli_olmadan_sunucu_calisir():
         assert "anomali_skor" not in p["axles"][0] or p["axles"][0].get("anomali_skor") is None
     finally:
         modul.ANOMALI_MODEL_PATH = eski_yol
+
+
+# ------------------------------------------------------- canlı/sürekli üretim (--kaynak canli)
+# NOT: `sim` fixture'ı (ve dosyadaki diğer tüm testler) CSV kaynağını kullanır — sınıfın
+# varsayılanı bilinçli olarak "csv" bırakıldı (bkz. rayli_canli_akis_sunucu.py:AkisSimulatoru
+# docstring notu). Bu bölümdeki testler `kaynak="canli"`yi AÇIKÇA istiyor, ayrı bir fixture
+# kullanıyor — modül seviyesinde (`scope="module"`) çünkü segment üretimi (ağ okuma + model
+# yükleme) pahalı, testler arası paylaşılabilir.
+@pytest.fixture(scope="module")
+def canli_sim():
+    try:
+        return sunucu.AkisSimulatoru(baslangic_hizi=1000, histerezis=3, kaynak="canli", kayit=False)
+    except SystemExit as e:
+        pytest.skip(f"Simülatör kurulamadı: {e}")
+
+
+def test_canli_modda_ilk_segment_uretilir(canli_sim):
+    """Kurulum sonrası (constructor içindeki reset()) en az bir segment hazır olmalı."""
+    assert len(canli_sim.ticks) >= sunucu.veri_uret.SEGMENT_STEPS
+    assert len(canli_sim.axles) > 0
+
+
+def test_canli_modda_segment_gecisinde_state_korunur(canli_sim):
+    """Segment sonuna gelindiğinde `_segment_ekle()` çağrılınca pencere/histerezis state'i
+    SIFIRLANMAMALI (`reset()` çağrılmamalı) — 'kaldığı yerden devam' bunun üzerine kurulu."""
+    canli_sim.reset()
+    for _ in range(canli_sim.window + 5):
+        canli_sim.bir_tick_isle()
+    dolu_axle = next(a for a in canli_sim.axles if len(canli_sim.buffers[a]) == canli_sim.window)
+
+    # Segment sonuna kadar ilerlet, sınırı `_segment_ekle()` ile geç (dongu()'nun yaptığı gibi)
+    while canli_sim.tick_index < len(canli_sim.ticks):
+        canli_sim.bir_tick_isle()
+    tick_index_sinirda = canli_sim.tick_index
+    canli_sim._segment_ekle()
+    canli_sim.bir_tick_isle()
+
+    # reset() çağrılsaydı tick_index 0'a döner ve pencere boşalırdı — ikisi de OLMAMALI
+    assert tick_index_sinirda >= sunucu.veri_uret.SEGMENT_STEPS
+    assert canli_sim.tick_index > tick_index_sinirda
+    assert len(canli_sim.buffers[dolu_axle]) == canli_sim.window
+
+
+def test_canli_modda_reset_farkli_senaryo_uretir():
+    """İki ayrı 'Sıfırla', AYNI saatten başlayıp FARKLI bir arıza senaryosu üretmeli —
+    kullanıcının 'her bastığımda farklı dingillerde farklı arızalar çıksın' isteği."""
+    try:
+        s = sunucu.AkisSimulatoru(baslangic_hizi=1000, kaynak="canli", kayit=False)
+    except SystemExit as e:
+        pytest.skip(f"Simülatör kurulamadı: {e}")
+
+    # sample_id'ler her reset'te 0'dan başlar (aynı üretim sırasıyla), bu yüzden "hangi
+    # sample_id'ler arızalı" kümesi iki reset arasında pozisyonel olarak karşılaştırılabilir.
+    # Arıza yoğunluğu artık düşük olduğu için (gerçekçilik — bkz. madde 7) sadece ilk birkaç
+    # örneğe bakmak yanıltıcı olur (ikisi de "hepsi normal" çıkabilir); TÜM segmentteki
+    # arızalı örnek kümesi karşılaştırılır.
+    s.reset()
+    arizali_1 = frozenset(sid for sid, v in s.answer_key.items() if v != "normal")
+    baslangic_1 = s.timestamps[0]
+    s.reset()
+    arizali_2 = frozenset(sid for sid, v in s.answer_key.items() if v != "normal")
+    baslangic_2 = s.timestamps[0]
+
+    assert baslangic_1 == baslangic_2, "Sabit başlangıç saati korunmalı"
+    assert arizali_1 != arizali_2, "İki 'Sıfırla' birebir aynı arıza senaryosunu üretmemeli"
+
+
+def test_canli_modda_akis_hic_bitmez(canli_sim):
+    """`bitti` alanı canlı modda her zaman False olmalı — akış sonsuz, UI ilerleme çubuğu
+    segment-içi pozisyonu göstermeli."""
+    canli_sim.reset()
+    p = None
+    for _ in range(canli_sim.window + 2):
+        p = canli_sim.bir_tick_isle()
+    assert p is not None
+    assert p["bitti"] is False
+    assert p["toplam_tick"] == sunucu.veri_uret.SEGMENT_STEPS
+    assert 0 <= p["tick"] < sunucu.veri_uret.SEGMENT_STEPS
+
+
+def test_tren_sayisi_kademeli_esige_gore_artar():
+    """Uzun hatlarda kısa hatlara göre daha çok tren olmalı (kademeli eşik tablosu)."""
+    import istanbul_metro_agi as metro_ag
+    agac = metro_ag.yukle()
+    hatlar = agac["hatlar"]
+    uzun_hatlar = [k for k in metro_ag.SIMULASYON_HATLARI
+                  if k in hatlar and hatlar[k]["uzunluk_km"] >= 30.0]
+    kisa_hatlar = [k for k in metro_ag.SIMULASYON_HATLARI
+                  if k in hatlar and hatlar[k]["uzunluk_km"] < 10.0]
+    assert uzun_hatlar, "Test verisi: en az bir 30km+ hat bekleniyor"
+    for k in uzun_hatlar:
+        assert sunucu.veri_uret.hat_tren_sayisi(hatlar[k]) >= 4
+    for k in kisa_hatlar:
+        assert sunucu.veri_uret.hat_tren_sayisi(hatlar[k]) == 1
+
+
+def test_segment_uretimi_fiziksel_sureklilik():
+    """`bir_segment_uret()` art arda çağrıldığında bir trenin konumu/hızı segment sınırında
+    SIÇRAMAMALI (ışınlanmamalı) — bir önceki segmentin bitiş durumundan devam etmeli."""
+    import numpy as np
+    import istanbul_metro_agi as metro_ag
+    import rayli_veri_uret as vu
+
+    agac = metro_ag.yukle()
+    hatlar = {k: v for k, v in agac["hatlar"].items() if k in metro_ag.SIMULASYON_HATLARI}
+    kusurlar = vu.ray_kusurlari_uret(hatlar)
+    rng_local = np.random.default_rng(999)
+
+    df1, durumlar = vu.bir_segment_uret(hatlar, rng_local, vu.START_TIME, None, kusurlar, n_steps=50)
+    baslangic_2 = df1["timestamp"].max() + __import__("datetime").timedelta(seconds=vu.WINDOW_SEC)
+    df2, _ = vu.bir_segment_uret(hatlar, rng_local, baslangic_2, durumlar, kusurlar, n_steps=50)
+
+    ortak_tren = df1["train_id"].iloc[0]
+    son_1 = df1[df1.train_id == ortak_tren].sort_values("timestamp").iloc[-1]
+    ilk_2 = df2[df2.train_id == ortak_tren].sort_values("timestamp").iloc[0]
+    assert abs(ilk_2.track_km - son_1.track_km) < 0.5, "Tren segment sınırında ışınlanmamalı"
+
+
+def test_arizali_dingil_orani_gercekci(canli_sim):
+    """Aynı anda arızalı (yerleşik, normal olmayan) dingil oranı düşük olmalı — eskiden
+    (~%20+) kullanıcının 'gerçekçi değil' dediği yoğunluğun düzeldiğini doğrular."""
+    canli_sim.reset()
+    p = None
+    for _ in range(canli_sim.window + 30):
+        p = canli_sim.bir_tick_isle()
+    arizali = [a for a in p["axles"] if a.get("yerlesik") and a["yerlesik"] != "normal"]
+    oran = len(arizali) / len(p["axles"])
+    assert oran < 0.15, f"Aynı anda arızalı dingil oranı çok yüksek: %{oran*100:.1f}"

@@ -3,12 +3,18 @@
 # Uçtan uca çalıştırma: ortam kurulumu -> veri -> MODEL EĞİTİMİ -> etiketsiz akış seti
 # -> canlı akış API'si -> Next.js dashboard.
 #
+# Canlı akış VARSAYILAN OLARAK SÜREKLİ/RASTGELE üretir: saat hiç durmadan ilerler, her
+# ~10 dakikalık "segment" bitince trenler kaldığı fiziksel konumdan devam eder ama arıza
+# senaryosu TAZE rastgele seçilir (aynı script asla tekrar etmez). --kaynak-csv ile eski,
+# tekrar üretilebilir/sabit dosya davranışına dönülebilir.
+#
 # Kullanım:
 #   ./calistir.sh                 # her şeyi yap (modeli sıfırdan eğitir)
 #   ./calistir.sh --egitmeden     # mevcut model/rayli_cnn_lstm_model.pt ile devam et
 #   ./calistir.sh --veri-uret     # sentetik veriyi de yeniden üret
 #   ./calistir.sh --hiz 10        # simülasyon hız çarpanı (varsayılan 5x)
 #   ./calistir.sh --kor-mod       # cevap anahtarını arayüze hiç gönderme
+#   ./calistir.sh --kaynak-csv    # sabit/tekrar üretilebilir test verisini oynat (eski davranış)
 #   ./calistir.sh --testsiz       # birim testlerini atla
 #   API_PORT=8001 WEB_PORT=3001 ./calistir.sh   # portlar meşgulse alternatif port
 #   NLP_API_PORT=8002 ./calistir.sh             # NLP servisi de meşgulse
@@ -25,7 +31,7 @@ API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-3000}"
 NLP_API_PORT="${NLP_API_PORT:-8001}"
 
-EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""; TEST=1; NLP=1
+EGIT=1; VERI_URET=0; HIZ=5; KOR_MOD=""; TEST=1; NLP=1; KAYNAK=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --egitmeden) EGIT=0; shift ;;
@@ -33,6 +39,7 @@ while [[ $# -gt 0 ]]; do
     --testsiz) TEST=0; shift ;;
     --hiz) HIZ="$2"; shift 2 ;;
     --kor-mod) KOR_MOD="--kor-mod"; shift ;;
+    --kaynak-csv) KAYNAK="--kaynak csv"; shift ;;
     --nlpsiz) NLP=0; shift ;;
     *) echo "Bilinmeyen seçenek: $1"; exit 1 ;;
   esac
@@ -140,7 +147,7 @@ fi
 
 # -------------------------------------------------------------- 6) akış API'si
 baslik "6/8  Canlı akış API'si (:$API_PORT)"
-"$PY" rayli_canli_akis_sunucu.py --port "$API_PORT" --hiz "$HIZ" $KOR_MOD &
+"$PY" rayli_canli_akis_sunucu.py --port "$API_PORT" --hiz "$HIZ" $KOR_MOD $KAYNAK &
 API_PID=$!
 temizle() {
   echo -e "\nKapatılıyor…"

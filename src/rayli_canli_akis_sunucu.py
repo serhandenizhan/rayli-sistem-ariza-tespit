@@ -3,22 +3,29 @@ Canlı akış (live streaming) simülasyon sunucusu.
 
 Ne yapar?
 ---------
-1. Akış kaynağından (varsayılan: `data/rayli_sistem_test_akis.csv` ETİKETSİZ test verisi)
-   zaman damgasına göre "tick"ler halinde veri okur ve gerçekçi bir gecikmeyle yayınlar.
-   Kaynak `--kaynak kafka` ile Kafka topic'i de olabilir (bkz. rayli_kafka.py).
+1. Akış kaynağı **varsayılan olarak `canli`**: sabit bir dosya yerine `rayli_veri_uret.
+   bir_segment_uret()` sunucu içinde CANLI çağrılır. Saat hiç durmadan ilerler; her ~300
+   tick'lik (10 dk) "segment" bitince trenler kaldığı fiziksel konumdan/hızdan devam eder ama
+   arıza senaryosu TAZE RASTGELE seçilir — aynı script asla tekrar etmez. `--kaynak csv` ile
+   eski davranışa (sabit `data/rayli_sistem_test_akis.csv` dosyasını baştan sona oynatma,
+   tekrar üretilebilir/test amaçlı) dönülebilir; `--kaynak kafka` ile Kafka topic'i okunur
+   (bkz. rayli_kafka.py).
 2. Her dingil için son WINDOW (=10) örneği kayan pencerede tutar; pencere dolduğunda
    çok görevli CNN+LSTM modeliyle ARIZA TİPİNİ ve ARIZA ŞİDDETİNİ tahmin eder.
 3. HİSTEREZİS: bir dingilin "yerleşik" (kararlı) durumu, aynı sınıf üst üste N tick boyunca
    tahmin edilmedikçe değişmez. Tek tick'lik sıçramalar alarm üretmez.
 4. Tahmin üretildikten SONRA, ayrı tutulan cevap anahtarıyla eşleştirip anlık doğruluk /
    karmaşıklık matrisi / sınıf bazlı metrikleri hesaplar. Model bu etiketi asla görmez.
+   `canli` modda cevap anahtarı sabit bir dosyadan değil, segment üretimiyle EŞZAMANLI
+   (bellek içinde) doldurulur — mekanizma (tahminden sonra eşleştirme) aynıdır.
 5. Sonucu Server-Sent Events (SSE) ile web arayüzüne (Next.js dashboard) yayınlar.
 
 Çalıştırma (src/ klasöründen):
-    python rayli_canli_akis_sunucu.py                 # http://127.0.0.1:8000
+    python rayli_canli_akis_sunucu.py                 # http://127.0.0.1:8000, sürekli/canlı üretim
     python rayli_canli_akis_sunucu.py --hiz 10        # 10x hızlı simülasyon
     python rayli_canli_akis_sunucu.py --kor-mod       # cevap anahtarını arayüze HİÇ gönderme
     python rayli_canli_akis_sunucu.py --histerezis 3  # N ardışık tick kuralı
+    python rayli_canli_akis_sunucu.py --kaynak csv    # sabit/tekrar üretilebilir test verisi
     python rayli_canli_akis_sunucu.py --kaynak kafka  # veriyi Kafka'dan oku
     python rayli_canli_akis_sunucu.py --konsol        # arayüz olmadan konsola yaz
 
@@ -46,6 +53,8 @@ from rayli_model import (FEATURE_COLS, GROUP_COLS, SEVERITY_CLASSES,
                          load_model_checkpoint, rebuild_scaler_and_encoder)
 from rayli_kayit import Kayitci
 from rayli_anomali import load_anomali_checkpoint, yeniden_yapilandirma_hatasi, anomali_skoru_normalize
+import istanbul_metro_agi as metro_ag
+import rayli_veri_uret as veri_uret
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "..", "data")
@@ -122,6 +131,11 @@ class AkisSimulatoru:
                  kaynak="csv", kafka_sunucu=None, kafka_topic=None,
                  belirsizlik_esigi=VARSAYILAN_BELIRSIZLIK_ESIGI, kayit=True,
                  otomatik_basla=False):
+        # NOT: sınıfın kendi varsayılanı BİLİNÇLİ OLARAK "csv" — testler (`testler/conftest.py`,
+        # `test_canli_akis.py`) `AkisSimulatoru(...)`'yu kaynak belirtmeden, bu varsayılana
+        # güvenerek çağırıyor. "canli" varsayılanı yalnızca CLI seviyesinde (`main()`'deki
+        # `--kaynak` argparse default'u) verilir — böylece gerçek kullanım sürekli/canlı modda
+        # başlar ama mevcut hiçbir test etkilenmez.
         if not os.path.exists(MODEL_PATH):
             raise SystemExit(f"Model bulunamadı: {MODEL_PATH}\nÖnce 'python rayli_dl_egitim.py' çalıştırın.")
 
@@ -146,20 +160,31 @@ class AkisSimulatoru:
         self.belirsizlik_esigi = float(belirsizlik_esigi)
         self.kaynak = kaynak
 
-        df = self._akis_verisi_oku(kaynak, kafka_sunucu, kafka_topic)
-        assert "fault_type" not in df.columns, "Akış verisinde etiket kolonu bulunmamalı!"
-        df["axle_key"] = df.apply(_axle_key, axis=1)
-        df = df.sort_values(["timestamp", "axle_key"]).reset_index(drop=True)
-        self.ticks = [g for _, g in df.groupby("timestamp", sort=True)]
-        self.timestamps = [str(g["timestamp"].iloc[0]) for g in self.ticks]
-        self.axles = sorted(df["axle_key"].unique().tolist())
-        self.axle_hat = {r["axle_key"]: r.get("line_id") for _, r in
-                         df.drop_duplicates("axle_key").iterrows()}
+        self.ticks = []
+        self.timestamps = []
+        self.answer_key = {}
+        self.severity_key = {}
 
-        # --- Cevap anahtarı: SADECE sunucu tarafında, tahminden SONRA skorlamak için ---
-        key_df = pd.read_csv(KEY_CSV)
-        self.answer_key = dict(zip(key_df["sample_id"], key_df["fault_type"]))
-        self.severity_key = dict(zip(key_df["sample_id"], key_df["fault_severity"]))
+        if kaynak == "canli":
+            # Canlı/sürekli üretim: sabit dosya yerine `rayli_veri_uret.bir_segment_uret()`
+            # bellek içinde çağrılır — bkz. `_canli_kurulum`/`_segment_ekle`. `self.axles`/
+            # `self.axle_hat` orada hesaplanır; `self.ticks` ilk kez `reset()` içinde dolar.
+            self._canli_kurulum()
+        else:
+            df = self._akis_verisi_oku(kaynak, kafka_sunucu, kafka_topic)
+            assert "fault_type" not in df.columns, "Akış verisinde etiket kolonu bulunmamalı!"
+            df["axle_key"] = df.apply(_axle_key, axis=1)
+            df = df.sort_values(["timestamp", "axle_key"]).reset_index(drop=True)
+            self.ticks = [g for _, g in df.groupby("timestamp", sort=True)]
+            self.timestamps = [str(g["timestamp"].iloc[0]) for g in self.ticks]
+            self.axles = sorted(df["axle_key"].unique().tolist())
+            self.axle_hat = {r["axle_key"]: r.get("line_id") for _, r in
+                             df.drop_duplicates("axle_key").iterrows()}
+
+            # --- Cevap anahtarı: SADECE sunucu tarafında, tahminden SONRA skorlamak için ---
+            key_df = pd.read_csv(KEY_CSV)
+            self.answer_key = dict(zip(key_df["sample_id"], key_df["fault_type"]))
+            self.severity_key = dict(zip(key_df["sample_id"], key_df["fault_severity"]))
 
         # Ray kusuru noktaları: rail_crack alarmlarını SABİT KUSURA bağlamak için.
         # Aynı kusur her tren geçişinde yeniden tespit edilir; bunları ayrı ayrı alarm gibi
@@ -190,8 +215,71 @@ class AkisSimulatoru:
                              "Önce 'python rayli_etiketsiz_uret.py' çalıştırın.")
         return pd.read_csv(STREAM_CSV, parse_dates=["timestamp"])
 
+    # ------------------------------------------------------- canlı/sürekli üretim
+    def _canli_kurulum(self):
+        """`kaynak=="canli"` iken bir kez çalışır: tren/dingil listesini (ağ sabit olduğu için
+        segmentler arası DEĞİŞMEZ) ve üretim üretecini hazırlar. Segment üretimi `reset()`
+        (ilk segment) ve `_segment_ekle()` (sonraki segmentler, `dongu()` tarafından tetiklenir)
+        ile yapılır."""
+        metro_agac = metro_ag.yukle()
+        self._canli_hatlar = {k: v for k, v in metro_agac["hatlar"].items()
+                              if k in metro_ag.SIMULASYON_HATLARI}
+        # Seedsiz üretec: her segment TAZE rastgele olsun — offline main()'in SEED=42'li
+        # deterministik üretiminden TAMAMEN BAĞIMSIZ (model eğitimi hâlâ tekrar üretilebilir
+        # kalır, bu sadece canlı demoyu etkiler). Modülün kendi global `rng`'sini de aynı
+        # nesneye bağlıyoruz ki sensör gürültüsü (base_row/apply_fault) de aynı canlı akışın
+        # parçası olsun.
+        self._canli_rng = np.random.default_rng()
+        veri_uret.rng = self._canli_rng
+        self._segment_saati = veri_uret.START_TIME       # sabit başlangıç (her "Sıfırla" aynı saat)
+        self._hareket_durumlari = None
+        self._sonraki_sample_id = 0
+
+        series_list = veri_uret.build_series_list(self._canli_hatlar)
+        self.axles = sorted({f"{tid}/{wid}-{aid}" for _, tid, wid, aid in series_list})
+        self.axle_hat = {f"{tid}/{wid}-{aid}": kod for kod, tid, wid, aid in series_list}
+
+    def _segment_ekle(self):
+        """Yeni bir segment (`SEGMENT_STEPS` tick) üretip `self.ticks`/`self.timestamps`'e
+        EKLER (üzerine yazmaz) — trenler bir önceki segmentin bitiş durumundan (fiziksel
+        konum/hız/bekleme) devam eder, arıza senaryosu taze rastgele seçilir. Pencere/
+        histerezis state'i buradan ETKİLENMEZ (`reset()` çağrılmaz) — "kaldığı yerden devam"ın
+        karşılığı budur."""
+        df, self._hareket_durumlari = veri_uret.bir_segment_uret(
+            self._canli_hatlar, self._canli_rng, self._segment_saati,
+            self._hareket_durumlari, self.ray_kusurlari, n_steps=veri_uret.SEGMENT_STEPS)
+        self._segment_saati = df["timestamp"].max() + pd.Timedelta(seconds=veri_uret.WINDOW_SEC)
+
+        df["axle_key"] = df.apply(_axle_key, axis=1)
+        df = df.sort_values(["timestamp", "axle_key"]).reset_index(drop=True)
+        n = len(df)
+        df["sample_id"] = range(self._sonraki_sample_id, self._sonraki_sample_id + n)
+        self._sonraki_sample_id += n
+        # Cevap anahtarı burada, tahminden ÖNCE değil ayrı bir sözlükte tutulur — tıpkı csv
+        # modunda olduğu gibi (bkz. modül docstring'i: "Model bu etiketi asla görmez").
+        for sid, ftype, fsev in zip(df["sample_id"], df["fault_type"], df["fault_severity"]):
+            self.answer_key[sid] = ftype
+            self.severity_key[sid] = fsev
+        df = df.drop(columns=["fault_type", "fault_severity"])
+
+        yeni_ticks = [g for _, g in df.groupby("timestamp", sort=True)]
+        self.ticks.extend(yeni_ticks)
+        self.timestamps.extend(str(g["timestamp"].iloc[0]) for g in yeni_ticks)
+
     # ------------------------------------------------------------------ durum
     def reset(self):
+        if self.kaynak == "canli":
+            # Tam sıfırlama: sabit başlangıç saatine dön, TAZE rastgele bir ilk segment üret.
+            # Pencere/histerezis/DB oturumu aşağıda zaten sıfırlanıyor.
+            self.ticks = []
+            self.timestamps = []
+            self.answer_key = {}
+            self.severity_key = {}
+            self._sonraki_sample_id = 0
+            self._segment_saati = veri_uret.START_TIME
+            self._hareket_durumlari = None
+            self._segment_ekle()
+
         self.tick_index = 0
         self.buffers = {a: deque(maxlen=self.window) for a in self.axles}
         self.yerlesik_sinif = {a: None for a in self.axles}      # histerezis sonrası kararlı sınıf
@@ -446,6 +534,14 @@ class AkisSimulatoru:
             "metrikler": self._metrikler(),
         }
 
+        if self.kaynak == "canli":
+            # Akış sonsuz olduğu için "toplam"/"bitti" artık dosya uzunluğunu değil, SEGMENT
+            # içindeki pozisyonu ifade eder — arayüzdeki ilerleme çubuğu bunu tüketiyor.
+            payload["toplam_tick"] = veri_uret.SEGMENT_STEPS
+            payload["tick"] = self.tick_index % veri_uret.SEGMENT_STEPS
+            payload["bitti"] = False
+            payload["segment_no"] = self.tick_index // veri_uret.SEGMENT_STEPS
+
         # Periyodik metrik anlık görüntüsü (geçmişe dönük trend analizi için)
         if self.kayitci and self.tick_index % METRIK_KAYIT_ARALIGI == 0:
             self.kayitci.metrik_yaz(self.tick_index, payload["metrikler"], len(aktif_alarmlar))
@@ -539,10 +635,10 @@ class AkisSimulatoru:
             "group_cols": GROUP_COLS,
             "window": self.window,
             "tick_seconds": TICK_SECONDS,
-            "toplam_tick": len(self.ticks),
+            "toplam_tick": veri_uret.SEGMENT_STEPS if self.kaynak == "canli" else len(self.ticks),
             "kor_mod": self.kor_mod,
             "oynatiliyor": self.oynatiliyor,
-            "tick": self.tick_index,
+            "tick": self.tick_index % veri_uret.SEGMENT_STEPS if self.kaynak == "canli" else self.tick_index,
             "histerezis": self.histerezis,
             "belirsizlik_esigi": self.belirsizlik_esigi,
             "anomali_modeli_var": self.anomali_model is not None,
@@ -565,9 +661,20 @@ def create_app(sim: AkisSimulatoru):
     aboneler: "set[asyncio.Queue]" = set()
 
     async def dongu():
-        """Arka plan görevi: hız çarpanına göre tick üretip abonelere yayınlar."""
+        """Arka plan görevi: hız çarpanına göre tick üretip abonelere yayınlar.
+
+        `kaynak=="canli"` iken segment sonuna gelindiğinde (`tick_index >= len(ticks)`) akış
+        DURMAZ — yeni bir segment üretilip (`_segment_ekle`) devam edilir; pencere/histerezis
+        state'i ve DB oturumu korunur (`reset()` çağrılmaz). Diğer kaynaklarda (csv/kafka)
+        davranış değişmez: segment sonunda akış duraklamış gibi bekler."""
         while True:
-            if not sim.oynatiliyor or sim.tick_index >= len(sim.ticks):
+            if not sim.oynatiliyor:
+                await asyncio.sleep(0.2)
+                continue
+            if sim.tick_index >= len(sim.ticks):
+                if sim.kaynak == "canli":
+                    await asyncio.to_thread(sim._segment_ekle)
+                    continue
                 await asyncio.sleep(0.2)
                 continue
             payload = await asyncio.to_thread(sim.bir_tick_isle)
@@ -718,9 +825,14 @@ def create_app(sim: AkisSimulatoru):
 
 
 def konsol_modu(sim: AkisSimulatoru):
-    """Arayüz olmadan, konsola satır satır akış (hızlı doğrulama için)."""
+    """Arayüz olmadan, konsola satır satır akış (hızlı doğrulama için).
+
+    `kaynak=="canli"` iken sonsuza dek sürer (Ctrl+C ile durdurulur) — segment sonunda
+    `dongu()`'daki aynı mantıkla yeni bir segment üretilip devam edilir."""
     import time
     while True:
+        if sim.kaynak == "canli" and sim.tick_index >= len(sim.ticks):
+            sim._segment_ekle()
         p = sim.bir_tick_isle()
         if p is None:
             break
@@ -754,7 +866,9 @@ def main():
     ap.add_argument("--kayitsiz", action="store_true", help="SQLite kaydını kapat")
     ap.add_argument("--otomatik-basla", action="store_true",
                     help="Akışı duraklatılmış değil, doğrudan oynatarak başlat")
-    ap.add_argument("--kaynak", choices=["csv", "kafka"], default="csv", help="Akış veri kaynağı")
+    ap.add_argument("--kaynak", choices=["canli", "csv", "kafka"], default="canli",
+                    help="Akış veri kaynağı: canli (varsayılan, sürekli/rastgele üretim), "
+                         "csv (sabit dosya, tekrar üretilebilir test için), kafka")
     ap.add_argument("--kafka-sunucu", default="localhost:9092")
     ap.add_argument("--kafka-topic", default="rayli-sensor")
     ap.add_argument("--konsol", action="store_true", help="Web sunucusu yerine konsola yaz")
@@ -765,11 +879,18 @@ def main():
                          kafka_topic=args.kafka_topic, belirsizlik_esigi=args.belirsizlik,
                          kayit=not args.kayitsiz, otomatik_basla=args.otomatik_basla)
     print(f"Model yüklendi   : {MODEL_PATH}")
-    print(f"Akış kaynağı     : {args.kaynak} ({len(sim.ticks)} tick x {len(sim.axles)} dingil)")
+    if args.kaynak == "canli":
+        print(f"Akış kaynağı     : canli (sürekli/rastgele üretim, segment={veri_uret.SEGMENT_STEPS} "
+             f"tick, {len(sim.axles)} dingil, başlangıç {veri_uret.START_TIME:%H:%M})")
+    else:
+        print(f"Akış kaynağı     : {args.kaynak} ({len(sim.ticks)} tick x {len(sim.axles)} dingil)")
     print(f"Histerezis       : {sim.histerezis} ardışık tick")
     print(f"Belirsizlik eşiği: {sim.belirsizlik_esigi} (normalize entropi)")
     print(f"Kayıt (SQLite)   : {'kapalı' if args.kayitsiz else 'data/rayli_kayit.db'}")
-    print(f"Cevap anahtarı   : {'KULLANILMIYOR (kör mod)' if args.kor_mod else KEY_CSV}")
+    if args.kaynak == "canli":
+        print("Cevap anahtarı   : canlı üretilir (segment üretimiyle eşzamanlı)")
+    else:
+        print(f"Cevap anahtarı   : {'KULLANILMIYOR (kör mod)' if args.kor_mod else KEY_CSV}")
 
     if args.konsol:
         sim.oynatiliyor = True          # konsol modu kendi döngüsünü sürer

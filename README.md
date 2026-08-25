@@ -12,8 +12,13 @@ ve gerçek zamanlı ağ haritalı dashboard'a kadar tüm adımları içerir.
 
 - **Gerçek ağ**: 19 hat, 216 gerçek istasyon, gerçek koordinatlar; **Metro İstanbul
   işletmesindeki 17 yolcu hattının tamamında** tren işliyor (M1A, M1B, M2, M3, M4, M5, M6, M7,
-  M8, M9, T1, T3, T4, T5, F1, F2, F4) — 24 tren, 96 dingil (uzun hatlarda 2 tren).
-  Marmaray ve M11 kapsam dışıdır (işletmecisi Ulaştırma Bakanlığı, Metro İstanbul değil)
+  M8, M9, T1, T3, T4, T5, F1, F2, F4) — hat uzunluğuna göre kademeli tren sayısı (canlı
+  demoda 112 dingil). Marmaray ve M11 kapsam dışıdır (işletmecisi Ulaştırma Bakanlığı, Metro
+  İstanbul değil)
+- **Sürekli/rastgele canlı akış**: sabit bir senaryoyu tekrar oynatmaz — saat hiç durmadan
+  ilerler, trenler kaldığı fiziksel konumdan devam eder, her ~10 dakikalık bölümde taze
+  rastgele bir arıza senaryosu üretilir; "Sıfırla" aynı saatten başlar ama her seferinde
+  farklı bir senaryo oynatır
 - **Gerçekçi sefer**: istasyonlar arası hızlanma/frenleme, istasyonda bekleme, terminalde dönüş
 - **Çok görevli model**: arıza tipi (6 sınıf) + arıza şiddeti (4 seviye) tek gövdeden
 - **Sızıntısız doğrulama**: akan veride etiket yok; skorlama ayrı cevap anahtarıyla, tahminden sonra
@@ -253,13 +258,15 @@ Panolar:
 - **Birim testleri**: pytest sonuçları, açıklamalarıyla birlikte
 - **Eğitim özeti**: loss/accuracy eğrileri ve offline referans skorları
 
-Canlı akış sonunda ölçülen skorlar offline test raporuyla örtüşür (tip ~%98.7, şiddet ~%95.5) —
-canlı hattın modeli ve ölçeklemeyi doğru kurduğunun uçtan uca kanıtı.
+`--kaynak csv` modunda (sabit test seti) akış sonunda ölçülen skorlar offline test raporuyla
+örtüşür (tip ~%98.7, şiddet ~%95.5) — canlı hattın modeli ve ölçeklemeyi doğru kurduğunun
+uçtan uca kanıtı. Varsayılan `--kaynak canli` modunda akış sürekli olduğu için "sonunda" diye
+bir an yoktur; doğruluk metrikleri çevrimiçi (Doğrulama sekmesinde) canlı izlenir.
 
 ## Testler
 
 ```bash
-./testleri_calistir.sh              # 86 test
+./testleri_calistir.sh              # 94 test
 ./testleri_calistir.sh -k metro     # sadece ağ testleri
 ```
 

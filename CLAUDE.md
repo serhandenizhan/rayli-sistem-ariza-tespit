@@ -39,6 +39,8 @@ python rayli_dl_egitim.py       # modeli SIFIRDAN eğitir, test eder -> ../model
 python rayli_tahmin.py          # kayıtlı modeli RETRAIN ETMEDEN yükler, test setini değerlendirir
 python rayli_tahmin.py --n 20   # ilk 20 sekans için satır satır gerçek/tahmin karşılaştırması
 python rayli_etiketsiz_uret.py  # test setini etiketsiz akış + cevap anahtarı olarak ayırır
+python rayli_canli_akis_sunucu.py            # VARSAYILAN: sürekli/rastgele canlı üretim
+python rayli_canli_akis_sunucu.py --kaynak csv  # eski davranış: sabit/tekrar üretilebilir dosya
 python rayli_canli_akis_sunucu.py --konsol   # canlı akışı arayüzsüz, konsolda izle
 python rayli_canli_akis_sunucu.py --histerezis 5   # N ardışık tick kuralı
 python rayli_canli_akis_sunucu.py --otomatik-basla # duraklatılmış değil, oynatarak başla
@@ -46,7 +48,7 @@ python istanbul_metro_agi.py    # İBB açık verisinden metro ağı modelini ku
 python istanbul_metro_agi.py --indir   # ham GeoJSON'ları İBB'den yeniden indir
 python rayli_kafka.py --uret    # etiketsiz akışı Kafka topic'ine yayınla (broker gerekir)
 
-./testleri_calistir.sh          # pytest (74 test) + results/test_ozeti.json üretir
+./testleri_calistir.sh          # pytest (94 test) + results/test_ozeti.json üretir
 python rayli_kayit.py --ozet    # SQLite'daki alarm geçmişini terminalden sorgula
 ```
 
@@ -83,6 +85,16 @@ yapılabilir.
 - `rayli_veri_uret.py` — sentetik veri üretim scripti, `data/` klasörünü doldurur. Ağ modelini
   (`istanbul_metro_agi`) kullanır: trenler gerçek hatlarda, gerçek istasyon dizisinde,
   gerçekçi sefer profiliyle (hızlanma/frenleme/istasyonda bekleme/terminalde dönüş) hareket eder.
+  `main()` (offline, `python rayli_veri_uret.py`) SEED=42 ile deterministik train/test CSV'leri
+  üretir — model eğitimi için, DEĞİŞMEDİ. **Ayrıca** canlı akış sunucusu için "segment" üretim
+  katmanı eklendi (25 Ağu 2026): `bir_segment_uret(hatlar, rng, baslangic_zamani,
+  hareket_durumlari, kusurlar, n_steps=SEGMENT_STEPS)` — `tren_hareketi()`'nin `baslangic_durumu`
+  parametresiyle (bir önceki segmentin bitiş durumu: konum/hız/yön/bekleme) chunk'lanabilir hale
+  getirilmiş hâlini ve `segment_dedicated_episodes()`'i (düşük yoğunluklu garanti arıza) kullanır.
+  Segment üretimi çağıranın verdiği (seedsiz) `rng` ile çalışır — offline `main()`'in SEED=42'li
+  `rng`'sinden bağımsız, HER ÇAĞRIDA taze rastgele. `hat_tren_sayisi()` artık kademeli bir eşik
+  tablosuna (`TREN_ESIKLERI`) göre çalışır (<10km→1, 10-20km→2, 20-30km→3, ≥30km→4 tren) —
+  eskiden tek eşik (15km→2) vardı, filo gerçekçilik için büyütüldü.
 - `rayli_model.py` — **tek gerçek kaynak (single source of truth)**: model mimarisi (`CNNLSTM`
   sınıfı), `SeqDataset`, ve paylaşılan sabitler (`FEATURE_COLS`, `GROUP_COLS`, `WINDOW=10`,
   `STRIDE=2`). Hem eğitim hem tahmin scripti bunu import eder. **Bu dosyada mimariyi
@@ -100,9 +112,25 @@ yapılabilir.
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
-  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca 96 dingili tek batch'te
+  tick yayınlar, her dingil için 10'luk kayan pencere tutar, dolunca tüm dingilleri tek batch'te
   modele sokar; **tahminden sonra** cevap anahtarıyla eşleştirip çevrimiçi metrik hesaplar.
   Ölçekleme/model yükleme mantığı `rayli_model.py`'den gelir — tahmin scriptiyle birebir aynıdır.
+  **`--kaynak canli` (VARSAYILAN, 25 Ağu 2026):** sabit dosya yerine `rayli_veri_uret.
+  bir_segment_uret()` bellek içinde çağrılır — saat hiç durmadan ilerler, her `SEGMENT_STEPS`
+  (300) tick'te bir yeni segment üretilir; `dongu()` segment sonuna geldiğinde `reset()`
+  ÇAĞIRMAZ, `_segment_ekle()` ile devam eder — pencere/histerezis state'i ve DB `calistirma`
+  oturumu KORUNUR ("kaldığı yerden devam"). Kullanıcının "Sıfırla"sı (`reset()`) hâlâ tam
+  sıfırlama yapar ama sabit `START_TIME`'a dönüp TAZE rastgele bir ilk segment üretir — her
+  "Sıfırla" aynı saatten başlar, farklı bir senaryo oynatır. Cevap anahtarı artık dosyadan değil
+  `_segment_ekle()` içinde segment üretimiyle eşzamanlı doldurulur (`sample_id` sırayla
+  atanır). `--kaynak csv` ile eski (sabit dosya, tekrar üretilebilir) davranışa dönülebilir —
+  **sınıfın kendi `kaynak` varsayılanı bilinçli olarak `"csv"` bırakıldı** (testler buna
+  güveniyor), `"canli"` varsayılanı yalnızca CLI (`main()`'deki argparse) seviyesinde.
+  `payload["tick"]`/`["toplam_tick"]`/`["bitti"]` canlı modda segment-içi anlama çekilir
+  (`tick_index % SEGMENT_STEPS`), `bitti` her zaman `False` (akış sonsuz); yeni `segment_no`
+  alanı kaçıncı bölümde olunduğunu gösterir. `testler/test_canli_akis.py`'deki `canli_sim`
+  fixture'ı bu modu ayrıca test eder (segment geçişinde state korunuyor mu, iki "Sıfırla" farklı
+  senaryo mu üretiyor, arızalı dingil oranı gerçekçi mi vb.).
   **Histerezis**: bir sınıf N ardışık tick tahmin edilmeden "yerleşik" olmaz (`yerlesik` alanı);
   alarm günlüğü yalnızca yerleşik değişimlerde kayıt atar.
   **Belirsizlik**: her tahmin için softmax dağılımının normalize entropisi hesaplanır
@@ -272,9 +300,12 @@ görünüyordu.
   hem test zaman diliminde en az birkaç örnekle temsil edilmesini garanti eder — bu olmadan
   bazı sınıflar rastgele yerleşimden dolayı test setinde hiç görünmeyebilir (bu proje daha önce
   bu hatayı yaşadı, düzeltildi).
-- Canlı akışta kullanılan `rayli_sistem_test_akis.csv` dosyasında **etiket kolonu yoktur**;
-  etiketler ayrı cevap anahtarında tutulur ve yalnızca tahmin üretildikten SONRA skorlamak için
-  okunur. Bu ayrımı bozma — akış dosyasına etiket geri eklemek sızıntı demektir.
+- Canlı akışta (`--kaynak csv` modunda) kullanılan `rayli_sistem_test_akis.csv` dosyasında
+  **etiket kolonu yoktur**; etiketler ayrı cevap anahtarında tutulur ve yalnızca tahmin
+  üretildikten SONRA skorlamak için okunur. Bu ayrımı bozma — akış dosyasına etiket geri
+  eklemek sızıntı demektir. Varsayılan `--kaynak canli` modunda aynı ilke bellek içinde
+  korunur: `_segment_ekle()` üretilen satırlardan `fault_type`/`fault_severity`'yi ayrı bir
+  cevap anahtarı sözlüğüne taşıyıp `self.ticks`'e eklemeden ÖNCE düşürür.
 - `fault_severity` kolonu bir yardımcı/açıklayıcı etikettir, **model girişi (feature) olarak
   KULLANILMAMALI** — hedef değişkenle (`fault_type`) doğrudan ilişkili olduğu için sızıntıya yol
   açar. `FEATURE_COLS` listesinde zaten yok; yeni özellik eklerken bu ayrımı koru.
@@ -300,7 +331,9 @@ Sentetik veri gerçekçi ama tam fiziksel doğrulukta değildir; ilerideki iyile
 - İstasyon sırası kaynak veriden değil, coğrafi konumlardan türetiliyor (bkz.
   `istanbul_metro_agi.py`); şubeli hatlarda (M2'nin Seyrantepe kolu) şube, ana hattın
   arasına yerleşiyor.
-- Hat başına tek tren var ve trenler birbirini etkilemiyor (sinyalizasyon/takip mesafesi yok).
+- Hat uzunluğuna göre kademeli sayıda tren var (`TREN_ESIKLERI`, 25 Ağu 2026'da 1→2/3/4'e
+  çıkarıldı) ama trenler birbirini HÂLÂ etkilemiyor — gerçek bir sinyalizasyon/takip mesafesi
+  (headway) modeli yok; bu, "Sıradaki olası görevler"de ayrı bir madde olarak duruyor.
 
 ## Model performansı (referans — `results/` içinde detaylı)
 
@@ -331,7 +364,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **86 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **94 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -346,8 +379,13 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
 - `test_model.py` — iki başlıklı çıktı, checkpoint alanları, scaler yeniden kurulumu, sekans
   hizası, **doğruluk regresyon eşiği**
 - `test_canli_akis.py` — pencere dolmadan tahmin yok, histerezis davranışı, kör modda sızıntı
-  olmaması, reset, canlı doğruluk eşiği, akışın 300/300 tamamlanması, **belirsizlik**
-  (entropi hesabı, belirsiz tahminlerin alarm üretmemesi), **alarm süresi/önceliği**
+  olmaması, reset, canlı doğruluk eşiği, akışın 300/300 tamamlanması (CSV modu), **belirsizlik**
+  (entropi hesabı, belirsiz tahminlerin alarm üretmemesi), **alarm süresi/önceliği**.
+  **`canli_sim` fixture'ı** (`--kaynak canli`) ayrıca: segment geçişinde pencere/histerezis
+  state'inin korunduğu, iki "Sıfırla"nın aynı saatten ama FARKLI arıza senaryosu ürettiği,
+  `bitti`'nin hep `False` olduğu, arızalı dingil oranının gerçekçi (%15 altı) kaldığı, tren
+  sayısının kademeli eşiğe uyduğu, `bir_segment_uret()`'in segment sınırında treni
+  "ışınlamadığı" (fiziksel süreklilik).
 - `test_kayit.py` — SQLite şeması, alarm/metrik yazma, dingil/hat/sınıf özet sorguları
 - `test_anomali.py` — autoencoder şekli/hata hesabı, checkpoint yükleme, normal pencerelerde
   düşük yanlış alarm, bilinen arızaların normalden anlamlı ayrışması (mekanizma doğrulaması);
@@ -374,16 +412,34 @@ yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile d
 - Sıcaklık sensörlerine otokorelasyon (şu an bağımsız gürültü; gerçekte yumuşak trend gösterir).
 - Kaynak veri tazeliği: İBB anlık görüntüsü bazı hatlarda eski etapları gösteriyor
   (M9 yalnızca 4 istasyon, M3 Bakırköy uzatması yok, M11 Halkalı etabı "inşaat").
-  Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir.
+  Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir. İstasyon SIRA mantığının
+  (2-opt TSP türetimi) tüm hatlarda gerçek sırayla örtüştüğü ek doğrulama ile teyit edilebilir
+  (şu an sadece M4/M2/T1 testlerle doğrulanmış).
+- Trenler arası **takip mesafesi (headway)** modeli — şu an hat başına birden fazla tren olsa
+  bile trenler birbirini etkilemiyor, gerçek sinyalizasyonun sağladığı asgari ayrım mesafesi
+  temsil edilmiyor. **Sinyalizasyon etkisi** de en azından basit bir operasyonel değişken
+  olarak (ör. rastgele "sinyal arızası" dönemlerinde hat genelinde hız/gecikme) eklenebilir.
+- Sentetik veri üretim modülü için doğrulama paketi: fiziksel aralık kontrolleri, sensörler
+  arası korelasyon kontrolleri, zaman sürekliliği kontrolleri, edge-case testleri.
+- Mevcut CNN+LSTM mimarisinin gerekçesini deneysel olarak göstermek üzere baseline
+  karşılaştırması (Logistic/RandomForest → 1D-CNN → LSTM → final CNN+LSTM; accuracy/macro
+  F1/inference süresi tek tabloda).
 - Gerçek (sentetik olmayan) veriye uyarlama; bkz. "Bilinen basitleştirmeler".
 
 ## Diğer notlar
 
 - Rastgelelik `SEED=42` ile sabitlenmiştir (hem `numpy` hem `torch`) — kod değişmediği sürece
-  sonuçlar deterministik olarak yeniden üretilebilir. **Tek istisna**: `rayli_veri_uret.py`
-  içindeki `START_TIME` (verinin başladığı saat/dakika) artık her çalıştırmada `SEED=42`'den
-  bağımsız, ayrı bir üreteçle (`_saat_rng`) rastgele seçiliyor — bu sadece zaman damgası
-  etiketini değiştirir, sensör değerlerinin/arıza örüntülerinin deterministik sırasını bozmaz.
+  sonuçlar deterministik olarak yeniden üretilebilir; **bu yalnızca offline üretim/eğitim için
+  geçerlidir** (`python rayli_veri_uret.py`, `rayli_dl_egitim.py`). `rayli_veri_uret.py`
+  içindeki `START_TIME` (verinin başladığı saat/dakika) her çalıştırmada `SEED=42`'den bağımsız,
+  ayrı bir üreteçle (`_saat_rng`) rastgele seçiliyor — bu sadece zaman damgası etiketini
+  değiştirir, sensör değerlerinin/arıza örüntülerinin deterministik sırasını bozmaz.
+  **Canlı akış sunucusu (`--kaynak canli`, varsayılan) BİLİNÇLİ OLARAK deterministik DEĞİLDİR**:
+  `AkisSimulatoru._canli_kurulum()` modülün global `rng`'sini kendi seedsiz üretecine bağlar
+  (`veri_uret.rng = np.random.default_rng()`) — her segment/her "Sıfırla" taze rastgele bir
+  senaryo üretsin diye, bu proje boyunca geçerli "tekrar üretilebilirlik" ilkesinin BİLİNÇLİ bir
+  istisnasıdır. Tekrar üretilebilir/test edilebilir davranış gerekiyorsa `--kaynak csv`
+  kullanılır (o modda SEED=42'li offline üretimden gelen sabit dosya okunur).
 - Ortam: PyTorch (CPU), scikit-learn, pandas, numpy, matplotlib, FastAPI/uvicorn, pytest —
   bkz. `requirements.txt`. Python 3.9 kullanılıyor: **f-string içinde iç içe aynı tırnak
   kullanılamaz** (`f"{d['k']}"` hata verir), `"{}".format(...)` ile yaz.

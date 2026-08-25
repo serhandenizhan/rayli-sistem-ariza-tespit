@@ -53,10 +53,32 @@ AXLES_PER_WAGON = 2                      # her vagon 2 dingil -> tren başına 4
 WHEEL_DIAM_M = 0.92
 
 # Hat başına kaç tren işletilir? Uzun hatlarda gerçekte de daha sık sefer vardır; bu yüzden
-# belirli bir uzunluğun üstündeki hatlara ikinci bir tren konur. Trenler hat üzerinde
-# birbirinden uzak noktalardan başlatılır (sefer aralığı/headway taklidi).
-COK_TRENLI_ESIK_KM = 15.0
-MAKS_TREN_PER_HAT = 2
+# belirli uzunluk eşiklerinin üstündeki hatlara kademeli olarak daha fazla tren konur (tek bir
+# "uzun/kısa" ayrımı yerine — önceden sadece 15km üstü hatlara ikinci tren konuyordu, filo
+# gerçekçilik için büyütüldü). Trenler hat üzerinde birbirinden uzak noktalardan başlatılır
+# (sefer aralığı/headway taklidi). Büyükten küçüğe sıralı: (min km, tren sayısı).
+TREN_ESIKLERI = [(30.0, 4), (20.0, 3), (10.0, 2)]
+VARSAYILAN_TREN_SAYISI = 1
+
+# --- Canlı/sürekli akış (rayli_canli_akis_sunucu.py --kaynak canli) için segment ayarları ---
+# Sabit dosya yerine sunucu bu modülü CANLI çağırır; her segment TAZE rastgele bir arıza
+# senaryosu içerir (offline main()'in SEED=42'li deterministik üretiminden bağımsız, ayrı bir
+# rng ile). Enjeksiyon ihtimali offline üretimdekinden (0.35) çok daha düşük tutulur — aksi
+# hâlde aynı anda gerçekçi olmayan sayıda dingil arızalı görünür (bkz. CLAUDE.md, "10 dakikada
+# binlerce alarm" şikâyeti). Süre alt sınırı da kısa "flicker" arızaları önler.
+SEGMENT_STEPS = 300                      # bir segment = 300 tick x 2 sn = 10 dakika
+SEGMENT_EK_ARIZA_IHTIMALI = 0.03
+SEGMENT_DEDICATED_ORAN = 0.02            # segment başına garanti arızalı dingil oranı
+SEGMENT_ARIZA_UZUNLUK_ORANI = (0.15, 0.35)   # segment uzunluğunun bu payı kadar sürer
+
+COL_ORDER = [
+    "timestamp", "line_id", "train_id", "wagon_id", "axle_id",
+    "track_km", "speed_kmh", "load_ton", "lat", "lon", "next_station", "at_station",
+    "vib_x_rms_g", "vib_y_rms_g", "vib_z_rms_g", "vib_peak_g", "vib_kurtosis",
+    "vib_crest_factor", "vib_dom_freq_hz", "acoustic_rms", "acoustic_peak_freq_hz",
+    "axle_box_temp_c", "brake_temp_c", "motor_temp_c", "ambient_temp_c",
+    "motor_current_a", "motor_voltage_v", "humidity_pct", "fault_type", "fault_severity",
+]
 
 # --- Tren hareket profili (gerçekçi metro seferi) ---
 MAX_HIZ_KMH = {"Metro": 80.0, "Tramvay": 45.0, "Banliyö": 90.0, "Füniküler": 30.0}
@@ -111,11 +133,17 @@ def ray_kusurlari_uret(hatlar):
     return kusurlar
 
 
-def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None):
+def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durumu=None):
     """Gerçek istasyon dizisi üzerinde bir seferin hız/konum profilini üretir.
 
     Dönen diziler adım bazlıdır: konum (km), hız (km/sa), yön (+1/-1), istasyonda mı,
-    son geçilen ve sonraki istasyon indeksi.
+    son geçilen ve sonraki istasyon indeksi — ve son olarak bir "bitiş durumu" dict'i
+    (`{hedef_idx, yon, konum_m, hiz, bekleme}`). Bu son eleman, canlı/sürekli akışta bir
+    sonraki segmentin `baslangic_durumu` olarak verilip trenin fiziksel olarak kaldığı yerden
+    (konum/hız/istasyonda bekleme dahil) devam etmesini sağlar — aksi hâlde her segment
+    trenleri rastgele bir noktaya "ışınlardı".
+
+    `baslangic_durumu` verilirse `baslangic_orani`/rastgele başlangıç YOK SAYILIR.
     """
     istasyonlar = hat["istasyonlar"]
     n_ist = len(istasyonlar)
@@ -128,16 +156,23 @@ def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None):
     duruyor_arr = np.zeros(n_steps, dtype=bool)
     sonraki_ist = np.zeros(n_steps, dtype=int)
 
-    # Başlangıç istasyonu: tek trenli hatta rastgele, çok trenli hatta hat boyunca eşit
-    # aralıklı (trenler birbirinin üstünde başlamasın, sefer aralığı gerçekçi olsun).
-    if baslangic_orani is None:
-        hedef_idx = int(rng_local.integers(1, n_ist))
+    if baslangic_durumu is not None:
+        hedef_idx = baslangic_durumu["hedef_idx"]
+        yon = baslangic_durumu["yon"]
+        konum_m = baslangic_durumu["konum_m"]
+        hiz = baslangic_durumu["hiz"]
+        bekleme = baslangic_durumu["bekleme"]
     else:
-        hedef_idx = max(1, min(n_ist - 1, int(round(baslangic_orani * (n_ist - 1))) or 1))
-    yon = 1
-    konum_m = istasyonlar[hedef_idx - 1]["km"] * 1000.0
-    hiz = 0.0
-    bekleme = 0.0
+        # Başlangıç istasyonu: tek trenli hatta rastgele, çok trenli hatta hat boyunca eşit
+        # aralıklı (trenler birbirinin üstünde başlamasın, sefer aralığı gerçekçi olsun).
+        if baslangic_orani is None:
+            hedef_idx = int(rng_local.integers(1, n_ist))
+        else:
+            hedef_idx = max(1, min(n_ist - 1, int(round(baslangic_orani * (n_ist - 1))) or 1))
+        yon = 1
+        konum_m = istasyonlar[hedef_idx - 1]["km"] * 1000.0
+        hiz = 0.0
+        bekleme = 0.0
 
     for t in range(n_steps):
         hedef_m = istasyonlar[hedef_idx]["km"] * 1000.0
@@ -171,7 +206,9 @@ def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None):
         duruyor_arr[t] = hiz < 0.5
         sonraki_ist[t] = hedef_idx
 
-    return km_arr, hiz_arr, yon_arr, duruyor_arr, sonraki_ist
+    bitis_durumu = {"hedef_idx": hedef_idx, "yon": yon, "konum_m": konum_m,
+                    "hiz": hiz, "bekleme": bekleme}
+    return km_arr, hiz_arr, yon_arr, duruyor_arr, sonraki_ist, bitis_durumu
 
 
 def km_den_konuma(hat, km):
@@ -278,8 +315,12 @@ def severity_label(sev_value):
 # Seri (dingil) listesi ve arıza bölümleri
 # ---------------------------------------------------------------------------
 def hat_tren_sayisi(hat):
-    """Bir hatta kaç tren işletileceği (uzun hatlarda daha fazla sefer)."""
-    return MAKS_TREN_PER_HAT if hat["uzunluk_km"] >= COK_TRENLI_ESIK_KM else 1
+    """Bir hatta kaç tren işletileceği — kademeli eşik tablosuna (`TREN_ESIKLERI`) göre."""
+    uzunluk = hat["uzunluk_km"]
+    for esik_km, sayi in TREN_ESIKLERI:
+        if uzunluk >= esik_km:
+            return sayi
+    return VARSAYILAN_TREN_SAYISI
 
 
 def build_series_list(hatlar):
@@ -328,18 +369,28 @@ def make_dedicated_episodes(series_list):
     return dedicated
 
 
-def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, kusurlar):
-    """Bir dingil için tüm zaman serisini üretir. Hareket (konum/hız) tren geneliyle paylaşılır."""
-    km_arr, hiz_arr, yon_arr, duruyor_arr, sonraki_ist = hareket
+def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, kusurlar,
+                    n_steps=None, baslangic_zamani=None, ek_ariza_ihtimali=0.35):
+    """Bir dingil için tüm zaman serisini üretir. Hareket (konum/hız) tren geneliyle paylaşılır.
+
+    `n_steps`/`baslangic_zamani` verilmezse offline üretimin (main()) global sabitleri
+    (`N_STEPS`/`START_TIME`) kullanılır — mevcut davranış değişmez. Canlı/sürekli akış
+    (`bir_segment_uret`) kendi segment uzunluğunu ve o anki segment saatini geçirir.
+    `hareket` 5 (eski) veya 6 (bitiş durumu dahil, `tren_hareketi`'nin güncel dönüşü) elemanlı
+    olabilir — burada yalnızca ilk 5'i kullanılır.
+    """
+    n_steps = n_steps or N_STEPS
+    baslangic_zamani = baslangic_zamani or START_TIME
+    km_arr, hiz_arr, yon_arr, duruyor_arr, sonraki_ist = hareket[:5]
     istasyonlar = hat["istasyonlar"]
     hat_kusurlari = [k for k in kusurlar if k["hat"] == hat["kod"]]
 
     rows = []
     episodes = list(forced_episodes)
-    if rng.random() < 0.35:
+    if rng.random() < ek_ariza_ihtimali:
         f_type = rng.choice(FAULT_TYPES)
-        f_len = int(N_STEPS * rng.uniform(0.08, 0.20))
-        f_start = int(rng.integers(0, max(1, N_STEPS - f_len)))
+        f_len = int(n_steps * rng.uniform(0.08, 0.20))
+        f_start = int(rng.integers(0, max(1, n_steps - f_len)))
         episodes.append((f_start, f_len, f_type))
 
     # vagon yükü: yolcu yüküne göre sefer boyunca yavaşça değişir
@@ -356,11 +407,11 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
         birikim = max(f, birikim * 0.88)
         fren_aktivite[i] = birikim
 
-    for step in range(N_STEPS):
+    for step in range(n_steps):
         speed = float(hiz_arr[step])
         track_km = float(km_arr[step])
         load_ton = temel_yuk + 4.0 * np.sin(step / 180.0) + rng.normal(0, 0.4)
-        ts = START_TIME + timedelta(seconds=step * WINDOW_SEC)
+        ts = baslangic_zamani + timedelta(seconds=step * WINDOW_SEC)
 
         row = base_row(speed, load_ton, float(ivme_arr[step]), float(fren_aktivite[step]))
 
@@ -407,6 +458,77 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
     return rows
 
 
+# ---------------------------------------------------------------------------
+# Canlı/sürekli akış — segment üretimi (rayli_canli_akis_sunucu.py --kaynak canli)
+# ---------------------------------------------------------------------------
+def segment_dedicated_episodes(series_list, rng_local, n_steps,
+                                hedef_oran=SEGMENT_DEDICATED_ORAN,
+                                uzunluk_araligi=SEGMENT_ARIZA_UZUNLUK_ORANI):
+    """`make_dedicated_episodes()`'in segment-ölçekli kardeşi: train/test zaman dilimi ayrımı
+    yoktur (segmentin tamamı "canlı"dır), oran çok daha düşüktür (gerçekçi arıza sıklığı için
+    — bkz. modül başındaki `SEGMENT_*` sabitleri) ve süre segmentin görece büyük bir payını
+    kaplar (kısa "flicker" arızalar yerine birkaç dakika sürüp fark edilebilir arızalar)."""
+    dedicated = {s: [] for s in series_list}
+    n_seri = len(series_list)
+    n_bolum = max(1, round(n_seri * hedef_oran))
+    idx_pool = list(range(n_seri))
+    rng_local.shuffle(idx_pool)
+    for i in range(min(n_bolum, n_seri)):
+        s = series_list[idx_pool[i]]
+        f_type = rng_local.choice(FAULT_TYPES)
+        f_len = min(int(n_steps * rng_local.uniform(*uzunluk_araligi)), n_steps - 1)
+        f_start = int(rng_local.integers(0, max(1, n_steps - f_len)))
+        dedicated[s].append((f_start, f_len, f_type))
+    return dedicated
+
+
+def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kusurlar,
+                      n_steps=SEGMENT_STEPS):
+    """Canlı/sürekli akış modu için bir segment (varsayılan 300 tick = 10 dk) sentetik veri
+    üretir. `hareket_durumlari` (önceki segmentin `tren_hareketi` bitiş durumları, train_id'ye
+    göre) `None` ise (ilk segment) trenler rastgele/eşit-aralıklı başlar; sonraki çağrılarda
+    her tren bir önceki segmentin bittiği fiziksel konum/hız/bekleme durumundan devam eder —
+    "ışınlanmaz". Arıza senaryosu HER ÇAĞRIDA taze rastgele seçilir: offline `main()`'in
+    SEED=42'li deterministik `rng`'si değil, çağıranın verdiği (seedsiz) `rng_local` kullanılır
+    — bu yüzden her segment farklıdır, aynı script asla tekrar etmez.
+
+    Döner: `(segment_df, yeni_hareket_durumlari)`.
+    """
+    series_list = build_series_list(hatlar)
+    dedicated = segment_dedicated_episodes(series_list, rng_local, n_steps)
+
+    hat_tren_listesi = {}
+    for kod, train_id, _, _ in series_list:
+        if train_id not in hat_tren_listesi.setdefault(kod, []):
+            hat_tren_listesi[kod].append(train_id)
+
+    hareketler = {}
+    yeni_durumlar = {}
+    for kod, trenler in hat_tren_listesi.items():
+        for i, train_id in enumerate(trenler):
+            onceki_durum = (hareket_durumlari or {}).get(train_id)
+            oran = None if (onceki_durum is not None or len(trenler) == 1) else (i + 0.5) / len(trenler)
+            sonuc = tren_hareketi(hatlar[kod], n_steps, rng_local, baslangic_orani=oran,
+                                  baslangic_durumu=onceki_durum)
+            hareketler[train_id] = sonuc[:5]
+            yeni_durumlar[train_id] = sonuc[5]
+
+    rows = []
+    for s in series_list:
+        kod, train_id, wagon_id, axle_id = s
+        rows.extend(generate_series(hatlar[kod], train_id, wagon_id, axle_id,
+                                    dedicated[s], hareketler[train_id], kusurlar,
+                                    n_steps=n_steps, baslangic_zamani=baslangic_zamani,
+                                    ek_ariza_ihtimali=SEGMENT_EK_ARIZA_IHTIMALI))
+
+    df = pd.DataFrame(rows)[COL_ORDER]
+    float_cols = df.select_dtypes(include=[float]).columns
+    df[float_cols] = df[float_cols].round(4)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df = df.sort_values(["timestamp", "train_id", "wagon_id", "axle_id"]).reset_index(drop=True)
+    return df, yeni_durumlar
+
+
 def main():
     agac = ag.yukle()
     hatlar = agac["hatlar"]
@@ -437,16 +559,7 @@ def main():
                                         dedicated[s], hareketler[train_id], kusurlar))
 
     df = pd.DataFrame(all_rows)
-
-    col_order = [
-        "timestamp", "line_id", "train_id", "wagon_id", "axle_id",
-        "track_km", "speed_kmh", "load_ton", "lat", "lon", "next_station", "at_station",
-        "vib_x_rms_g", "vib_y_rms_g", "vib_z_rms_g", "vib_peak_g", "vib_kurtosis",
-        "vib_crest_factor", "vib_dom_freq_hz", "acoustic_rms", "acoustic_peak_freq_hz",
-        "axle_box_temp_c", "brake_temp_c", "motor_temp_c", "ambient_temp_c",
-        "motor_current_a", "motor_voltage_v", "humidity_pct", "fault_type", "fault_severity",
-    ]
-    df = df[col_order]
+    df = df[COL_ORDER]
 
     float_cols = df.select_dtypes(include=[float]).columns
     df[float_cols] = df[float_cols].round(4)
@@ -462,10 +575,10 @@ def main():
     train_df.to_csv(os.path.join(DATA_DIR, "rayli_sistem_train.csv"), index=False)
     test_df.to_csv(os.path.join(DATA_DIR, "rayli_sistem_test.csv"), index=False)
 
-    cok_trenli = [k for k in ag.SIMULASYON_HATLARI
+    cok_trenli = [f"{k}({hat_tren_sayisi(hatlar[k])})" for k in ag.SIMULASYON_HATLARI
                   if k in hatlar and hat_tren_sayisi(hatlar[k]) > 1]
     print(f"Ağ: {len(ag.SIMULASYON_HATLARI)} hat | tren: {len(hareketler)} | dingil: {len(series_list)}")
-    print(f"Çift trenli hatlar (>= {COK_TRENLI_ESIK_KM} km): {', '.join(cok_trenli)}")
+    print(f"Çok trenli hatlar (kademeli eşik {TREN_ESIKLERI}): {', '.join(cok_trenli)}")
     hat_ozet = ", ".join("{} ({})".format(k, hatlar[k]["kisa_ad"])
                          for k in ag.SIMULASYON_HATLARI if k in hatlar)
     print(f"Hatlar: {hat_ozet}")
