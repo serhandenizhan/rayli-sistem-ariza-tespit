@@ -74,7 +74,10 @@ body {
 .sekmeler-dikey .sekme.aktif { box-shadow: inset 2px 0 0 var(--accent); }
 
 /* Daraltılmış kenar çubuğu: sadece ikonlar, sabit dar genişlik */
-.kenar-cubugu.daralt { flex: 0 0 56px; width: 56px; padding: 16px 6px; transition: width .15s ease; }
+.kenar-cubugu.daralt {
+  flex: 0 0 56px; width: 56px; padding: 16px 6px;
+  transition: flex-basis .15s ease, width .15s ease;
+}
 .kenar-cubugu.daralt .kenar-marka { padding: 0 0 14px; justify-content: center; }
 .kenar-cubugu.daralt .kenar-marka-ad { display: none; }
 .kenar-cubugu.daralt .kenar-marka-ikon { display: none; }
@@ -85,11 +88,14 @@ body {
 .kenar-cubugu.daralt .sekmeler-dikey .sekme { position: relative; }
 
 /* Daraltılmışken üzerine mouse gelince GEÇİCİ olarak genişler (hover-expand) — tıklanan
-   daraltma tercihi (localStorage) değişmez, sadece görsel bir önizleme. `position: fixed`
-   ile flex akışından çıkarılır ki ana içerik yana kaymasın/titremesin, sidebar üstüne biner. */
+   daraltma tercihi (localStorage) değişmez, sadece görsel bir önizleme. BİLEREK `position`
+   DEĞİŞTİRİLMİYOR (flex item olarak kalır): genişleme gerçek flex-basis değişimiyle olur ki
+   `.ana-icerik` de tıpkı KİLİTLİ-AÇIK moddaki gibi düzgün yer açsın — `position: fixed` ile
+   flow'dan çıkarmak (önceki deneme) ana içeriğin aniden sola kayıp sidebar'ın ALTINDA/
+   ARKASINDA kalmasına yol açıyordu (flex item kaybolunca boşluğu dolduruyordu, sonra fixed
+   sidebar üstüne biniyordu) — istenen davranış bu değil. */
 .kenar-cubugu.daralt:hover {
-  position: fixed; left: 0; width: 200px; z-index: 100;
-  box-shadow: 8px 0 32px rgba(0,0,0,.5);
+  flex: 0 0 200px; width: 200px; z-index: 10;
 }
 .kenar-cubugu.daralt:hover .kenar-marka { justify-content: flex-start; }
 .kenar-cubugu.daralt:hover .kenar-marka-ikon,
