@@ -16,10 +16,9 @@ ortak bir Next.js dashboard'da birleştirir:
    çıkarımı. Kendi `CLAUDE.md`'si var (`nlp/CLAUDE.md`) — tüm proje geçmişi, kararlar, ölçümler
    orada; bu dosyadaki "NLP metin sınıflandırma modülü" bölümü sadece entegrasyon özetidir.
 
-İkisi ortak `web/` (Next.js) dashboard'unda ayrı sekmelerde yaşar, pytest + **hafif Docker
-Compose** (üç servis: sensör API, NLP API, web) ile tamamlanır. Tek komutla çalışır:
-`./calistir.sh` (kurulum → eğitim → etiketsiz akış → sensör API + NLP API → arayüz).
-Docker ile de çalışır: `docker compose up --build`.
+İkisi ortak `web/` (Next.js) dashboard'unda ayrı sekmelerde yaşar, pytest ile tamamlanır. Tek
+komutla çalışır: `./calistir.sh` (kurulum → eğitim → etiketsiz akış → sensör API + NLP API →
+arayüz).
 
 ## Kurulum ve sık kullanılan komutlar
 
@@ -49,7 +48,7 @@ python istanbul_metro_agi.py --indir   # ham GeoJSON'ları İBB'den yeniden indi
 python rayli_kafka.py --uret    # etiketsiz akışı Kafka topic'ine yayınla (broker gerekir)
 python rayli_baseline_karsilastirma.py   # LogReg/RF/tek-CNN/tek-LSTM/final modeli kıyaslar
 
-./testleri_calistir.sh          # pytest (94 test) + results/test_ozeti.json üretir
+./testleri_calistir.sh          # pytest (125 test) + results/test_ozeti.json üretir
 python rayli_kayit.py --ozet    # SQLite'daki alarm geçmişini terminalden sorgula
 ```
 
@@ -470,20 +469,16 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
   `test_sinyalizasyon_carpani_araligi_ve_etkisi` (hız çarpanının doğru aralıkta kaldığını ve
   yeterince denemede en az bir kez tetiklendiğini doğrular).
 
-## Docker (hafif docker-compose)
+## Docker — kaldırıldı (25 Ağu 2026)
 
-`docker-compose.yml` + `docker/Dockerfile.api` + `docker/Dockerfile.nlp` + `docker/Dockerfile.web`
-— bilinçli olarak **mikroservis DEĞİL**: üç servis (sensör API, NLP API, web), Kafka/Redis/Celery
-yok. `api-nlp`'nin ayrı bir servis olması aynı "gereksiz ayrım yapma" ilkesiyle çelişmiyor: burada
-gerçek bir ihtiyaç var (transformers/peft gibi ağır bağımlılıkların sensör imajına karışmaması),
-teorik bir ölçeklenme beklentisi değil. SQLite kayıtları (`data/rayli_kayit.db`,
-`nlp/data/logs.db`) sırasıyla `RAYLI_KAYIT_DB`/`NLP_LOG_DB` ortam değişkenleriyle
-`/app/data_kalici/` altına yönlendirilip ayrı volume'lere bağlanır — `/app/data` üzerine volume
-bağlamak, imaja gömülü eğitim/ağ verilerini gizlerdi.
-**Not**: bu geliştirme ortamında Docker kurulu değildi; Dockerfile/compose dosyaları dikkatle
-yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile doğrulanamadı — ilk
-çalıştırmada küçük bir sorun çıkarsa (ör. Next.js `output` modu, healthcheck zamanlaması)
-şaşırtıcı olmaz.
+Proje daha önce hafif bir Docker Compose kurulumuna (üç servis: sensör API, NLP API, web) sahipti
+ve bu gerçekten `docker compose build`/`up` ile uçtan uca test edilip çalıştığı doğrulanmıştı
+(test sırasında `nlp/requirements.txt`'nin Python 3.12'ye özgü pinler içerdiği ama
+`Dockerfile.nlp`'nin `python:3.11-slim` kullandığı gerçek bir uyumsuzluk bulunup düzeltilmişti).
+Kullanıcının kararıyla `docker-compose.yml`, `docker/` klasörü ve tüm Docker imajları/build
+cache'i **lokal disk tasarrufu için** (~25 GB) kaldırıldı — Docker şu an bu proje için gerekli
+değil. Gerekirse Dockerfile'lar git geçmişinden (bu commit'ten önceki bir sürümden) geri
+getirilebilir; mantığı tekrar sıfırdan yazmaya gerek yok.
 
 ## Sıradaki olası görevler
 

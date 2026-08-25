@@ -1,10 +1,1011 @@
 {
-  "calistirma_zamani": "2026-08-25T15:27:00",
+  "calistirma_zamani": "2026-08-25T16:35:24",
   "cikis_kodu": 0,
-  "toplam": 0,
-  "gecti": 0,
+  "toplam": 125,
+  "gecti": 125,
   "kaldi": 0,
   "atlandi": 0,
-  "toplam_sure": 0,
-  "testler": []
+  "toplam_sure": 55.087,
+  "testler": [
+    {
+      "aciklama": "Normalize skor her zaman [0, 1] aralığında olmalı, eşik altı düşük, üstü doygun kalmalı.",
+      "nodeid": "testler/test_anomali.py::test_anomali_skoru_normalize_sinirlari",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_anomali_skoru_normalize_sinirlari",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Çıktı, girdiyle birebir aynı (batch, WINDOW, n_features) şeklinde olmalı.",
+      "nodeid": "testler/test_anomali.py::test_autoencoder_girdiyle_ayni_sekli_uretir",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_autoencoder_girdiyle_ayni_sekli_uretir",
+      "sonuc": "passed",
+      "sure": 0.0051
+    },
+    {
+      "aciklama": "MEKANİZMA DOĞRULAMASI: autoencoder yalnızca normalle eğitildiği için, bilinen 6 arıza tipi de normalden anlamlı ölçüde daha fazla anomali işaretlenmeli — aksi hâlde model hiçbir şey öğrenmemiş demektir.",
+      "nodeid": "testler/test_anomali.py::test_bilinen_arizalar_normalden_daha_cok_anomali_isaretlenir",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_bilinen_arizalar_normalden_daha_cok_anomali_isaretlenir",
+      "sonuc": "passed",
+      "sure": 0.0684
+    },
+    {
+      "aciklama": "Eğitilmiş checkpoint yüklenebilmeli ve gerekli alanları içermeli.",
+      "nodeid": "testler/test_anomali.py::test_checkpoint_yuklenir",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_checkpoint_yuklenir",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "DOĞRULAMA: gerçek 'normal' pencerelerin hatası, eğitilirken belirlenen eşiğin büyük çoğunlukla ALTINDA kalmalı (yanlış alarm oranı düşük olmalı).",
+      "nodeid": "testler/test_anomali.py::test_normal_pencere_dusuk_hata_uretir",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_normal_pencere_dusuk_hata_uretir",
+      "sonuc": "passed",
+      "sure": 0.0762
+    },
+    {
+      "aciklama": "MSE tanımı gereği her zaman >= 0 olmalı.",
+      "nodeid": "testler/test_anomali.py::test_yeniden_yapilandirma_hatasi_negatif_olamaz",
+      "dosya": "testler/test_anomali.py",
+      "ad": "test_yeniden_yapilandirma_hatasi_negatif_olamaz",
+      "sonuc": "passed",
+      "sure": 0.0008
+    },
+    {
+      "aciklama": "Akış, son tick'e kadar kesintisiz ilerlemeli ve sonunda 'bitti' işaretlenmeli.",
+      "nodeid": "testler/test_canli_akis.py::test_akis_sonuna_kadar_tamamlanir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_akis_sonuna_kadar_tamamlanir",
+      "sonuc": "passed",
+      "sure": 5.8878
+    },
+    {
+      "aciklama": "SIZINTI KORUMASI: simülatörün okuduğu akış verisinde etiket kolonu olmamalı.",
+      "nodeid": "testler/test_canli_akis.py::test_akis_verisinde_etiket_yok",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_akis_verisinde_etiket_yok",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Aktif alarm listesi öncelik skoruna göre azalan sırada olmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_aktif_alarmlar_oncelige_gore_sirali",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_aktif_alarmlar_oncelige_gore_sirali",
+      "sonuc": "passed",
+      "sure": 2.9507
+    },
+    {
+      "aciklama": "Yerleşik durum sürdükçe süre sayacı büyümeli.",
+      "nodeid": "testler/test_canli_akis.py::test_alarm_suresi_artiyor",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_alarm_suresi_artiyor",
+      "sonuc": "passed",
+      "sure": 0.3622
+    },
+    {
+      "aciklama": "Anomali modeli yüklüyse her hazır tahmine anomali skoru ve bayrağı eklenmeli.",
+      "nodeid": "testler/test_canli_akis.py::test_anomali_katmani_paketlere_ekleniyor",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_anomali_katmani_paketlere_ekleniyor",
+      "sonuc": "passed",
+      "sure": 0.1496
+    },
+    {
+      "aciklama": "Anomali checkpoint'i olmasa bile ana sistem hiçbir hata vermeden çalışmalı (özellik TAMAMEN opsiyonel, ana sınıflandırmayı etkilememeli).",
+      "nodeid": "testler/test_canli_akis.py::test_anomali_modeli_olmadan_sunucu_calisir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_anomali_modeli_olmadan_sunucu_calisir",
+      "sonuc": "passed",
+      "sure": 0.2528
+    },
+    {
+      "aciklama": "Aynı anda arızalı (yerleşik, normal olmayan) dingil oranı düşük olmalı — eskiden (~%20+) kullanıcının 'gerçekçi değil' dediği yoğunluğun düzeldiğini doğrular.",
+      "nodeid": "testler/test_canli_akis.py::test_arizali_dingil_orani_gercekci",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_arizali_dingil_orani_gercekci",
+      "sonuc": "passed",
+      "sure": 1.4604
+    },
+    {
+      "aciklama": "BELİRSİZLİK KORUMASI: eşik 0 yapılırsa her tahmin belirsiz sayılır ve hiçbir sınıf yerleşemez — dolayısıyla alarm da üretilmez.",
+      "nodeid": "testler/test_canli_akis.py::test_belirsiz_tahmin_alarm_uretmez",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_belirsiz_tahmin_alarm_uretmez",
+      "sonuc": "passed",
+      "sure": 0.4006
+    },
+    {
+      "aciklama": "Her hazır tahmin bir entropi ve belirsizlik bayrağı taşımalı.",
+      "nodeid": "testler/test_canli_akis.py::test_belirsiz_tahmin_isaretlenir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_belirsiz_tahmin_isaretlenir",
+      "sonuc": "passed",
+      "sure": 0.1485
+    },
+    {
+      "aciklama": "'bilinmeyen_anomali' TANIM GEREĞİ yalnızca denetimli model 'normal' derken anomali bayrağı da True olan dingillerde işaretlenmeli.",
+      "nodeid": "testler/test_canli_akis.py::test_bilinmeyen_anomali_sadece_normal_tahminde_olur",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_bilinmeyen_anomali_sadece_normal_tahminde_olur",
+      "sonuc": "passed",
+      "sure": 1.5202
+    },
+    {
+      "aciklama": "Canlı akış doğruluğu, offline test skoruna yakın (>= %90) olmalı — pencereleme/ölçekleme hattının doğru kurulduğunun uçtan uca kanıtı.",
+      "nodeid": "testler/test_canli_akis.py::test_canli_dogruluk_makul",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_canli_dogruluk_makul",
+      "sonuc": "passed",
+      "sure": 5.9096
+    },
+    {
+      "aciklama": "`bitti` alanı canlı modda her zaman False olmalı — akış sonsuz, UI ilerleme çubuğu segment-içi pozisyonu göstermeli.",
+      "nodeid": "testler/test_canli_akis.py::test_canli_modda_akis_hic_bitmez",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_canli_modda_akis_hic_bitmez",
+      "sonuc": "passed",
+      "sure": 0.9323
+    },
+    {
+      "aciklama": "Kurulum sonrası (constructor içindeki reset()) en az bir segment hazır olmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_canli_modda_ilk_segment_uretilir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_canli_modda_ilk_segment_uretilir",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "İki ayrı 'Sıfırla', AYNI saatten başlayıp FARKLI bir arıza senaryosu üretmeli — kullanıcının 'her bastığımda farklı dingillerde farklı arızalar çıksın' isteği.",
+      "nodeid": "testler/test_canli_akis.py::test_canli_modda_reset_farkli_senaryo_uretir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_canli_modda_reset_farkli_senaryo_uretir",
+      "sonuc": "passed",
+      "sure": 2.2279
+    },
+    {
+      "aciklama": "Segment sonuna gelindiğinde `_segment_ekle()` çağrılınca pencere/histerezis state'i SIFIRLANMAMALI (`reset()` çağrılmamalı) — 'kaldığı yerden devam' bunun üzerine kurulu.",
+      "nodeid": "testler/test_canli_akis.py::test_canli_modda_segment_gecisinde_state_korunur",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_canli_modda_segment_gecisinde_state_korunur",
+      "sonuc": "passed",
+      "sure": 7.2746
+    },
+    {
+      "aciklama": "Normalize entropi: tek sınıfa tam güvende ~0, tüm sınıflar eşitken 1 olmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_entropi_hesabi_dogru",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_entropi_hesabi_dogru",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Histerezis=1 ile her değişim anında yerleşirken, yüksek histerezisde olay sayısı azalmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_histerezis_tek_ticklik_sicramayi_bastirir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_histerezis_tek_ticklik_sicramayi_bastirir",
+      "sonuc": "passed",
+      "sure": 4.6367
+    },
+    {
+      "aciklama": "HİSTEREZİS: bir sınıf üst üste N tick gelmeden 'yerleşik' duruma geçmemeli.",
+      "nodeid": "testler/test_canli_akis.py::test_histerezis_yerlesik_sinifi_geciktirir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_histerezis_yerlesik_sinifi_geciktirir",
+      "sonuc": "passed",
+      "sure": 0.2443
+    },
+    {
+      "aciklama": "Her dingil paketi haritada çizilebilecek konum bilgisi taşımalı.",
+      "nodeid": "testler/test_canli_akis.py::test_konum_bilgisi_haritaya_uygun",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_konum_bilgisi_haritaya_uygun",
+      "sonuc": "passed",
+      "sure": 0.0153
+    },
+    {
+      "aciklama": "Kör modda akış SÜRERKEN metrikler gizli kalmalı; akış TAMAMLANDIĞINDA (son tick), kullanıcının sonunda sonucu görebilmesi için toplu doğruluk/karmaşıklık matrisi bir kerelik açığa çıkmalı — ama tekil dingil paketlerinde 'gercek' etiketi hâlâ sızmamalı.",
+      "nodeid": "testler/test_canli_akis.py::test_kor_modda_akis_bitince_sonuclar_acilir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_kor_modda_akis_bitince_sonuclar_acilir",
+      "sonuc": "passed",
+      "sure": 6.1412
+    },
+    {
+      "aciklama": "KÖR MOD: paketlerde gerçek etiket, şiddet ve doğruluk bilgisi hiç bulunmamalı.",
+      "nodeid": "testler/test_canli_akis.py::test_kor_modda_cevap_anahtari_sizmaz",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_kor_modda_cevap_anahtari_sizmaz",
+      "sonuc": "passed",
+      "sure": 0.4258
+    },
+    {
+      "aciklama": "Kör modda arayüze gitmese de sunucu içinde skorlama sürmeli (log/teşhis için).",
+      "nodeid": "testler/test_canli_akis.py::test_kor_modda_da_sunucu_ici_skor_hesaplanir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_kor_modda_da_sunucu_ici_skor_hesaplanir",
+      "sonuc": "passed",
+      "sure": 0.4568
+    },
+    {
+      "aciklama": "Softmax olasılıkları 1'e toplanmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_olasiliklar_toplami_bir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_olasiliklar_toplami_bir",
+      "sonuc": "passed",
+      "sure": 0.1398
+    },
+    {
+      "aciklama": "Öncelik skoru şiddet ve süreyle birlikte artmalı (0-1 aralığında).",
+      "nodeid": "testler/test_canli_akis.py::test_oncelik_siddet_ve_sureyle_artar",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_oncelik_siddet_ve_sureyle_artar",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Kayan pencere dolmadan (ilk WINDOW-1 tick) tahmin üretilmemeli.",
+      "nodeid": "testler/test_canli_akis.py::test_pencere_dolmadan_tahmin_yok",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_pencere_dolmadan_tahmin_yok",
+      "sonuc": "passed",
+      "sure": 0.0155
+    },
+    {
+      "aciklama": "Pencere dolduğunda (WINDOW tick sonra) her dingil için tip ve şiddet tahmini gelmeli.",
+      "nodeid": "testler/test_canli_akis.py::test_pencere_dolunca_tahmin_uretilir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_pencere_dolunca_tahmin_uretilir",
+      "sonuc": "passed",
+      "sure": 0.1463
+    },
+    {
+      "aciklama": "Ray çatlağı, konuma bağlı olduğu için doğal olarak tekrar eder; yine de tek bir sınıf diğerlerinin toplamını aşacak kadar baskın olmamalı (kusur yoğunluğu gerçekçi olmalı).",
+      "nodeid": "testler/test_canli_akis.py::test_ray_catlagi_alarm_sayisi_dengeli",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_ray_catlagi_alarm_sayisi_dengeli",
+      "sonuc": "passed",
+      "sure": 5.9269
+    },
+    {
+      "aciklama": "Ray çatlağı alarmı, hat üzerindeki SABİT kusur noktasıyla eşleştirilmeli ve aynı kusurun kaçıncı tespiti olduğu sayılmalı (tekrar eden kusur takibi).",
+      "nodeid": "testler/test_canli_akis.py::test_ray_catlagi_alarmi_kusura_baglanir",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_ray_catlagi_alarmi_kusura_baglanir",
+      "sonuc": "passed",
+      "sure": 5.9219
+    },
+    {
+      "aciklama": "Ağdaki aktif ray kusuru sayısı gerçekçi olmalı: bakımlı bir metro ağında aynı anda onlarca aktif kusur bulunmaz (hat başına en fazla bir tane).",
+      "nodeid": "testler/test_canli_akis.py::test_ray_kusuru_yogunlugu_makul",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_ray_kusuru_yogunlugu_makul",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Reset sonrası sayaçlar, pencereler ve metrikler sıfırlanmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_reset_durumu_temizler",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_reset_durumu_temizler",
+      "sonuc": "passed",
+      "sure": 0.2036
+    },
+    {
+      "aciklama": "`bir_segment_uret()` art arda çağrıldığında bir trenin konumu/hızı segment sınırında SIÇRAMAMALI (ışınlanmamalı) — bir önceki segmentin bitiş durumundan devam etmeli.",
+      "nodeid": "testler/test_canli_akis.py::test_segment_uretimi_fiziksel_sureklilik",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_segment_uretimi_fiziksel_sureklilik",
+      "sonuc": "passed",
+      "sure": 0.2022
+    },
+    {
+      "aciklama": "Her tick'te tüm dingiller için birer satır bulunmalı.",
+      "nodeid": "testler/test_canli_akis.py::test_tick_yapisi_ve_dingil_sayisi",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_tick_yapisi_ve_dingil_sayisi",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Uzun hatlarda kısa hatlara göre daha çok tren olmalı (kademeli eşik tablosu).",
+      "nodeid": "testler/test_canli_akis.py::test_tren_sayisi_kademeli_esige_gore_artar",
+      "dosya": "testler/test_canli_akis.py",
+      "ad": "test_tren_sayisi_kademeli_esige_gore_artar",
+      "sonuc": "passed",
+      "sure": 0.0008
+    },
+    {
+      "aciklama": "Çalıştırma açılmadan gelen alarm kaydı hata vermemeli (savunmacı davranış).",
+      "nodeid": "testler/test_kayit.py::test_calistirma_olmadan_yazma_sessizce_atlanir",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_calistirma_olmadan_yazma_sessizce_atlanir",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Açılan çalıştırmaya alarm yazılıp geri okunabilmeli.",
+      "nodeid": "testler/test_kayit.py::test_calistirma_ve_alarm_yazilir",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_calistirma_ve_alarm_yazilir",
+      "sonuc": "passed",
+      "sure": 0.0007
+    },
+    {
+      "aciklama": "Özet sorguları alarm sayılarını doğru gruplamalı.",
+      "nodeid": "testler/test_kayit.py::test_dingil_ve_hat_ozeti",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_dingil_ve_hat_ozeti",
+      "sonuc": "passed",
+      "sure": 0.0015
+    },
+    {
+      "aciklama": "Periyodik metrik kaydı yazılabilmeli.",
+      "nodeid": "testler/test_kayit.py::test_metrik_anlik_goruntusu",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_metrik_anlik_goruntusu",
+      "sonuc": "passed",
+      "sure": 0.0006
+    },
+    {
+      "aciklama": "Veritabanı açıldığında gerekli tablolar oluşmalı.",
+      "nodeid": "testler/test_kayit.py::test_semasi_kurulur",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_semasi_kurulur",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "'temizlendi' tipi kayıtlar alarm sayısına dahil edilmemeli.",
+      "nodeid": "testler/test_kayit.py::test_temizlenme_kayitlari_alarm_sayilmaz",
+      "dosya": "testler/test_kayit.py",
+      "ad": "test_temizlenme_kayitlari_alarm_sayilmaz",
+      "sonuc": "passed",
+      "sure": 0.001
+    },
+    {
+      "aciklama": "Ağ modeli yüklenmeli ve makul sayıda (en az 15) işletmedeki hat içermeli.",
+      "nodeid": "testler/test_metro_agi.py::test_ag_hatlari_yuklendi",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_ag_hatlari_yuklendi",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Sıralama algoritması gerçek terminalleri bulmalı — bilinen hatlarla doğrulama.",
+      "nodeid": "testler/test_metro_agi.py::test_bilinen_hat_uclari_dogru",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_bilinen_hat_uclari_dogru",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Harita zemini (kara parçası) katmanı, ağı çevreleyen ilçeleri içermeli.",
+      "nodeid": "testler/test_metro_agi.py::test_cografya_katmani_ilceleri_iceriyor",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_cografya_katmani_ilceleri_iceriyor",
+      "sonuc": "passed",
+      "sure": 0.0012
+    },
+    {
+      "aciklama": "Yeniden dağıtılan açık veri için kaynak/lisans bilgisi katmanda saklanmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_cografya_lisans_bilgisi_var",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_cografya_lisans_bilgisi_var",
+      "sonuc": "passed",
+      "sure": 0.0006
+    },
+    {
+      "aciklama": "Poligon halkaları en az 4 noktadan oluşmalı ve koordinatlar İstanbul çevresinde olmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_cografya_poligonlari_kapali_ve_istanbulda",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_cografya_poligonlari_kapali_ve_istanbulda",
+      "sonuc": "passed",
+      "sure": 0.0008
+    },
+    {
+      "aciklama": "Füniküler hatları (F1 Taksim–Kabataş, F2 Tünel, F4 Rumelihisarüstü–Aşiyan) ağda olmalı. F4 kaynak veride 'İnşaat Aşamasında' işaretlidir ama fiilen işletmededir; bu yüzden ISLETMEDEKI_INSAAT_HATLARI ile bilinçli olarak dahil edilir.",
+      "nodeid": "testler/test_metro_agi.py::test_funikuler_hatlari_dahil",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_funikuler_hatlari_dahil",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Hat kodu çıkarımı İBB'nin adlandırma biçimlerini doğru ayrıştırmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_hat_kodu_ayikla",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_hat_kodu_ayikla",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Hesaplanan (kuş uçuşu) hat uzunluğu, resmi hat uzunluğunu aşmamalı — ardışık istasyonlar arası düz çizgi toplamı, gerçek güzergâhtan uzun olamaz.",
+      "nodeid": "testler/test_metro_agi.py::test_hat_uzunlugu_resmi_degere_yakin",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_hat_uzunlugu_resmi_degere_yakin",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Haversine hesabı doğru olmalı: Kadıköy-Üsküdar arası ~3 km.",
+      "nodeid": "testler/test_metro_agi.py::test_haversine_bilinen_mesafe",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_haversine_bilinen_mesafe",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "İşletmedeki her yolcu hattında tren çalışmalı — metro, tramvay, füniküler ve banliyö hatlarının hiçbiri simülasyon dışında kalmamalı (teleferikler ağa hiç alınmıyor).",
+      "nodeid": "testler/test_metro_agi.py::test_isletmedeki_tum_hatlarda_tren_var",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_isletmedeki_tum_hatlarda_tren_var",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Bir hat üzerinde aynı istasyon adı iki kez geçmemeli.",
+      "nodeid": "testler/test_metro_agi.py::test_istasyon_adlari_benzersiz",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_istasyon_adlari_benzersiz",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Her hatta istasyonların km değerleri hat boyunca kesintisiz artmalı (sıralama tutarlılığı).",
+      "nodeid": "testler/test_metro_agi.py::test_istasyon_km_degerleri_artan",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_istasyon_km_degerleri_artan",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Tüm istasyon koordinatları İstanbul sınırları içinde olmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_istasyon_koordinatlari_istanbulda",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_istasyon_koordinatlari_istanbulda",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Sıralama algoritması, karıştırılmış doğrusal bir istasyon dizisini geri kurmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_istasyon_siralama_dogrusal_dizide_calisir",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_istasyon_siralama_dogrusal_dizide_calisir",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "M4 hattının ilk istasyonları gerçek sırayla birebir örtüşmeli (Kadıköy'den itibaren).",
+      "nodeid": "testler/test_metro_agi.py::test_m4_istasyon_sirasi_gercekle_uyumlu",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_m4_istasyon_sirasi_gercekle_uyumlu",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Metro İstanbul işletmesinde olmayan hatlar (Marmaray, M11 — Ulaştırma Bakanlığı) ağ modeline hiç alınmamalı. Ayrım isimle değil, kaynak verinin MUDURLUK alanıyla yapılır.",
+      "nodeid": "testler/test_metro_agi.py::test_metro_istanbul_disi_hatlar_agda_yok",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_metro_istanbul_disi_hatlar_agda_yok",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Ray kusuru noktaları, gerçek bir istasyon aralığında ve hat uzunluğu içinde olmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_ray_kusurlari_gercek_istasyon_araliginda",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_ray_kusurlari_gercek_istasyon_araliginda",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Simülasyonda tren işletilen tüm hatlar ağ modelinde tanımlı olmalı.",
+      "nodeid": "testler/test_metro_agi.py::test_simulasyon_hatlari_agda_var",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_simulasyon_hatlari_agda_var",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Teleferiklerde dingil/boji yoktur — bu projenin sensör modeli onlara uymaz, bu yüzden ağ modeline (dolayısıyla haritaya ve simülasyona) hiç alınmamalılar.",
+      "nodeid": "testler/test_metro_agi.py::test_teleferikler_agda_yok",
+      "dosya": "testler/test_metro_agi.py",
+      "ad": "test_teleferikler_agda_yok",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Checkpoint çok görevli modele ait olmalı (şiddet sınıfları kayıtlı).",
+      "nodeid": "testler/test_model.py::test_checkpoint_siddet_basligini_iceriyor",
+      "dosya": "testler/test_model.py",
+      "ad": "test_checkpoint_siddet_basligini_iceriyor",
+      "sonuc": "passed",
+      "sure": 0.0008
+    },
+    {
+      "aciklama": "Kaydedilmiş checkpoint yüklenebilmeli ve gerekli tüm alanları içermeli.",
+      "nodeid": "testler/test_model.py::test_checkpoint_yuklenir",
+      "dosya": "testler/test_model.py",
+      "ad": "test_checkpoint_yuklenir",
+      "sonuc": "passed",
+      "sure": 0.001
+    },
+    {
+      "aciklama": "Model ham logit üretmeli (softmax uygulanmamış) — kayıp fonksiyonu bunu bekliyor.",
+      "nodeid": "testler/test_model.py::test_model_ciktisi_logit_softmax_degil",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_ciktisi_logit_softmax_degil",
+      "sonuc": "passed",
+      "sure": 0.0064
+    },
+    {
+      "aciklama": "Aynı girdi için model iki kez aynı çıktıyı vermeli (eval modunda dropout kapalı).",
+      "nodeid": "testler/test_model.py::test_model_deterministik",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_deterministik",
+      "sonuc": "passed",
+      "sure": 0.0017
+    },
+    {
+      "aciklama": "Model her batch boyutunda (canlı akışta dingil sayısı değişebilir) çalışmalı.",
+      "nodeid": "testler/test_model.py::test_model_farkli_batch_boyutlarinda_calisir[1]",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_farkli_batch_boyutlarinda_calisir[1]",
+      "sonuc": "passed",
+      "sure": 0.002
+    },
+    {
+      "aciklama": "Model her batch boyutunda (canlı akışta dingil sayısı değişebilir) çalışmalı.",
+      "nodeid": "testler/test_model.py::test_model_farkli_batch_boyutlarinda_calisir[32]",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_farkli_batch_boyutlarinda_calisir[32]",
+      "sonuc": "passed",
+      "sure": 0.0015
+    },
+    {
+      "aciklama": "Model her batch boyutunda (canlı akışta dingil sayısı değişebilir) çalışmalı.",
+      "nodeid": "testler/test_model.py::test_model_farkli_batch_boyutlarinda_calisir[7]",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_farkli_batch_boyutlarinda_calisir[7]",
+      "sonuc": "passed",
+      "sure": 0.0008
+    },
+    {
+      "aciklama": "Çok görevli model, arıza tipi ve şiddet için iki ayrı logit tensörü döndürmeli.",
+      "nodeid": "testler/test_model.py::test_model_iki_baslik_dondurur",
+      "dosya": "testler/test_model.py",
+      "ad": "test_model_iki_baslik_dondurur",
+      "sonuc": "passed",
+      "sure": 0.0053
+    },
+    {
+      "aciklama": "Scaler/encoder checkpoint'ten yeniden kurulmalı — sıfırdan fit edilmemeli.",
+      "nodeid": "testler/test_model.py::test_scaler_checkpointten_yeniden_kurulur",
+      "dosya": "testler/test_model.py",
+      "ad": "test_scaler_checkpointten_yeniden_kurulur",
+      "sonuc": "passed",
+      "sure": 0.0009
+    },
+    {
+      "aciklama": "Sekanslar (N, WINDOW, özellik) şeklinde olmalı ve etiket pencerenin SON adımından gelmeli.",
+      "nodeid": "testler/test_model.py::test_sekans_sekilleri_ve_etiket_hizasi",
+      "dosya": "testler/test_model.py",
+      "ad": "test_sekans_sekilleri_ve_etiket_hizasi",
+      "sonuc": "passed",
+      "sure": 0.0676
+    },
+    {
+      "aciklama": "Regresyon koruması: eğitilmiş model test setinde en az %90 doğruluk vermeli.",
+      "nodeid": "testler/test_model.py::test_test_setinde_dogruluk_esigi",
+      "dosya": "testler/test_model.py",
+      "ad": "test_test_setinde_dogruluk_esigi",
+      "sonuc": "passed",
+      "sure": 0.3944
+    },
+    {
+      "aciklama": "Train/val bölmesi her dingilin kendi zaman diliminden yapılmalı; toplam sekans sayısı sınır aşımı olmadığı için bütün veriden üretilenden AZ olmalı.",
+      "nodeid": "testler/test_model.py::test_validation_bolmesi_sizinti_yapmaz",
+      "dosya": "testler/test_model.py",
+      "ad": "test_validation_bolmesi_sizinti_yapmaz",
+      "sonuc": "passed",
+      "sure": 0.3204
+    },
+    {
+      "aciklama": "generate_series(): fren aktivitesi (negatif ivme) sonrası brake_temp_c üstel sönümle yüksek kalıyor — normal kayıtlarda frenleyen (hız azalan) anların ortalama brake_temp_c'si, frenlemeyen anlardan belirgin şekilde yüksek olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_frenleme_aninda_fren_sicakligi_daha_yuksek",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_frenleme_aninda_fren_sicakligi_daha_yuksek",
+      "sonuc": "passed",
+      "sure": 0.04
+    },
+    {
+      "aciklama": "forced_episodes=[] ve ek_ariza_ihtimali=0.0 ile üretilen bir seride TÜM satırlar fault_type='normal' olmalı — arıza enjeksiyon mekanizmasının kapatılabilir olduğunun doğrulaması.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_generate_series_ariza_yokken_hepsi_normal",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_generate_series_ariza_yokken_hepsi_normal",
+      "sonuc": "passed",
+      "sure": 0.0005
+    },
+    {
+      "aciklama": "base_row(): titreşim, hız arttıkça artacak şekilde üretiliyor (hiz_faktor terimi) — normal (arızasız) kayıtlarda speed_kmh ile vib_peak_g arasında belirgin pozitif korelasyon olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_hiz_ile_titresim_pozitif_korelasyonlu",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_hiz_ile_titresim_pozitif_korelasyonlu",
+      "sonuc": "passed",
+      "sure": 0.0101
+    },
+    {
+      "aciklama": "bir_segment_uret() çok kısa n_steps (uç durum) ile bile çökmeden bir DataFrame döndürmeli.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kisa_segment_uretimi_cokmez",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kisa_segment_uretimi_cokmez",
+      "sonuc": "passed",
+      "sure": 0.0147
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[acoustic_peak_freq_hz]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[acoustic_peak_freq_hz]",
+      "sonuc": "passed",
+      "sure": 0.0004
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[acoustic_rms]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[acoustic_rms]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[ambient_temp_c]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[ambient_temp_c]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[axle_box_temp_c]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[axle_box_temp_c]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[brake_temp_c]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[brake_temp_c]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[humidity_pct]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[humidity_pct]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[load_ton]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[load_ton]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[motor_current_a]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[motor_current_a]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[motor_temp_c]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[motor_temp_c]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[motor_voltage_v]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[motor_voltage_v]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[speed_kmh]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[speed_kmh]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[track_km]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[track_km]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_crest_factor]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_crest_factor]",
+      "sonuc": "passed",
+      "sure": 0.0002
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_dom_freq_hz]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_dom_freq_hz]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_kurtosis]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_kurtosis]",
+      "sonuc": "passed",
+      "sure": 0.0002
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_peak_g]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_peak_g]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_x_rms_g]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_x_rms_g]",
+      "sonuc": "passed",
+      "sure": 0.0002
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_y_rms_g]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_y_rms_g]",
+      "sonuc": "passed",
+      "sure": 0.0002
+    },
+    {
+      "aciklama": "FEATURE_COLS'daki her sensör kolonu kendi fiziksel olarak makul aralığında olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_kolon_fiziksel_aralikta[vib_z_rms_g]",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_kolon_fiziksel_aralikta[vib_z_rms_g]",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "Bir dingil serisinde track_km'nin bir adımda değişimi, en hızlı hat türünün (v_max * WINDOW_SEC) fiziksel üst sınırını aşmamalı — 'ışınlanma' olmadığının kanıtı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_konum_adimi_fiziksel_ust_siniri_asmiyor",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_konum_adimi_fiziksel_ust_siniri_asmiyor",
+      "sonuc": "passed",
+      "sure": 0.0046
+    },
+    {
+      "aciklama": "severity_at(fault_len=0) önceden ZeroDivisionError riskiyle çökebiliyordu — artık savunmacı bir asgari uzunluk uygulanmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_severity_at_sifir_uzunlukta_cokmez",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_severity_at_sifir_uzunlukta_cokmez",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "sinyalizasyon_hiz_carpani() her zaman [carpan_min, 1.0] aralığında bir dizi döner ve yeterince çok denemede en az bir kez aktif olup v_max'ı gerçekten düşürebilmelidir.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_sinyalizasyon_carpani_araligi_ve_etkisi",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_sinyalizasyon_carpani_araligi_ve_etkisi",
+      "sonuc": "passed",
+      "sure": 0.0006
+    },
+    {
+      "aciklama": "İkinci tren, önündeki trenin km dizisini `onceki_tren_km_arr` olarak alınca aynı yönde giderken MIN_HEADWAY_KM'nin çok altına inmemeli — önündeki trene çarpmamalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_takip_mesafesi_asgari_bosluk_korunur",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_takip_mesafesi_asgari_bosluk_korunur",
+      "sonuc": "passed",
+      "sure": 0.0011
+    },
+    {
+      "aciklama": "tren_hareketi() tek istasyonlu (n_ist=1) bir hatla çağrılırsa (rng_local.integers(1,1) boş aralık hatası riski) çökmemeli — sonucu döndürebilmeli.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_tren_hareketi_tek_istasyonlu_hatta_cokmez",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_tren_hareketi_tek_istasyonlu_hatta_cokmez",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "ARALIKLAR sözlüğü FEATURE_COLS'daki TÜM kolonları kapsamalı (yeni kolon eklenince bu dosyanın da güncellenmesi gerektiğini hatırlatır).",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_tum_feature_cols_araliklarda_kapsanmis",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_tum_feature_cols_araliklarda_kapsanmis",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "beklenen_akim(): kalkış anlarında (ivme > 0) akım yükle orantılı artıyor — normal kayıtlarda, hızlanan (speed artışı) anlarda load_ton ile motor_current_a arasında pozitif korelasyon olmalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_yuk_ile_motor_akimi_pozitif_korelasyonlu",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_yuk_ile_motor_akimi_pozitif_korelasyonlu",
+      "sonuc": "passed",
+      "sure": 0.0359
+    },
+    {
+      "aciklama": "Her dingil serisinde (train_id/wagon_id/axle_id) ardışık satırlar arasındaki zaman farkı her zaman tam WINDOW_SEC (2 sn) olmalı — boşluk veya çakışma olmamalı.",
+      "nodeid": "testler/test_sinyal_kalitesi.py::test_zaman_damgasi_sabit_araliklarla_ilerliyor",
+      "dosya": "testler/test_sinyal_kalitesi.py",
+      "ad": "test_zaman_damgasi_sabit_araliklarla_ilerliyor",
+      "sonuc": "passed",
+      "sure": 0.0047
+    },
+    {
+      "aciklama": "SIZINTI KORUMASI: canlı akışa verilen dosyada etiket kolonu kesinlikle bulunmamalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_akis_verisinde_etiket_yok",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_akis_verisinde_etiket_yok",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Aynı trene ait tüm dingiller aynı anda aynı konumda olmalı (tek araç).",
+      "nodeid": "testler/test_veri_semasi.py::test_ayni_trenin_dingilleri_ayni_konumda",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_ayni_trenin_dingilleri_ayni_konumda",
+      "sonuc": "passed",
+      "sure": 0.0055
+    },
+    {
+      "aciklama": "Cevap anahtarı, akış verisiyle sample_id üzerinden birebir eşleşmeli.",
+      "nodeid": "testler/test_veri_semasi.py::test_cevap_anahtari_akisla_eslesiyor",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_cevap_anahtari_akisla_eslesiyor",
+      "sonuc": "passed",
+      "sure": 0.0033
+    },
+    {
+      "aciklama": "Cevap anahtarındaki tüm etiketler bilinen sınıflardan olmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_cevap_anahtari_siniflari_gecerli",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_cevap_anahtari_siniflari_gecerli",
+      "sonuc": "passed",
+      "sure": 0.002
+    },
+    {
+      "aciklama": "Veri setlerinde hiç eksik (NaN) değer bulunmamalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_eksik_deger_yok",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_eksik_deger_yok",
+      "sonuc": "passed",
+      "sure": 0.0167
+    },
+    {
+      "aciklama": "Fiziksel akıl kontrolü: hız 0-120 km/sa, konum hat uzunluğu içinde, yük pozitif.",
+      "nodeid": "testler/test_veri_semasi.py::test_hiz_ve_konum_makul_araliklarda",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_hiz_ve_konum_makul_araliklarda",
+      "sonuc": "passed",
+      "sure": 0.0003
+    },
+    {
+      "aciklama": "Gerçek metro ağı bağlamı (hat, tren, vagon, dingil, sonraki istasyon) veride bulunmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_metro_ag_kolonlari_var[axle_id]",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_metro_ag_kolonlari_var[axle_id]",
+      "sonuc": "passed",
+      "sure": 0.0018
+    },
+    {
+      "aciklama": "Gerçek metro ağı bağlamı (hat, tren, vagon, dingil, sonraki istasyon) veride bulunmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_metro_ag_kolonlari_var[line_id]",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_metro_ag_kolonlari_var[line_id]",
+      "sonuc": "passed",
+      "sure": 0.0016
+    },
+    {
+      "aciklama": "Gerçek metro ağı bağlamı (hat, tren, vagon, dingil, sonraki istasyon) veride bulunmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_metro_ag_kolonlari_var[next_station]",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_metro_ag_kolonlari_var[next_station]",
+      "sonuc": "passed",
+      "sure": 0.0017
+    },
+    {
+      "aciklama": "Gerçek metro ağı bağlamı (hat, tren, vagon, dingil, sonraki istasyon) veride bulunmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_metro_ag_kolonlari_var[train_id]",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_metro_ag_kolonlari_var[train_id]",
+      "sonuc": "passed",
+      "sure": 0.0016
+    },
+    {
+      "aciklama": "Gerçek metro ağı bağlamı (hat, tren, vagon, dingil, sonraki istasyon) veride bulunmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_metro_ag_kolonlari_var[wagon_id]",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_metro_ag_kolonlari_var[wagon_id]",
+      "sonuc": "passed",
+      "sure": 0.0016
+    },
+    {
+      "aciklama": "Arızasız (normal) kayıtların şiddeti 'none' olmalı — etiket tutarlılığı.",
+      "nodeid": "testler/test_veri_semasi.py::test_normal_kayitlarin_siddeti_none",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_normal_kayitlarin_siddeti_none",
+      "sonuc": "passed",
+      "sure": 0.0108
+    },
+    {
+      "aciklama": "Modelin kullandığı tüm FEATURE_COLS kolonları veride var ve sayısal olmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_ozellik_kolonlari_mevcut_ve_sayisal",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_ozellik_kolonlari_mevcut_ve_sayisal",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "fault_severity hedef değişkenle ilişkili olduğu için model girdisi (feature) OLMAMALI.",
+      "nodeid": "testler/test_veri_semasi.py::test_siddet_etiketi_ozellik_degil",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_siddet_etiketi_ozellik_degil",
+      "sonuc": "passed",
+      "sure": 0.0
+    },
+    {
+      "aciklama": "Train ve test setleri birebir aynı kolon şemasına sahip olmalı.",
+      "nodeid": "testler/test_veri_semasi.py::test_train_test_kolonlari_ayni",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_train_test_kolonlari_ayni",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "Train/test bölmesi kronolojik olmalı: test verisi train'in tamamından SONRA başlar (rastgele bölme veri sızıntısına yol açardı).",
+      "nodeid": "testler/test_veri_semasi.py::test_train_test_kronolojik_ayrilmis",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_train_test_kronolojik_ayrilmis",
+      "sonuc": "passed",
+      "sure": 0.0002
+    },
+    {
+      "aciklama": "Gerçekçilik kontrolü: trenler istasyonlarda duruyor olmalı (hızın bir kısmı ~0).",
+      "nodeid": "testler/test_veri_semasi.py::test_tren_duraklarda_duruyor",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_tren_duraklarda_duruyor",
+      "sonuc": "passed",
+      "sure": 0.0001
+    },
+    {
+      "aciklama": "6 arıza sınıfının tamamı hem train hem test setinde temsil edilmeli.",
+      "nodeid": "testler/test_veri_semasi.py::test_tum_siniflar_her_iki_sette_var",
+      "dosya": "testler/test_veri_semasi.py",
+      "ad": "test_tum_siniflar_her_iki_sette_var",
+      "sonuc": "passed",
+      "sure": 0.0057
+    }
+  ]
 }
