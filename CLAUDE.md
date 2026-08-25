@@ -256,6 +256,14 @@ istasyonlarla aynı `.harita-ipucu` deseninde özel bir tooltip eklendi (`Ipucu`
 tipi, `tur: "istasyon" | "tren"`) — tooltip artık `ipucuStil()` ile imlecin ekranın hangi
 çeyreğinde olduğuna göre konumlanıyor (sağ/alt kenara taşmasın diye).
 
+**Üçüncü tur:** tren tooltip'indeki arızalı dingil satırlarına **şiddet** (`SIDDET_ETIKET`) ve
+**öncelik seviyesi** (`ONCELIK_ETIKET`/`ONCELIK_RENK`) eklendi — önceden sadece arıza tipi
+gösteriliyordu. **Kenar çubuğu hover-expand**: daraltılmışken üzerine mouse gelince SAF CSS ile
+(`globals.css`, `.kenar-cubugu.daralt:hover`) geçici olarak tam genişliğe açılır —
+`position: fixed` kullanır ki flex akışından çıksın ve ana içeriğin ÜSTÜNE binsin (yana
+kaydırıp titretmesin); tıklanan daraltma tercihi (`localStorage`) bundan etkilenmez, JS state'i
+hiç değişmez. Mouse çekilince otomatik geri daralır.
+
 Paneller: üst kontrol barı (play/duraklat/baştan, hız, **histerezis**, **kör mod** — hepsi
 çalışma anında), KPI kartları, **MetroHarita** (gerçek koordinatlarla İstanbul ağı; kara/deniz
 zemini ilçe poligonlarından çizilir, trenler tahmin rengiyle hareket eder, ray kusurları üçgenle

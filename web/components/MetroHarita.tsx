@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { SINIF_ETIKET, SINIF_RENK, type AxleDurum, type Hat, type Istasyon, type MetroAgi, type Olay } from "@/lib/tipler";
+import { ONCELIK_ETIKET, ONCELIK_RENK, SIDDET_ETIKET, SINIF_ETIKET, SINIF_RENK,
+         type AxleDurum, type Hat, type Istasyon, type MetroAgi, type Olay } from "@/lib/tipler";
 
 /**
  * İstanbul raylı sistem ağı haritası — yakınlaştırma / kaydırma destekli.
@@ -450,8 +451,16 @@ export default function MetroHarita({
               arizali.map((a) => (
                 <div key={a.axle} className="olay-satir">
                   <i style={{ background: SINIF_RENK[a.yerlesik!] }} />
-                  <span className="mono">{a.axle}</span>
-                  <span>{SINIF_ETIKET[a.yerlesik!]}</span>
+                  <span>
+                    <span className="mono">{a.axle}</span> — {SINIF_ETIKET[a.yerlesik!]}
+                    {a.severity && a.severity !== "none" && ` · ${SIDDET_ETIKET[a.severity]}`}
+                  </span>
+                  {a.oncelik_seviye && (
+                    <span style={{ color: ONCELIK_RENK[a.oncelik_seviye], fontSize: 10,
+                                   textTransform: "uppercase" }}>
+                      {ONCELIK_ETIKET[a.oncelik_seviye]}
+                    </span>
+                  )}
                 </div>
               ))
             )}
