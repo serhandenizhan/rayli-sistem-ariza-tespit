@@ -290,6 +290,31 @@ def beklenen_akim(speed_kmh, load_ton, ivme_ms2):
     return 40.0 + 95.0 * hizlanma * (load_ton / 30.0) + 0.55 * speed_kmh - 25.0 * frenleme
 
 
+# --- Sıcaklık otokorelasyonu ---
+# Gerçek bir kütlenin (dingil kutusu, fren, motor, ortam havası) sıcaklığı 2 saniyede bir
+# rastgele SIÇRAMAZ — termal atalet nedeniyle yumuşak bir trend izler. base_row()'un ürettiği
+# ham (bağımsız gürültülü) değer, EMA (üstel hareketli ortalama) ile bir önceki adıma göre
+# yumuşatılır; zaman sabiti (`tau`) ne kadar büyükse o kadar ATALETLİ (yavaş değişen) demektir.
+SICAKLIK_ZAMAN_SABITI_SN = {
+    "axle_box_temp_c": 40.0,
+    "brake_temp_c": 20.0,
+    "motor_temp_c": 30.0,
+    "ambient_temp_c": 300.0,
+}
+SICAKLIK_KOLONLARI = list(SICAKLIK_ZAMAN_SABITI_SN.keys())
+
+
+def sicaklik_yumusat(ham_deger, onceki_deger, kolon, dt=WINDOW_SEC):
+    """Bir sıcaklık kolonunun ham (gürültülü, ATALETSİZ) değerini, o kolonun zaman sabitine
+    göre EMA ile yumuşatır. `onceki_deger=None` ise (serinin ilk adımı) ham değer aynen
+    döner — yumuşatmanın başlayacağı bir referans yoktur."""
+    if onceki_deger is None:
+        return ham_deger
+    tau = SICAKLIK_ZAMAN_SABITI_SN[kolon]
+    alfa = 1.0 - np.exp(-dt / tau)
+    return onceki_deger + alfa * (ham_deger - onceki_deger)
+
+
 def base_row(speed_kmh, load_ton, ivme_ms2=0.0, fren_aktivite=0.0):
     """Sağlıklı (normal) durum için gürültülü temel sensör değerleri.
     Titreşim/akustik büyüklükler hızla artar — duran trende titreşim yok denecek kadar azdır.
@@ -432,7 +457,8 @@ def make_dedicated_episodes(series_list):
 
 
 def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, kusurlar,
-                    n_steps=None, baslangic_zamani=None, ek_ariza_ihtimali=0.35):
+                    n_steps=None, baslangic_zamani=None, ek_ariza_ihtimali=0.35,
+                    sicaklik_durumu=None):
     """Bir dingil için tüm zaman serisini üretir. Hareket (konum/hız) tren geneliyle paylaşılır.
 
     `n_steps`/`baslangic_zamani` verilmezse offline üretimin (main()) global sabitleri
@@ -440,6 +466,13 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
     (`bir_segment_uret`) kendi segment uzunluğunu ve o anki segment saatini geçirir.
     `hareket` 5 (eski) veya 6 (bitiş durumu dahil, `tren_hareketi`'nin güncel dönüşü) elemanlı
     olabilir — burada yalnızca ilk 5'i kullanılır.
+
+    `sicaklik_durumu` verilirse (bir önceki segmentin son yumuşatılmış sıcaklık değerleri,
+    `SICAKLIK_KOLONLARI` anahtarlı dict) sıcaklık kolonları segment sınırında da SÜREKLİ kalır
+    (tren fiziksel state'inin `baslangic_durumu` ile taşınmasıyla aynı desen). `None` ise
+    (offline `main()` veya ilk segment) her kolon kendi ilk ham değeriyle başlar.
+
+    Döner: `(rows, yeni_sicaklik_durumu)`.
     """
     n_steps = n_steps or N_STEPS
     baslangic_zamani = baslangic_zamani or START_TIME
@@ -468,6 +501,8 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
     for i, f in enumerate(fren_arr):
         birikim = max(f, birikim * 0.88)
         fren_aktivite[i] = birikim
+
+    sicaklik_onceki = dict(sicaklik_durumu) if sicaklik_durumu else {c: None for c in SICAKLIK_KOLONLARI}
 
     for step in range(n_steps):
         speed = float(hiz_arr[step])
@@ -498,6 +533,12 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
                     active_fault = "rail_crack"
                     sev_val = site_sev
 
+        # Sıcaklık otokorelasyonu: ham (bağımsız gürültülü + arıza etkili) değer, bir önceki
+        # adıma göre EMA ile yumuşatılır — termal atalet nedeniyle 2 sn'de bir sıçramaz.
+        for kolon in SICAKLIK_KOLONLARI:
+            row[kolon] = sicaklik_yumusat(row[kolon], sicaklik_onceki[kolon], kolon)
+            sicaklik_onceki[kolon] = row[kolon]
+
         lat, lon = km_den_konuma(hat, track_km)
         idx = int(sonraki_ist[step])
         row.update({
@@ -517,7 +558,7 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
             "fault_severity": severity_label(sev_val),
         })
         rows.append(row)
-    return rows
+    return rows, sicaklik_onceki
 
 
 # ---------------------------------------------------------------------------
@@ -545,7 +586,7 @@ def segment_dedicated_episodes(series_list, rng_local, n_steps,
 
 
 def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kusurlar,
-                      n_steps=SEGMENT_STEPS):
+                      n_steps=SEGMENT_STEPS, sicaklik_durumlari=None):
     """Canlı/sürekli akış modu için bir segment (varsayılan 300 tick = 10 dk) sentetik veri
     üretir. `hareket_durumlari` (önceki segmentin `tren_hareketi` bitiş durumları, train_id'ye
     göre) `None` ise (ilk segment) trenler rastgele/eşit-aralıklı başlar; sonraki çağrılarda
@@ -554,7 +595,11 @@ def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kus
     SEED=42'li deterministik `rng`'si değil, çağıranın verdiği (seedsiz) `rng_local` kullanılır
     — bu yüzden her segment farklıdır, aynı script asla tekrar etmez.
 
-    Döner: `(segment_df, yeni_hareket_durumlari)`.
+    `sicaklik_durumlari` (önceki segmentin son yumuşatılmış sıcaklık değerleri, seri/dingil
+    anahtarına göre) aynı "kaldığı yerden devam" desenini sıcaklık kolonlarına da uygular —
+    aksi hâlde her segment sınırında sıcaklıklar sıfırlanıp yeniden ısınırdı.
+
+    Döner: `(segment_df, yeni_hareket_durumlari, yeni_sicaklik_durumlari)`.
     """
     series_list = build_series_list(hatlar)
     dedicated = segment_dedicated_episodes(series_list, rng_local, n_steps)
@@ -582,19 +627,23 @@ def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kus
             onceki_km_arr, onceki_yon_arr = sonuc[0], sonuc[2]
 
     rows = []
+    yeni_sicaklik_durumlari = {}
     for s in series_list:
         kod, train_id, wagon_id, axle_id = s
-        rows.extend(generate_series(hatlar[kod], train_id, wagon_id, axle_id,
-                                    dedicated[s], hareketler[train_id], kusurlar,
-                                    n_steps=n_steps, baslangic_zamani=baslangic_zamani,
-                                    ek_ariza_ihtimali=SEGMENT_EK_ARIZA_IHTIMALI))
+        s_rows, s_sicaklik = generate_series(
+            hatlar[kod], train_id, wagon_id, axle_id, dedicated[s], hareketler[train_id],
+            kusurlar, n_steps=n_steps, baslangic_zamani=baslangic_zamani,
+            ek_ariza_ihtimali=SEGMENT_EK_ARIZA_IHTIMALI,
+            sicaklik_durumu=(sicaklik_durumlari or {}).get(s))
+        rows.extend(s_rows)
+        yeni_sicaklik_durumlari[s] = s_sicaklik
 
     df = pd.DataFrame(rows)[COL_ORDER]
     float_cols = df.select_dtypes(include=[float]).columns
     df[float_cols] = df[float_cols].round(4)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.sort_values(["timestamp", "train_id", "wagon_id", "axle_id"]).reset_index(drop=True)
-    return df, yeni_durumlar
+    return df, yeni_durumlar, yeni_sicaklik_durumlari
 
 
 def main():
@@ -630,8 +679,9 @@ def main():
     all_rows = []
     for s in series_list:
         kod, train_id, wagon_id, axle_id = s
-        all_rows.extend(generate_series(hatlar[kod], train_id, wagon_id, axle_id,
-                                        dedicated[s], hareketler[train_id], kusurlar))
+        s_rows, _ = generate_series(hatlar[kod], train_id, wagon_id, axle_id,
+                                    dedicated[s], hareketler[train_id], kusurlar)
+        all_rows.extend(s_rows)
 
     df = pd.DataFrame(all_rows)
     df = df[COL_ORDER]

@@ -109,6 +109,25 @@ yapılabilir.
   etkisi zaten `speed_kmh` ve ona bağlı titreşim/akım sinyallerine yansır. Her iki mekanizma da
   hem offline `main()` hem canlı `bir_segment_uret()` tarafından kullanılır (hat başına bir
   sinyal çarpanı, trenler arası sıralı headway zinciri).
+  **Sıcaklık otokorelasyonu**: dört sıcaklık kolonu (`axle_box_temp_c`, `brake_temp_c`,
+  `motor_temp_c`, `ambient_temp_c`) eskiden her tick'te bağımsız Gauss gürültüsüyle üretiliyordu
+  — gerçekte termal atalet nedeniyle 2 sn'de bir sıçramaz. `sicaklik_yumusat()` bu ham değeri
+  bir önceki adıma göre EMA (üstel hareketli ortalama) ile yumuşatır; her kolonun kendi zaman
+  sabiti (`SICAKLIK_ZAMAN_SABITI_SN`: axle_box 40 sn, brake 20 sn, motor 30 sn, ambient 300 sn)
+  ne kadar "ataletli" olduğunu belirler. Yumuşatma `apply_fault()`'tan SONRA uygulanır, yani
+  arıza kaynaklı ısınma da anlık sıçrama yerine gerçekçi bir yükseliş eğrisi izler.
+  `generate_series()` artık `(rows, yeni_sicaklik_durumu)` döner (eskiden sadece `rows`) —
+  `sicaklik_durumu` parametresiyle (seri/dingil anahtarlı dict) segment sınırında da süreklilik
+  korunur, tıpkı `tren_hareketi()`'nin `baslangic_durumu`/`bitis_durumu` deseni gibi.
+  `bir_segment_uret()` bu state'i `sicaklik_durumlari` parametresiyle taşır ve artık
+  `(segment_df, yeni_hareket_durumlari, yeni_sicaklik_durumlari)` (3-tuple) döner; canlı sunucu
+  (`rayli_canli_akis_sunucu.py`) bunu `self._sicaklik_durumlari` ile segmentler arası korur,
+  `reset()`'te sıfırlar. Offline `main()`'in tek çağrısı zaten tüm N_STEPS'i kapsadığı için ek
+  state taşımaya gerek yok. **Not**: zaman sabitleri ilk denemede daha büyük seçilmişti (120/40/
+  90/600 sn) ama bu, arıza bittikten sonra sıcaklığın gereğinden uzun süre yüksek kalmasına
+  (`test_arizali_dingil_orani_gercekci` testinin %15 eşiğini aşmasına) yol açtı — daha kısa
+  sabitlerle (40/20/30/300 sn) hem tick-to-tick pürüzsüzlük korunuyor hem de arıza sonrası
+  toparlanma gerçekçi bir sürede oluyor.
 - `rayli_model.py` — **tek gerçek kaynak (single source of truth)**: model mimarisi (`CNNLSTM`
   sınıfı), `SeqDataset`, ve paylaşılan sabitler (`FEATURE_COLS`, `GROUP_COLS`, `WINDOW=10`,
   `STRIDE=2`). Hem eğitim hem tahmin scripti bunu import eder. **Bu dosyada mimariyi
@@ -354,8 +373,10 @@ görünüyordu.
 Sentetik veri gerçekçi ama tam fiziksel doğrulukta değildir; ilerideki iyileştirmeler için not:
 
 - Ham sensör sinyali yok, doğrudan özellik (RMS, kurtosis, FFT tepe frekansı vb.) simüle edildi.
-- Sıcaklık/nem gibi yavaş değişen sensörler bağımsız gürültüyle üretildi; gerçekte zamanla
-  yumuşak trend (otokorelasyon) gösterirler.
+- Sıcaklık dört kolonu (`axle_box_temp_c`/`brake_temp_c`/`motor_temp_c`/`ambient_temp_c`) artık
+  EMA ile yumuşatılıp otokorelasyonlu (bkz. `rayli_veri_uret.py` notu, "Sıcaklık otokorelasyonu");
+  `humidity_pct` hâlâ bağımsız gürültülü — nem, arıza tespitinde ayırt edici bir sinyal
+  taşımadığı için bu iyileştirmenin kapsamı dışında bırakıldı.
 - `rail_crack` konuma bağlı bir arızadır; gerçek hat üzerinde sabit km noktalarına bağlıdır
   (tren her geçişte tetikler), ancak hâlâ zaman bazlı pencereye örnekleniyor.
   **Kusur yoğunluğu**: `KUSURLU_HAT_MIN_KM` ile yalnızca 10 km üstü hatlara ve hat başına BİR
@@ -466,7 +487,6 @@ yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile d
 
 ## Sıradaki olası görevler
 
-- Sıcaklık sensörlerine otokorelasyon (şu an bağımsız gürültü; gerçekte yumuşak trend gösterir).
 - Kaynak veri tazeliği: İBB anlık görüntüsü bazı hatlarda eski etapları gösteriyor
   (M9 yalnızca 4 istasyon, M3 Bakırköy uzatması yok, M11 Halkalı etabı "inşaat").
   Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir. İstasyon SIRA mantığının
