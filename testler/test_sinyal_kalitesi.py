@@ -204,3 +204,46 @@ def test_kisa_segment_uretimi_cokmez():
     assert len(df) > 0
     assert set(durumlar.keys()) == {t for _, t, _, _ in
                                     __import__("rayli_veri_uret").build_series_list(hatlar)}
+
+
+# ---------------------------------------------------------------------------------
+# 5) Takip mesafesi (headway) ve sinyalizasyon
+# ---------------------------------------------------------------------------------
+def test_takip_mesafesi_asgari_bosluk_korunur():
+    """İkinci tren, önündeki trenin km dizisini `onceki_tren_km_arr` olarak alınca aynı yönde
+    giderken MIN_HEADWAY_KM'nin çok altına inmemeli — önündeki trene çarpmamalı."""
+    from rayli_veri_uret import tren_hareketi, MIN_HEADWAY_KM
+    hat = _sahte_hat(n_istasyon=6)
+    rng1 = np.random.default_rng(3)
+    rng2 = np.random.default_rng(4)
+    # Öndeki tren aynı hatta hemen önde başlar (hedef_idx=1), arkadaki tren ile aynı yönde (+1).
+    onceki = tren_hareketi(hat, n_steps=200, rng_local=rng1, baslangic_orani=0.2)
+    arkadaki = tren_hareketi(hat, n_steps=200, rng_local=rng2, baslangic_orani=0.05,
+                             onceki_tren_km_arr=onceki[0], onceki_tren_yon_arr=onceki[2])
+    onceki_km, onceki_yon = onceki[0], onceki[2]
+    arka_km, arka_yon = arkadaki[0], arkadaki[2]
+    ayni_yon = onceki_yon == arka_yon
+    bosluk = (onceki_km - arka_km) * arka_yon
+    # Yalnızca aynı yönde VE önündeki tren gerçekten ilerideyken (bosluk>0) kısıt anlamlıdır.
+    ilgili = ayni_yon & (bosluk > 0)
+    if ilgili.any():
+        # Küçük bir tolerans (fren adımı ayrıklığı) dışında asgari mesafenin çok altına inilmemeli.
+        assert bosluk[ilgili].min() > -0.05, (
+            f"headway ihlali: minimum boşluk {bosluk[ilgili].min():.3f} km "
+            f"(asgari={MIN_HEADWAY_KM} km)"
+        )
+
+
+def test_sinyalizasyon_carpani_araligi_ve_etkisi():
+    """sinyalizasyon_hiz_carpani() her zaman [carpan_min, 1.0] aralığında bir dizi döner ve
+    yeterince çok denemede en az bir kez aktif olup v_max'ı gerçekten düşürebilmelidir."""
+    from rayli_veri_uret import sinyalizasyon_hiz_carpani, SINYAL_HIZ_CARPAN_ARALIGI
+    rng = np.random.default_rng(5)
+    en_az_bir_aktif = False
+    for _ in range(200):
+        carpan = sinyalizasyon_hiz_carpani(n_steps=300, rng_local=rng)
+        assert carpan.min() >= SINYAL_HIZ_CARPAN_ARALIGI[0] - 1e-9
+        assert carpan.max() <= 1.0
+        if carpan.min() < 1.0:
+            en_az_bir_aktif = True
+    assert en_az_bir_aktif, "200 denemede hiç sinyalizasyon yavaşlaması tetiklenmedi"

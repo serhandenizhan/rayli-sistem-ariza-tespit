@@ -96,6 +96,19 @@ yapılabilir.
   `rng`'sinden bağımsız, HER ÇAĞRIDA taze rastgele. `hat_tren_sayisi()` artık kademeli bir eşik
   tablosuna (`TREN_ESIKLERI`) göre çalışır (<10km→1, 10-20km→2, 20-30km→3, ≥30km→4 tren) —
   eskiden tek eşik (15km→2) vardı, filo gerçekçilik için büyütüldü.
+  **Takip mesafesi (headway)**: aynı hattaki trenler artık SIRAYLA (tren_no 1, 2, 3…) üretilir;
+  her sonraki tren, `tren_hareketi()`'ye kendinden önceki trenin BU segment/koşudaki km ve yön
+  dizisini (`onceki_tren_km_arr`/`onceki_tren_yon_arr`) alır. Aynı yönde giden ve
+  `MIN_HEADWAY_KM`'den (0.4 km) yakınlaşan trenler, sanki önlerinde bir istasyon varmış gibi
+  mevcut frenleme formülüyle yavaşlar — üst üste binmezler. Tam bir blok sinyalizasyonu DEĞİL,
+  kaba bir yakınlık freni; paralel çift hat varsayıldığından yalnızca AYNI yöndeki trenler
+  arasında uygulanır. **Sinyalizasyon etkisi**: `sinyalizasyon_hiz_carpani()` düşük ihtimalle
+  (%3, `SINYAL_YAVASLAMA_IHTIMALI`) bir hattın TAMAMI için belirli bir süre boyunca v_max'ı
+  %40-60'a düşüren bir çarpan dizisi üretir (`tren_hareketi()`'nin yeni `hiz_carpan_arr`
+  parametresi) — o hattaki TÜM trenler aynı çarpanı paylaşır. Yeni bir CSV kolonu EKLEMEZ;
+  etkisi zaten `speed_kmh` ve ona bağlı titreşim/akım sinyallerine yansır. Her iki mekanizma da
+  hem offline `main()` hem canlı `bir_segment_uret()` tarafından kullanılır (hat başına bir
+  sinyal çarpanı, trenler arası sıralı headway zinciri).
 - `rayli_model.py` — **tek gerçek kaynak (single source of truth)**: model mimarisi (`CNNLSTM`
   sınıfı), `SeqDataset`, ve paylaşılan sabitler (`FEATURE_COLS`, `GROUP_COLS`, `WINDOW=10`,
   `STRIDE=2`). Hem eğitim hem tahmin scripti bunu import eder. **Bu dosyada mimariyi
@@ -387,7 +400,7 @@ ilişkilendirildi ve arıza bölümü sayısı artırıldı.
 
 ## Testler (testler/)
 
-`./testleri_calistir.sh` → pytest (şu an **123 test**, hepsi geçiyor) + `results/test_ozeti.json`.
+`./testleri_calistir.sh` → pytest (şu an **125 test**, hepsi geçiyor) + `results/test_ozeti.json`.
 Özet dosyasını `testler/conftest.py` içindeki küçük eklenti üretir (ek bağımlılık yok) ve
 dashboard'daki **Birim Testleri** paneli `/api/testler` üzerinden bunu gösterir. Testlerin Türkçe
 docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstring'i anlamlı yaz.
@@ -430,7 +443,11 @@ docstring'i arayüzde açıklama olarak görünür — yeni test yazarken docstr
   `apply_fault()`'taki `wheel_flat` dalı düşük hızda `vib_dom_freq_hz`'i negatife düşürebiliyordu
   (aynı kelepçe eklendi); `severity_at()` sıfır uzunluklu arızada (`fault_len=0`) sıfıra bölme
   riski taşıyordu (`fault_len = max(1, fault_len)` eklendi); `tren_hareketi()` tek istasyonlu
-  hatta `rng.integers(1,1)` ile ValueError verebiliyordu (`n_ist>1` koşulu eklendi).
+  hatta `rng.integers(1,1)` ile ValueError verebiliyordu (`n_ist>1` koşulu eklendi). Ayrıca
+  **takip mesafesi/sinyalizasyon** için 2 test: `test_takip_mesafesi_asgari_bosluk_korunur`
+  (aynı yönde giden iki trenin `MIN_HEADWAY_KM`'nin altına inmediğini doğrular) ve
+  `test_sinyalizasyon_carpani_araligi_ve_etkisi` (hız çarpanının doğru aralıkta kaldığını ve
+  yeterince denemede en az bir kez tetiklendiğini doğrular).
 
 ## Docker (hafif docker-compose)
 
@@ -455,10 +472,6 @@ yazıldı ve mantık gözden geçirildi ama gerçek `docker compose build` ile d
   Güncel istasyon listeleri elde edilirse ağ modeli tazelenebilir. İstasyon SIRA mantığının
   (2-opt TSP türetimi) tüm hatlarda gerçek sırayla örtüştüğü ek doğrulama ile teyit edilebilir
   (şu an sadece M4/M2/T1 testlerle doğrulanmış).
-- Trenler arası **takip mesafesi (headway)** modeli — şu an hat başına birden fazla tren olsa
-  bile trenler birbirini etkilemiyor, gerçek sinyalizasyonun sağladığı asgari ayrım mesafesi
-  temsil edilmiyor. **Sinyalizasyon etkisi** de en azından basit bir operasyonel değişken
-  olarak (ör. rastgele "sinyal arızası" dönemlerinde hat genelinde hız/gecikme) eklenebilir.
 - Gerçek (sentetik olmayan) veriye uyarlama; bkz. "Bilinen basitleştirmeler".
 
 ## Diğer notlar

@@ -60,6 +60,31 @@ WHEEL_DIAM_M = 0.92
 TREN_ESIKLERI = [(30.0, 4), (20.0, 3), (10.0, 2)]
 VARSAYILAN_TREN_SAYISI = 1
 
+# --- Takip mesafesi (headway) ve sinyalizasyon ---
+# Gerçek sinyalizasyon sistemleri trenler arasında asgari bir ayrım mesafesi zorunlu kılar;
+# burada tam bir blok sinyalizasyonu modellenmiyor, yalnızca basit bir "önündeki trene çok
+# yaklaşma" freni uygulanıyor (bkz. tren_hareketi'nin onceki_tren_km_arr parametresi).
+MIN_HEADWAY_KM = 0.4
+# Sinyalizasyon kaynaklı geçici yavaşlama: düşük ihtimalle bir hattın TAMAMINDA belirli bir
+# süre v_max düşer (ör. arıza/bakım kaynaklı operasyonel yavaşlama). Yeni bir CSV kolonu
+# EKLEMEZ — etkisi zaten speed_kmh ve ona bağlı titreşim/akım sinyallerine yansır.
+SINYAL_YAVASLAMA_IHTIMALI = 0.03
+SINYAL_HIZ_CARPAN_ARALIGI = (0.4, 0.6)
+SINYAL_SURE_ORANI = (0.15, 0.4)          # segment/koşu uzunluğunun bu payı kadar sürer
+
+
+def sinyalizasyon_hiz_carpani(n_steps, rng_local, ihtimal=SINYAL_YAVASLAMA_IHTIMALI):
+    """Bir hat için adım bazlı hız çarpanı dizisi (1.0 = normal). Düşük ihtimalle, rastgele bir
+    başlangıç noktasından itibaren belirli bir süre boyunca v_max'ı düşürerek sinyalizasyon
+    kaynaklı operasyonel bir yavaşlama dönemini temsil eder."""
+    carpan = np.ones(n_steps)
+    if n_steps > 1 and rng_local.random() < ihtimal:
+        deger = rng_local.uniform(*SINYAL_HIZ_CARPAN_ARALIGI)
+        sure = int(np.clip(n_steps * rng_local.uniform(*SINYAL_SURE_ORANI), 1, n_steps))
+        start = int(rng_local.integers(0, max(1, n_steps - sure + 1)))
+        carpan[start:start + sure] = deger
+    return carpan
+
 # --- Canlı/sürekli akış (rayli_canli_akis_sunucu.py --kaynak canli) için segment ayarları ---
 # Sabit dosya yerine sunucu bu modülü CANLI çağırır; her segment TAZE rastgele bir arıza
 # senaryosu içerir (offline main()'in SEED=42'li deterministik üretiminden bağımsız, ayrı bir
@@ -133,7 +158,8 @@ def ray_kusurlari_uret(hatlar):
     return kusurlar
 
 
-def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durumu=None):
+def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durumu=None,
+                  onceki_tren_km_arr=None, onceki_tren_yon_arr=None, hiz_carpan_arr=None):
     """Gerçek istasyon dizisi üzerinde bir seferin hız/konum profilini üretir.
 
     Dönen diziler adım bazlıdır: konum (km), hız (km/sa), yön (+1/-1), istasyonda mı,
@@ -144,11 +170,23 @@ def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durum
     trenleri rastgele bir noktaya "ışınlardı".
 
     `baslangic_durumu` verilirse `baslangic_orani`/rastgele başlangıç YOK SAYILIR.
+
+    `onceki_tren_km_arr`/`onceki_tren_yon_arr` verilirse (aynı hattaki bir ÖNCEKİ trenin BU
+    segmentteki km/yön dizileri) basit bir **takip mesafesi (headway)** kısıtı uygulanır: aynı
+    yönde giden ve `MIN_HEADWAY_KM`'den yakınlaşan trenler, sanki önlerinde bir istasyon varmış
+    gibi (mevcut frenleme formülüyle) yavaşlar — trenler üst üste binmez. Bu, gerçek
+    sinyalizasyonun sağladığı ayrım mesafesinin kaba bir modelidir; paralel çift hat varsayıldığı
+    için kısıt yalnızca AYNI yöndeki trenler arasında uygulanır (karşı yönden gelen trenle
+    çakışma riski yoktur).
+
+    `hiz_carpan_arr` verilirse (0-1 arası, adım bazlı) v_max bu çarpanla çarpılır — hat genelinde
+    geçici bir **sinyalizasyon kaynaklı yavaşlama** dönemini temsil eder (bkz.
+    `sinyalizasyon_hiz_carpani`); verilmezse v_max sabit kalır (mevcut davranış).
     """
     istasyonlar = hat["istasyonlar"]
     n_ist = len(istasyonlar)
     hat_uzunluk = istasyonlar[-1]["km"]
-    v_max = MAX_HIZ_KMH.get(hat["tur"], 70.0) / 3.6          # m/s
+    v_max_sabit = MAX_HIZ_KMH.get(hat["tur"], 70.0) / 3.6     # m/s
 
     km_arr = np.zeros(n_steps)
     hiz_arr = np.zeros(n_steps)
@@ -177,8 +215,18 @@ def tren_hareketi(hat, n_steps, rng_local, baslangic_orani=None, baslangic_durum
         bekleme = 0.0
 
     for t in range(n_steps):
+        v_max = v_max_sabit * (hiz_carpan_arr[t] if hiz_carpan_arr is not None else 1.0)
         hedef_m = istasyonlar[hedef_idx]["km"] * 1000.0
         kalan = (hedef_m - konum_m) * yon
+
+        # Takip mesafesi (headway): aynı yönde giden önceki tren asgari mesafeden yakınsa,
+        # sanki hedef daha yakınmış gibi davranıp aynı frenleme mantığıyla yavaşla.
+        if onceki_tren_km_arr is not None:
+            onder_yon = onceki_tren_yon_arr[t] if onceki_tren_yon_arr is not None else yon
+            if onder_yon == yon:
+                bosluk_m = (onceki_tren_km_arr[t] * 1000.0 - konum_m) * yon
+                if 0 < bosluk_m < MIN_HEADWAY_KM * 1000.0:
+                    kalan = min(kalan, bosluk_m)
 
         if bekleme > 0:
             hiz = 0.0
@@ -519,13 +567,19 @@ def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kus
     hareketler = {}
     yeni_durumlar = {}
     for kod, trenler in hat_tren_listesi.items():
+        hiz_carpan = sinyalizasyon_hiz_carpani(n_steps, rng_local)
+        onceki_km_arr, onceki_yon_arr = None, None
         for i, train_id in enumerate(trenler):
             onceki_durum = (hareket_durumlari or {}).get(train_id)
             oran = None if (onceki_durum is not None or len(trenler) == 1) else (i + 0.5) / len(trenler)
             sonuc = tren_hareketi(hatlar[kod], n_steps, rng_local, baslangic_orani=oran,
-                                  baslangic_durumu=onceki_durum)
+                                  baslangic_durumu=onceki_durum,
+                                  onceki_tren_km_arr=onceki_km_arr,
+                                  onceki_tren_yon_arr=onceki_yon_arr,
+                                  hiz_carpan_arr=hiz_carpan)
             hareketler[train_id] = sonuc[:5]
             yeni_durumlar[train_id] = sonuc[5]
+            onceki_km_arr, onceki_yon_arr = sonuc[0], sonuc[2]
 
     rows = []
     for s in series_list:
@@ -562,9 +616,16 @@ def main():
         if train_id not in hat_tren_listesi[kod]:
             hat_tren_listesi[kod].append(train_id)
     for kod, trenler in hat_tren_listesi.items():
+        hiz_carpan = sinyalizasyon_hiz_carpani(N_STEPS, rng)
+        onceki_km_arr, onceki_yon_arr = None, None
         for i, train_id in enumerate(trenler):
             oran = None if len(trenler) == 1 else (i + 0.5) / len(trenler)
-            hareketler[train_id] = tren_hareketi(hatlar[kod], N_STEPS, rng, oran)
+            sonuc = tren_hareketi(hatlar[kod], N_STEPS, rng, oran,
+                                  onceki_tren_km_arr=onceki_km_arr,
+                                  onceki_tren_yon_arr=onceki_yon_arr,
+                                  hiz_carpan_arr=hiz_carpan)
+            hareketler[train_id] = sonuc
+            onceki_km_arr, onceki_yon_arr = sonuc[0], sonuc[2]
 
     all_rows = []
     for s in series_list:
