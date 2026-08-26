@@ -473,9 +473,9 @@ def test_segment_uretimi_fiziksel_sureklilik():
     kusurlar = vu.ray_kusurlari_uret(hatlar)
     rng_local = np.random.default_rng(999)
 
-    df1, durumlar, _ = vu.bir_segment_uret(hatlar, rng_local, vu.START_TIME, None, kusurlar, n_steps=50)
+    df1, durumlar, _, _ = vu.bir_segment_uret(hatlar, rng_local, vu.START_TIME, None, kusurlar, n_steps=50)
     baslangic_2 = df1["timestamp"].max() + __import__("datetime").timedelta(seconds=vu.WINDOW_SEC)
-    df2, _, _ = vu.bir_segment_uret(hatlar, rng_local, baslangic_2, durumlar, kusurlar, n_steps=50)
+    df2, _, _, _ = vu.bir_segment_uret(hatlar, rng_local, baslangic_2, durumlar, kusurlar, n_steps=50)
 
     ortak_tren = df1["train_id"].iloc[0]
     son_1 = df1[df1.train_id == ortak_tren].sort_values("timestamp").iloc[-1]

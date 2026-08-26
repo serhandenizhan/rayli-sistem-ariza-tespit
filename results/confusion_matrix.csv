@@ -1,7 +1,7 @@
 ,tahmin_bearing_fault,tahmin_brake_fault,tahmin_motor_fault,tahmin_normal,tahmin_rail_crack,tahmin_wheel_flat
-gercek_bearing_fault,634,0,0,0,0,0
-gercek_brake_fault,0,496,0,26,0,0
-gercek_motor_fault,0,0,413,33,0,0
-gercek_normal,0,21,17,11800,0,0
-gercek_rail_crack,0,0,0,0,61,0
-gercek_wheel_flat,0,0,0,11,0,504
+gercek_bearing_fault,592,0,0,12,0,1
+gercek_brake_fault,0,564,0,59,0,0
+gercek_motor_fault,0,0,488,115,0,0
+gercek_normal,10,70,52,13685,0,105
+gercek_rail_crack,0,2,0,0,81,0
+gercek_wheel_flat,0,0,0,65,0,451

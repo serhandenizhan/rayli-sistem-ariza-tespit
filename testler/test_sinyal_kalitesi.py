@@ -176,8 +176,8 @@ def test_generate_series_ariza_yokken_hepsi_normal():
     hat = _sahte_hat(n_istasyon=5)
     rng = np.random.default_rng(1)
     hareket = tren_hareketi(hat, n_steps=20, rng_local=rng)
-    rows, _ = generate_series(hat, "T-01", "V1", "A1", forced_episodes=[], hareket=hareket,
-                              kusurlar=[], n_steps=20, ek_ariza_ihtimali=0.0)
+    rows, _, _ = generate_series(hat, "T-01", "V1", "A1", forced_episodes=[], hareket=hareket,
+                                 kusurlar=[], n_steps=20, ek_ariza_ihtimali=0.0)
     fault_types = {r["fault_type"] for r in rows}
     assert fault_types == {"normal"}, f"arıza kapalıyken normal dışı etiket üretildi: {fault_types}"
 
@@ -199,7 +199,7 @@ def test_kisa_segment_uretimi_cokmez():
     kusurlar = ray_kusurlari_uret(hatlar)
     rng = np.random.default_rng(2)
     import datetime
-    df, durumlar, sicaklik_durumlari = bir_segment_uret(
+    df, durumlar, sicaklik_durumlari, kayma_durumlari = bir_segment_uret(
         hatlar, rng, datetime.datetime(2026, 1, 1, 6, 0, 0), None, kusurlar, n_steps=5)
     assert len(df) > 0
     assert set(durumlar.keys()) == {t for _, t, _, _ in

@@ -1,36 +1,36 @@
 {
   "epochs": 25,
   "gizli_boyut": 16,
-  "esik": 0.3782879114151001,
+  "esik": 0.7504488825798035,
   "esik_yuzdelik": 99.0,
-  "n_normal_egitim": 42489,
-  "n_normal_val": 7499,
-  "yanlis_alarm_orani": 0.0135,
-  "ariza_yakalama_orani": 0.8664,
+  "n_normal_egitim": 50185,
+  "n_normal_val": 8857,
+  "yanlis_alarm_orani": 0.0122,
+  "ariza_yakalama_orani": 0.5222,
   "sinif_bazinda": {
     "bearing_fault": {
-      "pencere": 634,
-      "anomali_orani": 1.0
+      "pencere": 605,
+      "anomali_orani": 0.5587
     },
     "brake_fault": {
-      "pencere": 522,
-      "anomali_orani": 0.6418
+      "pencere": 623,
+      "anomali_orani": 0.4543
     },
     "motor_fault": {
-      "pencere": 446,
-      "anomali_orani": 0.8027
+      "pencere": 603,
+      "anomali_orani": 0.2056
     },
     "normal": {
-      "pencere": 11838,
-      "anomali_orani": 0.0135
+      "pencere": 13922,
+      "anomali_orani": 0.0122
     },
     "rail_crack": {
-      "pencere": 61,
-      "anomali_orani": 1.0
+      "pencere": 83,
+      "anomali_orani": 0.9759
     },
     "wheel_flat": {
-      "pencere": 515,
-      "anomali_orani": 0.8874
+      "pencere": 516,
+      "anomali_orani": 0.4167
     }
   }
 }

@@ -127,6 +127,11 @@ yapılabilir.
   (`test_arizali_dingil_orani_gercekci` testinin %15 eşiğini aşmasına) yol açtı — daha kısa
   sabitlerle (40/20/30/300 sn) hem tick-to-tick pürüzsüzlük korunuyor hem de arıza sonrası
   toparlanma gerçekçi bir sürede oluyor.
+  **Gerçekçilik stres testi (26 Ağu 2026)**: sensör kayması (`kayma_yuru`/`KAYMA_KOLONLARI`),
+  şiddetle ölçeklenen arıza frekans sıçraması (`apply_fault`'taki `sev**2` ağırlıklı karışım),
+  rastgele şiddet tavanı (`sev_tavan_uret`, bölüm tuple'ları artık 4'lü:
+  `(f_start, f_len, f_type, sev_tavan)`) ve arızasız operasyonel şok (`operasyonel_sok_uret`,
+  `SOK_*`) eklendi — detaylı gerekçe ve sonuçlar "Model performansı" bölümünde.
 - `rayli_model.py` — **tek gerçek kaynak (single source of truth)**: model mimarisi (`CNNLSTM`
   sınıfı), `SeqDataset`, ve paylaşılan sabitler (`FEATURE_COLS`, `GROUP_COLS`, `WINDOW=10`,
   `STRIDE=2`). Hem eğitim hem tahmin scripti bunu import eder. **Bu dosyada mimariyi
@@ -151,10 +156,12 @@ yapılabilir.
   `load_model_checkpoint` ile yüklenip yalnızca test setinde değerlendirilir — adil kıyas + zaman
   tasarrufu). Her model için `time.perf_counter()` ile test seti üzerinde toplam ve örnek başı
   inference süresi de ölçülür. Çıktı: `results/baseline_karsilastirma.json` +
-  `results/baseline_karsilastirma.md` (okunabilir tablo). Güncel sonuç: final model en iyisi
-  (accuracy 0.9922, macro F1 0.9820), tek başına LSTM/CNN yakın ama biraz zayıf (0.977-0.980),
-  LogReg/RF belirgin şekilde daha zayıf (macro F1 ~0.88-0.90) — mimari seçiminin (özellikle
-  konvolüsyon+LSTM birlikteliğinin) ölçülebilir bir fark yarattığını gösteriyor.
+  `results/baseline_karsilastirma.md` (okunabilir tablo). Güncel sonuç (26 Ağu 2026, gerçekçilik
+  stres testi sonrası veriyle): final model en iyisi (accuracy 0.9700, macro F1 0.9236), tek
+  başına LSTM/CNN yakın ama biraz zayıf (0.911-0.923), LogReg/RF belirgin şekilde daha zayıf
+  (macro F1 0.828/0.891) — mimari seçiminin (özellikle konvolüsyon+LSTM birlikteliğinin)
+  ölçülebilir bir fark yarattığını, artık daha gerçekçi/zorlu bir gürültü rejiminde de gösteriyor
+  (eski, gürültüsüz veri dönemindeki ölçüm: final 0.9922/0.9820, LogReg/RF ~0.88-0.90).
 - `rayli_etiketsiz_uret.py` — `rayli_sistem_test.csv`'yi ikiye ayırır: etiketsiz akış verisi
   (`..._test_akis.csv`) + cevap anahtarı (`..._test_cevap_anahtari.csv`), `sample_id` ile eşleşir.
 - `rayli_canli_akis_sunucu.py` — canlı akış motoru + FastAPI/SSE sunucusu. Etiketsiz veriyi tick
@@ -231,9 +238,11 @@ yapılabilir.
   ortaya çıkar.
 - `rayli_anomali_egitim.py` — autoencoder'ı SADECE `fault_type=normal` pencerelerle eğitir;
   eşik, ayrılan bir validation biriminin yeniden yapılandırma hatasının 99. yüzdelik dilimidir.
-  Mevcut sonuç: normal pencerelerde %1.4 yanlış alarm, bilinen 6 arıza tipini ortalama %86.6
-  oranında "anomali" olarak yakalıyor. Çıktı: `model/rayli_anomali_model.pt` +
-  `results/anomali_egitim_ozeti.json`.
+  Mevcut sonuç (26 Ağu 2026, gerçekçilik stres testi sonrası veriyle yeniden eğitildi): normal
+  pencerelerde %1.2 yanlış alarm, bilinen 6 arıza tipini ortalama %52.2 oranında "anomali" olarak
+  yakalıyor (eski, gürültüsüz veri dönemindeki ölçüm: %1.4 yanlış alarm / %86.6 yakalama — daha
+  zorlu gürültü rejiminde autoencoder'ın da beklenen şekilde daha az kesin olması gerçekçi bir
+  sonuç). Çıktı: `model/rayli_anomali_model.pt` + `results/anomali_egitim_ozeti.json`.
 
 ## NLP metin sınıflandırma modülü (nlp/)
 
@@ -397,20 +406,60 @@ Model **çok görevlidir**: tek gövde (CNN+LSTM), iki başlık — arıza tipi 
 şiddeti (none/mild/moderate/severe). Toplam kayıp = tip + `SEVERITY_AGIRLIK`(0.4) × şiddet.
 
 Gerçek metro ağı verisiyle eğitilen mevcut model, test setinde:
-- **Arıza tipi: accuracy %99.2, macro F1 0.9804** (`bearing_fault` ve `rail_crack` 1.000,
-  `normal` 0.995; en zayıf `motor_fault` F1 0.943)
-- **Arıza şiddeti: accuracy %96.5, macro F1 0.85** (mild/moderate sınırları doğası gereği bulanık)
+- **Arıza tipi: accuracy %97.0, macro F1 0.9236** (`bearing_fault` 0.981, `rail_crack` 0.988,
+  `normal` 0.982; en zayıf `wheel_flat` F1 0.841, `motor_fault` 0.854)
+- **Arıza şiddeti: accuracy %95.5, macro F1 0.736** (mild/moderate sınırları doğası gereği bulanık;
+  `severe` desteği artık çok daha az — bkz. aşağıdaki "gerçekçilik stres testi" notu)
 
 **Sınıf ağırlığı yumuşatma (`AGIRLIK_YUMUSATMA = 0.5`)**: veri %85 `normal` olduğu için tam
 "balanced" ters frekans ağırlığı nadir sınıflara ~35 kat ağırlık verip modeli "arıza de" yönünde
 aşırı zorluyordu — recall yükseliyor ama precision çöküyordu (`motor_fault` precision 0.61,
 macro F1 0.937). Ağırlıkların karekökü alınıp ortalaması 1'e ölçeklenince precision 0.94'e,
-macro F1 0.9764'e çıktı. Bu değeri değiştirirsen precision/recall dengesinin nasıl kaydığına bak.
+macro F1 0.9764'e çıktı (bu ölçüm eski, gürültüsüz veri döneminden — güncel sayılar yukarıda).
+Bu değeri değiştirirsen precision/recall dengesinin nasıl kaydığına bak.
 
-Canlı akış simülasyonu aynı checkpoint'le uçtan uca ~%98.7 tip / ~%95.5 şiddet doğruluğu üretir;
-bu örtüşme canlı hattın (pencereleme + ölçekleme) doğru kurulduğunun kanıtıdır — akışta ciddi bir
-sapma görürsen önce pencere/scaler tarafına bak. `testler/test_model.py` bunun için %90/%85
-regresyon eşiği tutar.
+**Gerçekçilik stres testi (26 Ağu 2026) — F1 %98-100'den %85-92 bandına bilinçli olarak
+çekildi.** İlk sentetik veri üretiminde arıza tipi macro F1'i 0.9804'e, hatta `bearing_fault`/
+`rail_crack` özelinde F1=1.000'e ulaşıyordu — bu, sahayı yansıtmayan, yapay olarak "kolay" bir
+problemdi. Dört mühendislik müdahalesiyle veri motoruna gerçekçi gürültü/belirsizlik eklendi:
+1. **Sensör kayması (drift)**: `motor_current_a` ve titreşim RMS/tepe kolonlarına, düşük
+   frekanslı, sınırlı bir rastgele yürüyüş (`kayma_yuru()`, `KAYMA_KOLONLARI`) eklendi — gerçek
+   sensörlerin zamanla kalibrasyondan sapmasını temsil eder, segment sınırında da sürekli kalır
+   (`kayma_durumu` state'i, sıcaklık otokorelasyonuyla aynı desende).
+2. **Şiddetle ölçeklenen (incipient-uyumlu) arıza imzası**: `apply_fault()`'taki
+   `vib_dom_freq_hz` sıçraması (wheel_flat/bearing_fault) eskiden şiddetten BAĞIMSIZ, sabit bir
+   bant sıçramasıydı — `sev>0.1` olur olmaz frekans anında normal bandın tamamen dışına
+   atlıyordu, bu da modelin arızayı sıfır hatayla yakalamasına yol açan yapay bir ipucuydu.
+   Artık `sev**2` ağırlıklı bir karışımla hedeflenir (bkz. kod içi yorum) — düşük şiddette hedef
+   banda yalnızca kısmen kayılır. Genlik aralıkları da taban gürültüsüne (`vib_kurtosis` std'si
+   0.2→0.6) göre daha ölçülü seçildi.
+3. **Rastgele şiddet tavanı (`sev_tavan_uret`, `severity_at`'in yeni `tavan` parametresi)**: her
+   arıza bölümü artık %40 ihtimalle hiçbir zaman moderate/severe'e ilerlemeyen "hafif/başlangıç"
+   (incipient) kalıyor (tavan 0.3-0.5), kalan %60'ı normal seyrinde tam şiddete ilerleyebiliyor
+   (tavan 0.7-1.0) — gerçek hayatta her arızanın severe'e ilerlemediğini (bir kısmı erken fark
+   edilip müdahale görür) modelliyor. Bölüm tuple'ları artık `(f_start, f_len, f_type,
+   sev_tavan)` — `make_dedicated_episodes`, `segment_dedicated_episodes`, `generate_series`'in
+   ek arıza enjeksiyonu ve ana döngü hep bu 4'lü yapıyı kullanıyor.
+4. **Operasyonel şok (`operasyonel_sok_uret`, `SOK_*` sabitleri)**: makas/viraj/tünel eğimi gibi
+   ARIZAYLA İLİŞKİSİZ geçişlerde, hareket hâlindeki trenlerde düşük ihtimalle (`SOK_IHTIMALI`)
+   kısa süreli (1-3 tick) titreşim/akustik sıçramaları enjekte edilir; `fault_type`'ı ASLA
+   değiştirmez — amaç, histerezis/belirsizlik mekanizmalarının HER sıçramayı arıza sanmadığını
+   gerçekten sınamak.
+5. **Zero-leakage kontrolü (yeni kod DEĞİL, mevcut mimarinin doğrulanması)**: dışarıdan gelen bir
+   öneri, pencerelerin train/test'e rastgele dağıtıldığını varsayıyordu — kontrol edildi, BU
+   PROJEDE ZATEN DOĞRU: `build_sequences()` train/test için tamamen ayrı dosyalardan, ayrı ayrı
+   çağrılıyor (`rayli_veri_utils.py`), pencereler asla train/test zaman sınırını AŞMIYOR. Bu
+   madde için ek kod değişikliği yapılmadı.
+
+Sonuç: final model hâlâ EN İYİSİ ama artık makul bir farkla (`baseline_karsilastirma.md`,
+26 Ağu 2026 ölçümü) — LogReg 0.828, RF 0.891, tek-CNN 0.911, tek-LSTM 0.923, final CNN+LSTM
+**0.9236**. Anomali tespitinin bilinen arızaları yakalama oranı da %86.6'dan %52.2'ye düştü
+(yanlış alarm oranı hâlâ düşük, %1.2) — autoencoder da aynı zorlaştırılmış rejimde yeniden
+eğitildi (`rayli_anomali_egitim.py`). **Tüm 125 test, hiçbir regresyon eşiği değiştirilmeden
+geçti** (%90 tip / mevcut eşikler zaten yeterince muhafazakârmış).
+
+Canlı akış simülasyonu aynı checkpoint'le uçtan uca çalışır; `testler/test_model.py` %90 tip
+doğruluk regresyon eşiği tutar (güncel model %97.0 ile hâlâ rahatça geçiyor).
 
 Geçmiş not: eski (gerçek ağ öncesi) sentetik veride skor %98.9 / 0.9754 idi. Gerçek sefer
 profiline geçince (trenler istasyonlarda duruyor, titreşim imzası kayboluyor) problem doğal

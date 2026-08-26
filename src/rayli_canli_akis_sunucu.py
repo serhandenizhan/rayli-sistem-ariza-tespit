@@ -239,6 +239,7 @@ class AkisSimulatoru:
         self._segment_saati = veri_uret.START_TIME       # sabit başlangıç (her "Sıfırla" aynı saat)
         self._hareket_durumlari = None
         self._sicaklik_durumlari = None
+        self._kayma_durumlari = None
         self._sonraki_sample_id = 0
 
         series_list = veri_uret.build_series_list(self._canli_hatlar)
@@ -251,10 +252,10 @@ class AkisSimulatoru:
         konum/hız/bekleme) devam eder, arıza senaryosu taze rastgele seçilir. Pencere/
         histerezis state'i buradan ETKİLENMEZ (`reset()` çağrılmaz) — "kaldığı yerden devam"ın
         karşılığı budur."""
-        df, self._hareket_durumlari, self._sicaklik_durumlari = veri_uret.bir_segment_uret(
+        df, self._hareket_durumlari, self._sicaklik_durumlari, self._kayma_durumlari = veri_uret.bir_segment_uret(
             self._canli_hatlar, self._canli_rng, self._segment_saati,
             self._hareket_durumlari, self.ray_kusurlari, n_steps=veri_uret.SEGMENT_STEPS,
-            sicaklik_durumlari=self._sicaklik_durumlari)
+            sicaklik_durumlari=self._sicaklik_durumlari, kayma_durumlari=self._kayma_durumlari)
         self._segment_saati = df["timestamp"].max() + pd.Timedelta(seconds=veri_uret.WINDOW_SEC)
 
         df["axle_key"] = df.apply(_axle_key, axis=1)
@@ -286,6 +287,7 @@ class AkisSimulatoru:
             self._segment_saati = veri_uret.START_TIME
             self._hareket_durumlari = None
             self._sicaklik_durumlari = None
+            self._kayma_durumlari = None
             self._segment_ekle()
 
         self.tick_index = 0

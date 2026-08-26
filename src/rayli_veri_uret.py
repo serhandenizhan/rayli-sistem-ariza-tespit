@@ -85,6 +85,38 @@ def sinyalizasyon_hiz_carpani(n_steps, rng_local, ihtimal=SINYAL_YAVASLAMA_IHTIM
         carpan[start:start + sure] = deger
     return carpan
 
+
+# --- Operasyonel şok (makas/viraj/tünel eğimi gibi ARIZAYLA İLİŞKİSİZ geçişler) ---
+# Ağ modelinde makas/viraj/tünel eğimi gibi geometrik detaylar tutulmuyor (bkz.
+# istanbul_metro_agi.py notu); bunları konum bazlı modellemek yerine, hareket hâlindeki bir
+# trenin sefer boyunca düşük ihtimalle karşılaşacağı KISA SÜRELİ, arızasız titreşim/akustik
+# sıçramaları temsil eden memory'siz bir olasılık modeli kullanılıyor. Amaç: modelin/histerezis
+# mekanizmasının HER sıçramayı arıza sanmadığını gerçekten sınamak — aksi hâlde arızasız veri
+# baştan sona pürüzsüz kalıp bu mekanizmalar hiç zorlanmıyordu.
+SOK_IHTIMALI = 0.004                     # hareket halindeyken her tick'te şok başlama ihtimali
+SOK_SURE_TICK_ARALIGI = (1, 4)           # rng.integers üst sınır hariç -> 1..3 tick sürer
+SOK_VIB_PEAK_ARALIGI = (0.3, 0.9)
+SOK_ACOUSTIC_ARALIGI = (0.05, 0.15)
+SOK_VIB_RMS_ARALIGI = (0.02, 0.06)
+
+
+def operasyonel_sok_uret(n_steps, rng_local, hiz_arr, ihtimal=SOK_IHTIMALI):
+    """Her adım için 0 (şok yok) ile 1 (tam şiddet) arası bir çarpan dizisi üretir. Tren
+    duruyorken (hiz<=15) şok başlamaz — makas/viraj geçişleri seyir hâlinde olur."""
+    carpan = np.zeros(n_steps)
+    step = 0
+    while step < n_steps:
+        if hiz_arr[step] > 15 and rng_local.random() < ihtimal:
+            sure = int(rng_local.integers(*SOK_SURE_TICK_ARALIGI))
+            for i in range(sure):
+                if step + i >= n_steps:
+                    break
+                carpan[step + i] = rng_local.uniform(0.5, 1.0)
+            step += sure
+        else:
+            step += 1
+    return carpan
+
 # --- Canlı/sürekli akış (rayli_canli_akis_sunucu.py --kaynak canli) için segment ayarları ---
 # Sabit dosya yerine sunucu bu modülü CANLI çağırır; her segment TAZE rastgele bir arıza
 # senaryosu içerir (offline main()'in SEED=42'li deterministik üretiminden bağımsız, ayrı bir
@@ -315,6 +347,38 @@ def sicaklik_yumusat(ham_deger, onceki_deger, kolon, dt=WINDOW_SEC):
     return onceki_deger + alfa * (ham_deger - onceki_deger)
 
 
+# --- Sensör kayması (drift) ---
+# Gerçek sensörler zamanla kalibrasyondan sapar (düşük frekanslı "pembe gürültü" karakterinde
+# bir taban çizgisi kayması) — bu, saf beyaz gürültüden farklı olarak modelin kolayca
+# filtreleyemeyeceği, yavaşça yön değiştiren bir sapma. Özellikle rulman arızasının en çok
+# dayandığı titreşim kolonlarında ve motor akımında ekliyoruz — bearing_fault/motor_fault gibi
+# şu an aşırı net ayrışan sınıfları daha zorlu, sahaya daha yakın bir gürültü rejimine çeker.
+KAYMA_KOLONLARI = ["motor_current_a", "vib_x_rms_g", "vib_y_rms_g", "vib_z_rms_g", "vib_peak_g"]
+KAYMA_ADIM_STD = {
+    "motor_current_a": 0.25,
+    "vib_x_rms_g": 0.003,
+    "vib_y_rms_g": 0.003,
+    "vib_z_rms_g": 0.004,
+    "vib_peak_g": 0.008,
+}
+KAYMA_SINIR = {
+    "motor_current_a": 14.0,
+    "vib_x_rms_g": 0.06,
+    "vib_y_rms_g": 0.06,
+    "vib_z_rms_g": 0.08,
+    "vib_peak_g": 0.16,
+}
+
+
+def kayma_yuru(onceki_deger, kolon, rng_local):
+    """Sınırlı bir rastgele yürüyüş (bounded random walk): bir önceki adımdaki kaymaya küçük
+    rastgele bir adım ekler, `KAYMA_SINIR`'i aşmayacak şekilde kelepçeler. `onceki_deger=None`
+    ise (serinin/segmentin ilk adımı) sıfırdan başlar."""
+    onceki = onceki_deger if onceki_deger is not None else 0.0
+    adim = rng_local.normal(0, KAYMA_ADIM_STD[kolon])
+    return float(np.clip(onceki + adim, -KAYMA_SINIR[kolon], KAYMA_SINIR[kolon]))
+
+
 def base_row(speed_kmh, load_ton, ivme_ms2=0.0, fren_aktivite=0.0):
     """Sağlıklı (normal) durum için gürültülü temel sensör değerleri.
     Titreşim/akustik büyüklükler hızla artar — duran trende titreşim yok denecek kadar azdır.
@@ -331,7 +395,7 @@ def base_row(speed_kmh, load_ton, ivme_ms2=0.0, fren_aktivite=0.0):
         "vib_y_rms_g": max(0.0, rng.normal(0.02, 0.005) + 0.045 * hiz_faktor),
         "vib_z_rms_g": max(0.0, rng.normal(0.03, 0.006) + 0.060 * hiz_faktor),
         "vib_peak_g": max(0.0, rng.normal(0.06, 0.012) + 0.130 * hiz_faktor),
-        "vib_kurtosis": rng.normal(3.0, 0.2),
+        "vib_kurtosis": rng.normal(3.0, 0.6),
         "vib_crest_factor": rng.normal(2.8, 0.15),
         "vib_dom_freq_hz": max(0.0, rng.normal(2.0, 0.3) + 0.02 * speed_kmh),
         "acoustic_rms": max(0.0, rng.normal(0.008, 0.002) + 0.020 * hiz_faktor),
@@ -350,18 +414,36 @@ def base_row(speed_kmh, load_ton, ivme_ms2=0.0, fren_aktivite=0.0):
 def apply_fault(row, fault_type, sev, speed_kmh):
     """Verilen arıza tipi ve şiddetine (0-1) göre satırı bozar."""
     if fault_type == "wheel_flat":
-        # düzlük darbesi tekerlek dönüş frekansında; hız arttıkça darbe şiddeti artar
+        # düzlük darbesi tekerlek dönüş frekansında; hız arttıkça darbe şiddeti artar.
+        # Frekans hedefi ŞİDDETLE ÖLÇEKLENİR (eskiden sev'den bağımsız, sabit bir sıçramaydı —
+        # arızanın DAHA İLK ANINDA (sev>0.1) bile frekansı normal bandın tamamen dışına
+        # atıyordu, bu da modelin arızayı sıfır hatayla yakalamasına yol açan yapay bir ipucuydu.
+        # Artık düşük şiddette hedef frekansa yalnızca kısmen kayılıyor — "başlangıç/hafif"
+        # arıza, normal titreşim imzasına gerçekten yakın kalıyor).
         wheel_rot_hz = max(speed_kmh, 1) / 3.6 / (np.pi * WHEEL_DIAM_M)
         hiz_kat = 0.3 + 0.7 * min(speed_kmh / 60.0, 1.0)
-        row["vib_dom_freq_hz"] = max(0.0, wheel_rot_hz + rng.normal(0, 0.05))
-        row["vib_crest_factor"] += sev * hiz_kat * rng.uniform(2.5, 4.0)
-        row["vib_peak_g"] += sev * hiz_kat * rng.uniform(1.0, 1.8)
-        row["vib_kurtosis"] += sev * hiz_kat * rng.uniform(1.5, 3.0)
+        hedef_freq = max(0.0, wheel_rot_hz + rng.normal(0, 0.05))
+        # sev**2 ağırlık: frekans hedefi yalnızca ŞİDDET ZİRVEYE YAKLAŞTIKÇA baskın hâle
+        # gelir (sev=0.3 -> ağırlık 0.09, sev=0.7 -> 0.49) — doğrusal ağırlıklandırma bile
+        # normal bandın (~0-5 Hz) çok dışındaki hedef bant (800-1200 Hz benzeri farklar) için
+        # yetersiz kalıyordu, orta şiddette bile neredeyse tam sıçrama oluyordu.
+        agirlik = sev ** 2
+        row["vib_dom_freq_hz"] = row["vib_dom_freq_hz"] * (1 - agirlik) + hedef_freq * agirlik
+        row["vib_crest_factor"] += sev * hiz_kat * rng.uniform(1.5, 2.6)
+        row["vib_peak_g"] += sev * hiz_kat * rng.uniform(0.6, 1.1)
+        row["vib_kurtosis"] += sev * hiz_kat * rng.uniform(0.9, 1.9)
     elif fault_type == "bearing_fault":
-        row["vib_kurtosis"] += sev * rng.uniform(3.0, 6.0)
-        row["vib_dom_freq_hz"] = rng.uniform(800, 1200)
-        row["axle_box_temp_c"] += sev * rng.uniform(15, 30)
-        row["vib_x_rms_g"] += sev * rng.uniform(0.05, 0.15)
+        # Aynı düzeltme burada da geçerli: rulman kusur frekansı (800-1200 Hz) şiddetle
+        # ÖLÇEKLENEREK hedeflenir, sev>0.1'de anında sıçramaz. Genlikler de (kurtosis/sıcaklık)
+        # gürültü tabanına göre daha ölçülü seçildi — eskiden taban gürültüsünün (std=0.2)
+        # onlarca katı bir sıçrama yapıyordu, bu da neredeyse hatasız (F1=1.000) bir ayrışmaya
+        # yol açıyordu.
+        row["vib_kurtosis"] += sev * rng.uniform(0.9, 2.1)
+        hedef_freq = rng.uniform(800, 1200)
+        agirlik = sev ** 2
+        row["vib_dom_freq_hz"] = row["vib_dom_freq_hz"] * (1 - agirlik) + hedef_freq * agirlik
+        row["axle_box_temp_c"] += sev * rng.uniform(5, 11)
+        row["vib_x_rms_g"] += sev * rng.uniform(0.02, 0.055)
     elif fault_type == "brake_fault":
         row["brake_temp_c"] += sev * rng.uniform(50, 100)
         row["motor_current_a"] += sev * rng.uniform(3, 8)
@@ -375,17 +457,33 @@ def apply_fault(row, fault_type, sev, speed_kmh):
     return row
 
 
-def severity_at(step, fault_start, fault_len):
+def severity_at(step, fault_start, fault_len, tavan=1.0):
     """mild -> moderate -> severe -> (onarım varsayımıyla) normale dönüş üçgen profili.
+
+    `tavan` (0-1), bu BÖLÜMÜN ulaşabileceği azami şiddeti sınırlar. Gerçek hayatta her arıza
+    "severe"ye ilerlemez — bir kısmı erken fark edilip müdahale görür, hafif kalır. `tavan=1.0`
+    (varsayılan) eski davranışla birebir aynıdır. Bölüm üretimindeki (`make_dedicated_episodes`,
+    `segment_dedicated_episodes`, `generate_series`'in ek arıza enjeksiyonu) çağıranlar bunu
+    rastgele, bölüm başına ÖNCEDEN örnekleyip veriyor — böylece bazı arızalar baştan sona
+    "hafif/başlangıç" (incipient) kalırken bazıları tam şiddete ilerliyor; bu, modelin şiddet
+    zirvesindeki (çoğu zaman en ayırt edici) örneklere aşırı bağımlı kalmasını engelliyor.
 
     `fault_len<=0` normalde üretilmez (segment/offline üretimde f_len her zaman pozitif
     hesaplanır) ama savunmacı bir asgari değer uygulanır — çok küçük `n_steps` (test/edge-case)
     ile çağrıldığında sıfıra bölme çökmesini önler."""
     fault_len = max(1, fault_len)
     rel = (step - fault_start) / fault_len
-    if rel < 0.5:
-        return min(1.0, rel * 2)
-    return max(0.0, 1 - (rel - 0.5) * 2)
+    taban = min(1.0, rel * 2) if rel < 0.5 else max(0.0, 1 - (rel - 0.5) * 2)
+    return taban * tavan
+
+
+def sev_tavan_uret(rng_local, hafif_ihtimali=0.4):
+    """Bir arıza bölümü için rastgele bir şiddet tavanı örnekler — %40 ihtimalle bölüm hiçbir
+    zaman moderate/severe'e ilerlemeyen "hafif/başlangıç" (incipient) kalır (tavan 0.3-0.5),
+    kalanında normal seyrinde tam şiddete kadar ilerleyebilir (tavan 0.7-1.0)."""
+    if rng_local.random() < hafif_ihtimali:
+        return float(rng_local.uniform(0.3, 0.5))
+    return float(rng_local.uniform(0.7, 1.0))
 
 
 def severity_label(sev_value):
@@ -426,7 +524,7 @@ def build_series_list(hatlar):
 
 def make_dedicated_episodes(series_list):
     """Her arıza tipi için hem train hem test zaman diliminde garanti örnek üretecek
-    şekilde (start, len, type) bölümleri atar.
+    şekilde (start, len, type, sev_tavan) bölümleri atar.
 
     Bölüm sayısı seri (dingil) sayısıyla ORANTILIDIR — yeni hat/tren eklendiğinde arıza
     yoğunluğu sabit kalsın, sınıf dengesi bozulmasın diye.
@@ -444,7 +542,7 @@ def make_dedicated_episodes(series_list):
             ptr += 1
             f_len = int(N_STEPS * rng.uniform(0.10, 0.18))
             f_start = int(rng.integers(0, int(N_STEPS * 0.5) - f_len))
-            dedicated[s].append((f_start, f_len, f_type))
+            dedicated[s].append((f_start, f_len, f_type, sev_tavan_uret(rng)))
         for _ in range(test_bolum):      # test zaman diliminde (split noktasından sonra)
             s = series_list[idx_pool[ptr % len(idx_pool)]]
             ptr += 1
@@ -452,13 +550,13 @@ def make_dedicated_episodes(series_list):
             latest_start = N_STEPS - f_len - 1
             earliest_start = int(N_STEPS * TRAIN_TEST_SPLIT_FRAC) + 2
             f_start = int(rng.integers(earliest_start, max(earliest_start + 1, latest_start)))
-            dedicated[s].append((f_start, f_len, f_type))
+            dedicated[s].append((f_start, f_len, f_type, sev_tavan_uret(rng)))
     return dedicated
 
 
 def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, kusurlar,
                     n_steps=None, baslangic_zamani=None, ek_ariza_ihtimali=0.35,
-                    sicaklik_durumu=None):
+                    sicaklik_durumu=None, kayma_durumu=None):
     """Bir dingil için tüm zaman serisini üretir. Hareket (konum/hız) tren geneliyle paylaşılır.
 
     `n_steps`/`baslangic_zamani` verilmezse offline üretimin (main()) global sabitleri
@@ -470,9 +568,10 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
     `sicaklik_durumu` verilirse (bir önceki segmentin son yumuşatılmış sıcaklık değerleri,
     `SICAKLIK_KOLONLARI` anahtarlı dict) sıcaklık kolonları segment sınırında da SÜREKLİ kalır
     (tren fiziksel state'inin `baslangic_durumu` ile taşınmasıyla aynı desen). `None` ise
-    (offline `main()` veya ilk segment) her kolon kendi ilk ham değeriyle başlar.
+    (offline `main()` veya ilk segment) her kolon kendi ilk ham değeriyle başlar. `kayma_durumu`
+    aynı deseni `KAYMA_KOLONLARI` (sensör kayması) için uygular.
 
-    Döner: `(rows, yeni_sicaklik_durumu)`.
+    Döner: `(rows, yeni_sicaklik_durumu, yeni_kayma_durumu)`.
     """
     n_steps = n_steps or N_STEPS
     baslangic_zamani = baslangic_zamani or START_TIME
@@ -486,7 +585,7 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
         f_type = rng.choice(FAULT_TYPES)
         f_len = int(n_steps * rng.uniform(0.08, 0.20))
         f_start = int(rng.integers(0, max(1, n_steps - f_len)))
-        episodes.append((f_start, f_len, f_type))
+        episodes.append((f_start, f_len, f_type, sev_tavan_uret(rng)))
 
     # vagon yükü: yolcu yüküne göre sefer boyunca yavaşça değişir
     temel_yuk = rng.uniform(20, 40)
@@ -502,7 +601,11 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
         birikim = max(f, birikim * 0.88)
         fren_aktivite[i] = birikim
 
+    # Arızasız operasyonel şok (makas/viraj geçişi vb.) — bkz. modül başındaki not.
+    sok_carpan = operasyonel_sok_uret(n_steps, rng, hiz_arr)
+
     sicaklik_onceki = dict(sicaklik_durumu) if sicaklik_durumu else {c: None for c in SICAKLIK_KOLONLARI}
+    kayma_onceki = dict(kayma_durumu) if kayma_durumu else {c: None for c in KAYMA_KOLONLARI}
 
     for step in range(n_steps):
         speed = float(hiz_arr[step])
@@ -514,9 +617,9 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
 
         active_fault = "normal"
         sev_val = 0.0
-        for f_start, f_len, f_type in episodes:
+        for f_start, f_len, f_type, sev_tavan in episodes:
             if f_start <= step < f_start + f_len:
-                sev_val = severity_at(step, f_start, f_len)
+                sev_val = severity_at(step, f_start, f_len, sev_tavan)
                 if sev_val > 0.1:
                     row = apply_fault(row, f_type, sev_val, speed)
                     active_fault = f_type
@@ -533,11 +636,28 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
                     active_fault = "rail_crack"
                     sev_val = site_sev
 
+        # Operasyonel şok: fault_type'ı ASLA değiştirmez, sadece titreşim/akustik sinyaline
+        # arızasız, kısa süreli bir sıçrama ekler (bkz. modül başındaki not).
+        if sok_carpan[step] > 0:
+            yogunluk = sok_carpan[step]
+            row["vib_peak_g"] = max(0.0, row["vib_peak_g"] + yogunluk * rng.uniform(*SOK_VIB_PEAK_ARALIGI))
+            row["acoustic_rms"] = max(0.0, row["acoustic_rms"] + yogunluk * rng.uniform(*SOK_ACOUSTIC_ARALIGI))
+            for kolon in ("vib_x_rms_g", "vib_y_rms_g", "vib_z_rms_g"):
+                row[kolon] = max(0.0, row[kolon] + yogunluk * rng.uniform(*SOK_VIB_RMS_ARALIGI))
+
         # Sıcaklık otokorelasyonu: ham (bağımsız gürültülü + arıza etkili) değer, bir önceki
         # adıma göre EMA ile yumuşatılır — termal atalet nedeniyle 2 sn'de bir sıçramaz.
         for kolon in SICAKLIK_KOLONLARI:
             row[kolon] = sicaklik_yumusat(row[kolon], sicaklik_onceki[kolon], kolon)
             sicaklik_onceki[kolon] = row[kolon]
+
+        # Sensör kayması: yavaşça yön değiştiren bir taban çizgisi sapması, her adımda ekleniyor.
+        # vib_* kolonları fiziksel olarak negatif olamaz (bkz. base_row notu); motor_current_a
+        # zaten negatif olabildiği için kelepçelenmiyor.
+        for kolon in KAYMA_KOLONLARI:
+            kayma_onceki[kolon] = kayma_yuru(kayma_onceki[kolon], kolon, rng)
+            yeni_deger = row[kolon] + kayma_onceki[kolon]
+            row[kolon] = yeni_deger if kolon == "motor_current_a" else max(0.0, yeni_deger)
 
         lat, lon = km_den_konuma(hat, track_km)
         idx = int(sonraki_ist[step])
@@ -558,7 +678,7 @@ def generate_series(hat, train_id, wagon_id, axle_id, forced_episodes, hareket, 
             "fault_severity": severity_label(sev_val),
         })
         rows.append(row)
-    return rows, sicaklik_onceki
+    return rows, sicaklik_onceki, kayma_onceki
 
 
 # ---------------------------------------------------------------------------
@@ -581,12 +701,12 @@ def segment_dedicated_episodes(series_list, rng_local, n_steps,
         f_type = rng_local.choice(FAULT_TYPES)
         f_len = min(int(n_steps * rng_local.uniform(*uzunluk_araligi)), n_steps - 1)
         f_start = int(rng_local.integers(0, max(1, n_steps - f_len)))
-        dedicated[s].append((f_start, f_len, f_type))
+        dedicated[s].append((f_start, f_len, f_type, sev_tavan_uret(rng_local)))
     return dedicated
 
 
 def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kusurlar,
-                      n_steps=SEGMENT_STEPS, sicaklik_durumlari=None):
+                      n_steps=SEGMENT_STEPS, sicaklik_durumlari=None, kayma_durumlari=None):
     """Canlı/sürekli akış modu için bir segment (varsayılan 300 tick = 10 dk) sentetik veri
     üretir. `hareket_durumlari` (önceki segmentin `tren_hareketi` bitiş durumları, train_id'ye
     göre) `None` ise (ilk segment) trenler rastgele/eşit-aralıklı başlar; sonraki çağrılarda
@@ -597,9 +717,10 @@ def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kus
 
     `sicaklik_durumlari` (önceki segmentin son yumuşatılmış sıcaklık değerleri, seri/dingil
     anahtarına göre) aynı "kaldığı yerden devam" desenini sıcaklık kolonlarına da uygular —
-    aksi hâlde her segment sınırında sıcaklıklar sıfırlanıp yeniden ısınırdı.
+    aksi hâlde her segment sınırında sıcaklıklar sıfırlanıp yeniden ısınırdı. `kayma_durumlari`
+    aynı deseni sensör kayması (drift) için uygular.
 
-    Döner: `(segment_df, yeni_hareket_durumlari, yeni_sicaklik_durumlari)`.
+    Döner: `(segment_df, yeni_hareket_durumlari, yeni_sicaklik_durumlari, yeni_kayma_durumlari)`.
     """
     series_list = build_series_list(hatlar)
     dedicated = segment_dedicated_episodes(series_list, rng_local, n_steps)
@@ -628,22 +749,25 @@ def bir_segment_uret(hatlar, rng_local, baslangic_zamani, hareket_durumlari, kus
 
     rows = []
     yeni_sicaklik_durumlari = {}
+    yeni_kayma_durumlari = {}
     for s in series_list:
         kod, train_id, wagon_id, axle_id = s
-        s_rows, s_sicaklik = generate_series(
+        s_rows, s_sicaklik, s_kayma = generate_series(
             hatlar[kod], train_id, wagon_id, axle_id, dedicated[s], hareketler[train_id],
             kusurlar, n_steps=n_steps, baslangic_zamani=baslangic_zamani,
             ek_ariza_ihtimali=SEGMENT_EK_ARIZA_IHTIMALI,
-            sicaklik_durumu=(sicaklik_durumlari or {}).get(s))
+            sicaklik_durumu=(sicaklik_durumlari or {}).get(s),
+            kayma_durumu=(kayma_durumlari or {}).get(s))
         rows.extend(s_rows)
         yeni_sicaklik_durumlari[s] = s_sicaklik
+        yeni_kayma_durumlari[s] = s_kayma
 
     df = pd.DataFrame(rows)[COL_ORDER]
     float_cols = df.select_dtypes(include=[float]).columns
     df[float_cols] = df[float_cols].round(4)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.sort_values(["timestamp", "train_id", "wagon_id", "axle_id"]).reset_index(drop=True)
-    return df, yeni_durumlar, yeni_sicaklik_durumlari
+    return df, yeni_durumlar, yeni_sicaklik_durumlari, yeni_kayma_durumlari
 
 
 def main():
@@ -679,8 +803,8 @@ def main():
     all_rows = []
     for s in series_list:
         kod, train_id, wagon_id, axle_id = s
-        s_rows, _ = generate_series(hatlar[kod], train_id, wagon_id, axle_id,
-                                    dedicated[s], hareketler[train_id], kusurlar)
+        s_rows, _, _ = generate_series(hatlar[kod], train_id, wagon_id, axle_id,
+                                       dedicated[s], hareketler[train_id], kusurlar)
         all_rows.extend(s_rows)
 
     df = pd.DataFrame(all_rows)

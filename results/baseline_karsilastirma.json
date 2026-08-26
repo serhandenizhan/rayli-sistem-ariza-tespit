@@ -4,42 +4,42 @@
   "sonuclar": [
     {
       "model": "Logistic Regression",
-      "accuracy": 0.9806139921722113,
-      "macro_f1": 0.8775357955637578,
-      "toplam_inference_sn": 0.005264792000000185,
-      "ornek_basi_ms": 0.0003219662426614595,
+      "accuracy": 0.9680772994129159,
+      "macro_f1": 0.8280799114471157,
+      "toplam_inference_sn": 0.004419834000000122,
+      "ornek_basi_ms": 0.00027029317514677855,
       "n_test": 16352
     },
     {
       "model": "Random Forest",
-      "accuracy": 0.9825097847358122,
-      "macro_f1": 0.8971656990566513,
-      "toplam_inference_sn": 0.039634833000000924,
-      "ornek_basi_ms": 0.0024238523116438923,
+      "accuracy": 0.9739481409001957,
+      "macro_f1": 0.8910283284345076,
+      "toplam_inference_sn": 0.040080624999998093,
+      "ornek_basi_ms": 0.002451114542563484,
       "n_test": 16352
     },
     {
       "model": "1D-CNN (tek başına)",
-      "accuracy": 0.9905210371819961,
-      "macro_f1": 0.977179647694781,
-      "toplam_inference_sn": 0.25867295799999823,
-      "ornek_basi_ms": 0.015819040973581104,
+      "accuracy": 0.9721746575342466,
+      "macro_f1": 0.9106854235604512,
+      "toplam_inference_sn": 0.24456295799999594,
+      "ornek_basi_ms": 0.014956149584148482,
       "n_test": 16352
     },
     {
       "model": "LSTM (tek başına)",
-      "accuracy": 0.9913772015655578,
-      "macro_f1": 0.9798550184806958,
-      "toplam_inference_sn": 0.05927025000000441,
-      "ornek_basi_ms": 0.003624648361057021,
+      "accuracy": 0.9710127201565558,
+      "macro_f1": 0.9228351737517428,
+      "toplam_inference_sn": 0.06064850000000632,
+      "ornek_basi_ms": 0.0037089346868888406,
       "n_test": 16352
     },
     {
       "model": "Final CNN+LSTM (çok görevli, kayıtlı checkpoint)",
-      "accuracy": 0.9922333659491194,
-      "macro_f1": 0.9819945452437144,
-      "toplam_inference_sn": 0.26296854200000297,
-      "ornek_basi_ms": 0.01608173568982406,
+      "accuracy": 0.9699730919765166,
+      "macro_f1": 0.923618020888768,
+      "toplam_inference_sn": 0.22678820899999863,
+      "ornek_basi_ms": 0.013869141939823791,
       "n_test": 16352
     }
   ]
